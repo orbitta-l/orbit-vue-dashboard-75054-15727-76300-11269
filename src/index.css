@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 214 100% 1%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 214 100% 1%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 214 100% 1%;
+
+    --primary: 215 100% 23%;
+    --primary-foreground: 0 0% 100%;
+    
+    --primary-dark: 223 83% 7%;
+    
+    --secondary: 200 2% 81%;
+    --secondary-foreground: 214 100% 1%;
+
+    --muted: 200 2% 81%;
+    --muted-foreground: 214 20% 40%;
+
+    --accent: 21 58% 71%;
+    --accent-foreground: 214 100% 1%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 200 10% 90%;
+    --input: 200 10% 90%;
+    --ring: 215 100% 23%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 223 83% 7%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 215 100% 23%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 100% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 223 70% 12%;
+    --sidebar-ring: 215 100% 23%;
+    
+    --chart-1: 215 100% 23%;
+    --chart-2: 21 58% 71%;
+    --chart-3: 200 2% 81%;
+    --chart-4: 223 83% 7%;
+    
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 227 60% 9%;
+    --foreground: 0 0% 100%;
+
+    --card: 227 50% 15%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 227 50% 15%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 219 98% 23%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 227 40% 25%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 227 40% 25%;
+    --muted-foreground: 90 2% 81%;
+
+    --accent: 21 60% 68%;
+    --accent-foreground: 227 60% 9%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 227 40% 25%;
+    --input: 227 40% 25%;
+    --ring: 219 98% 23%;
+    
+    --icon-color: 21 60% 68%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
