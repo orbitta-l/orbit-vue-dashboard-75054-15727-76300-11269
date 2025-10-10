@@ -1,7 +1,8 @@
-import { Home, Users, ClipboardCheck, LogOut, Rocket, Settings } from "lucide-react";
+import { Home, Users, ClipboardCheck, LogOut, Settings } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import logo from "@/assets/logo.png";
 
 const navItems = [
   { to: "/", icon: Home, label: "Home" },
@@ -26,13 +27,7 @@ export const Sidebar = () => {
     <aside className="fixed left-0 top-0 h-screen w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-            <Rocket className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-sidebar-foreground">ORBITTA</h1>
-            <p className="text-xs text-sidebar-foreground/70">Dashboard do Líder</p>
-          </div>
+          <img src={logo} alt="ORBITTA Logo" className="h-8" />
         </div>
       </div>
 
