@@ -77,21 +77,9 @@ export default function Landing() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate("/login")}
-            className="px-6 py-2 bg-transparent border-2 border-transparent bg-gradient-to-r from-[#E09F7D] to-white bg-clip-border text-white text-sm font-medium rounded-lg transition-all duration-300 hover:bg-gradient-to-r hover:from-[rgba(224,159,125,0.2)] hover:to-[rgba(255,255,255,0.05)] hover:text-[#E09F7D] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(224,159,125,0.3)]"
-            style={{
-              borderImage: "linear-gradient(90deg, #E09F7D, #FFFFFF) 1",
-            }}
+            className="px-8 py-2.5 bg-gradient-to-r from-[#E09F7D] to-[#D4855F] hover:from-[#D4855F] hover:to-[#C67548] text-white text-sm font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
           >
-            Entrar
-          </button>
-          <button
-            onClick={() => navigate("/login")}
-            className="px-6 py-2 bg-transparent border-2 border-transparent bg-gradient-to-r from-[#E09F7D] to-white bg-clip-border text-white text-sm font-medium rounded-lg transition-all duration-300 hover:bg-gradient-to-r hover:from-[rgba(224,159,125,0.2)] hover:to-[rgba(255,255,255,0.05)] hover:text-[#E09F7D] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(224,159,125,0.3)]"
-            style={{
-              borderImage: "linear-gradient(90deg, #E09F7D, #FFFFFF) 1",
-            }}
-          >
-            Cadastrar
+            Acessar Plataforma
           </button>
         </div>
       </header>
@@ -121,10 +109,26 @@ export default function Landing() {
           </button>
         </div>
 
-        {/* Decorative rings */}
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 border border-white/40 rounded-full -translate-x-1/2 -translate-y-1/2 animate-[spin_25s_linear_infinite] opacity-20" />
-        <div className="absolute top-1/2 left-1/2 w-[560px] h-[560px] border border-white/40 rounded-full -translate-x-1/2 -translate-y-1/2 animate-[spin_40s_linear_infinite] opacity-20" />
-        <div className="absolute top-1/2 left-1/2 w-[760px] h-[760px] border border-white/40 rounded-full -translate-x-1/2 -translate-y-1/2 animate-[spin_55s_linear_infinite] opacity-20" />
+        {/* Animated orbiting system */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] pointer-events-none">
+          {/* Central orbit circle */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-[#E09F7D]/30 rounded-full" />
+          
+          {/* First orbiting planet - large */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] animate-[spin_20s_linear_infinite]">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-[#E09F7D]/40 to-[#E09F7D]/10 rounded-full blur-md" />
+          </div>
+          
+          {/* Second orbiting planet - medium */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] animate-[spin_30s_linear_infinite_reverse]">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-gradient-to-br from-white/30 to-white/5 rounded-full blur-md" />
+          </div>
+          
+          {/* Third orbiting planet - outer */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] animate-[spin_40s_linear_infinite]">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-gradient-to-br from-[#012873]/50 to-[#012873]/10 rounded-full blur-md" />
+          </div>
+        </div>
 
         {/* Curved bottom */}
         <div className="absolute bottom-0 left-0 w-full h-[50vh] overflow-hidden">

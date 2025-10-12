@@ -16,7 +16,6 @@ import Compare from "./pages/Compare";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
-import DashboardLider from "./pages/DashboardLider";
 import DashboardLiderado from "./pages/DashboardLiderado";
 
 const queryClient = new QueryClient();
@@ -40,7 +39,7 @@ const App = () => (
               path="/dashboard-lider" 
               element={
                 <ProtectedRoute allowedRole="lider">
-                  <DashboardLider />
+                  <DashboardLayout><Home /></DashboardLayout>
                 </ProtectedRoute>
               } 
             />

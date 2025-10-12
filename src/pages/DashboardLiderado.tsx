@@ -2,8 +2,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
 import { LogOut, Target, BookOpen, TrendingUp } from "lucide-react";
+import { 
+  RadarChart, 
+  PolarGrid, 
+  PolarAngleAxis, 
+  PolarRadiusAxis, 
+  Radar, 
+  Legend,
+  ResponsiveContainer 
+} from "recharts";
 
 export default function DashboardLiderado() {
   const { profile, logout } = useAuth();
@@ -14,28 +22,30 @@ export default function DashboardLiderado() {
     navigate("/", { replace: true });
   };
 
-  // Mock de competências comportamentais - Escala 1-4 (CRÍTICO)
-  const competenciasComportamentais = [
-    { nome: "Comunicação", peso: 2, nivel: 2 },
-    { nome: "Trabalho em Equipe", peso: 3, nivel: 3 },
-    { nome: "Capacidade de Aprendizado", peso: 3, nivel: 3 },
-    { nome: "Iniciativa", peso: 1, nivel: 1 },
-    { nome: "Adaptabilidade", peso: 2, nivel: 2 },
+  // Mock de competências para o Gráfico VERSUS - Escala 1-4 (CRÍTICO)
+  const competenciasVersus = [
+    { competencia: "Comunicação", atual: 2, ideal: 4 },
+    { competencia: "Trabalho em Equipe", atual: 3, ideal: 4 },
+    { competencia: "Aprendizado", atual: 3, ideal: 4 },
+    { competencia: "Iniciativa", atual: 1, ideal: 3 },
+    { competencia: "Adaptabilidade", atual: 2, ideal: 4 },
+    { competencia: "React", atual: 3, ideal: 4 },
+    { competencia: "TypeScript", atual: 2, ideal: 4 },
+    { competencia: "API REST", atual: 3, ideal: 4 },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#090F24] to-[#000303]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white/5 backdrop-blur-sm border-b border-white/10">
+      <header className="bg-card border-b border-border">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-white">Meu Desenvolvimento</h1>
-            <p className="text-sm text-gray-400">Bem-vindo(a), {profile?.name}</p>
+            <h1 className="text-2xl font-bold text-foreground">Meu Desenvolvimento</h1>
+            <p className="text-sm text-muted-foreground">Bem-vindo(a), {profile?.name}</p>
           </div>
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Sair
@@ -47,136 +57,137 @@ export default function DashboardLiderado() {
       <main className="container mx-auto px-6 py-8">
         <div className="grid gap-6 md:grid-cols-3 mb-8">
           {/* Cards de Estatísticas Pessoais */}
-          <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+          <Card className="hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Target className="w-5 h-5 text-[#E09F7D]" />
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-accent" />
                 Minha Maturidade
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-white">M2</p>
-              <p className="text-sm text-gray-400">Aprendiz</p>
+              <p className="text-3xl font-bold text-foreground">M2</p>
+              <p className="text-sm text-muted-foreground">Aprendiz</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+          <Card className="hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <BookOpen className="w-5 h-5 text-[#E09F7D]" />
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-accent" />
                 Competências
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-white">5</p>
-              <p className="text-sm text-gray-400">em avaliação</p>
+              <p className="text-3xl font-bold text-foreground">8</p>
+              <p className="text-sm text-muted-foreground">em avaliação</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+          <Card className="hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <TrendingUp className="w-5 h-5 text-[#E09F7D]" />
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-accent" />
               Progresso
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-white">68%</p>
-              <p className="text-sm text-gray-400">da meta ideal</p>
+              <p className="text-3xl font-bold text-foreground">68%</p>
+              <p className="text-sm text-muted-foreground">da meta ideal</p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Competências Comportamentais - UC-09 */}
-          <Card className="bg-white/5 backdrop-blur-sm border-white/10">
-            <CardHeader>
-              <CardTitle className="text-white">Competências Comportamentais</CardTitle>
-              <CardDescription className="text-gray-400">
-                Avalie as habilidades comportamentais de {profile?.name}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {competenciasComportamentais.map((comp, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-white font-medium">{comp.nome}</Label>
-                    <span className="text-sm text-gray-400">
-                      Peso: {comp.nivel} | <span className="text-[#E09F7D]">3/5</span>
-                    </span>
-                  </div>
-                  <Slider
-                    defaultValue={[comp.nivel]}
-                    min={1}
-                    max={4}
-                    step={1}
-                    disabled
-                    className="w-full"
-                  />
-                  <p className="text-xs text-gray-500">
-                    Escala: 1 (Iniciante) a 4 (Expert)
-                  </p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Gráfico VERSUS - Atual vs Ideal */}
-          <Card className="bg-white/5 backdrop-blur-sm border-white/10">
-            <CardHeader>
-              <CardTitle className="text-white">Competências - Atual vs Ideal</CardTitle>
-              <CardDescription className="text-gray-400">
-                Visualização comparativa do seu desenvolvimento
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center h-96 relative">
-                <img 
-                  src="/liderado.svg" 
-                  alt="Visualização Liderado" 
-                  className="max-h-full opacity-30"
+        {/* Gráfico VERSUS - Atual vs Ideal (Principal Funcionalidade) */}
+        <Card className="mb-8 hover:shadow-lg transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-primary" />
+              Gráfico de Gap de Conhecimento - VERSUS
+            </CardTitle>
+            <CardDescription>
+              Comparação visual entre seu perfil atual e o perfil ideal do cargo
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={500}>
+              <RadarChart data={competenciasVersus}>
+                <PolarGrid stroke="hsl(var(--border))" />
+                <PolarAngleAxis 
+                  dataKey="competencia" 
+                  tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
                 />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <p className="text-white/60 text-center text-lg px-4">
-                    Gráfico VERSUS (Radar Chart)<br />
-                    Comparação Atual × Meta Ideal
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                <PolarRadiusAxis 
+                  angle={90} 
+                  domain={[0, 4]} 
+                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                />
+                <Radar 
+                  name="Perfil Ideal" 
+                  dataKey="ideal" 
+                  stroke="hsl(var(--primary))" 
+                  fill="hsl(var(--primary))" 
+                  fillOpacity={0.2}
+                  strokeWidth={2}
+                />
+                <Radar 
+                  name="Meu Perfil Atual" 
+                  dataKey="atual" 
+                  stroke="hsl(var(--accent))" 
+                  fill="hsl(var(--accent))" 
+                  fillOpacity={0.4}
+                  strokeWidth={2}
+                />
+                <Legend 
+                  wrapperStyle={{ paddingTop: '20px' }}
+                  iconType="circle"
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+            <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+              <h4 className="font-semibold text-foreground mb-2">Sobre este gráfico:</h4>
+              <p className="text-sm text-muted-foreground">
+                A área entre os dois polígonos representa os <strong>gaps de conhecimento</strong> que precisam ser desenvolvidos. 
+                Quanto maior a diferença entre o perfil ideal (azul) e seu perfil atual (laranja), maior a oportunidade de crescimento naquela competência específica.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Painel de Desenvolvimento Pessoal */}
-        <Card className="bg-white/5 backdrop-blur-sm border-white/10 mt-6">
+        <Card className="hover:shadow-lg transition-shadow duration-300">
           <CardHeader>
-            <CardTitle className="text-white">Meu Plano de Desenvolvimento</CardTitle>
-            <CardDescription className="text-gray-400">
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-primary" />
+              Meu Plano de Desenvolvimento
+            </CardTitle>
+            <CardDescription>
               Objetivos e marcos do seu crescimento profissional
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="p-4 bg-white/5 rounded-lg border-l-4 border-[#E09F7D]">
-                <h4 className="text-white font-semibold mb-2">Objetivo Atual</h4>
-                <p className="text-gray-300 text-sm">
-                  Desenvolver habilidades de comunicação e trabalho em equipe
+              <div className="p-4 bg-accent/10 rounded-lg border-l-4 border-accent">
+                <h4 className="font-semibold mb-2 text-foreground">Objetivo Atual</h4>
+                <p className="text-muted-foreground text-sm">
+                  Desenvolver habilidades de comunicação e trabalho em equipe, além de fortalecer competências técnicas em React e TypeScript
                 </p>
                 <div className="mt-2 flex gap-2">
-                  <span className="px-2 py-1 bg-orange-500/20 text-orange-300 text-xs rounded">
+                  <span className="px-2 py-1 bg-primary/20 text-primary text-xs rounded font-medium">
                     M2 - Aprendiz
                   </span>
-                  <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded">
+                  <span className="px-2 py-1 bg-chart-3/40 text-foreground text-xs rounded font-medium">
                     Em Progresso
                   </span>
                 </div>
               </div>
 
-              <div className="p-4 bg-white/5 rounded-lg">
-                <h4 className="text-white font-semibold mb-2">Próximos Passos</h4>
-                <ul className="list-disc list-inside text-gray-300 text-sm space-y-1">
+              <div className="p-4 bg-muted/30 rounded-lg">
+                <h4 className="font-semibold mb-2 text-foreground">Próximos Passos</h4>
+                <ul className="list-disc list-inside text-muted-foreground text-sm space-y-1">
                   <li>Participar de reuniões de equipe semanalmente</li>
                   <li>Completar curso de comunicação interpessoal</li>
+                  <li>Aprimorar conhecimentos em TypeScript (gap identificado)</li>
+                  <li>Desenvolver iniciativa em projetos (gap crítico)</li>
                   <li>Solicitar feedback do líder mensalmente</li>
                 </ul>
               </div>
@@ -188,7 +199,3 @@ export default function DashboardLiderado() {
   );
 }
 
-// Label component simples
-function Label({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <label className={className}>{children}</label>;
-}
