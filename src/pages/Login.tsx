@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import logo from "@/assets/logo.png";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import logo from "@/assets/logo.svg";
 
-// Stars background animation component
+// Componente de fundo com estrelas animadas
 function StarsBackground() {
   const [stars, setStars] = useState<Array<{
     id: number;
@@ -75,29 +77,7 @@ function StarsBackground() {
   );
 }
 
-// Floating rocket component
-function FloatingRocket() {
-  return (
-    <div className="absolute bottom-0 left-1/4 hidden lg:block pointer-events-none animate-float">
-      <div className="text-6xl opacity-30">🚀</div>
-      <style>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// Left panel with branding
+// Painel esquerdo com branding
 function LeftPanel({ title }: { title: React.ReactNode }) {
   return (
     <div className="flex-1 flex items-start justify-start p-12 z-10">
@@ -120,22 +100,51 @@ function LeftPanel({ title }: { title: React.ReactNode }) {
   );
 }
 
-// Right panel with login form
+// Painel direito com formulário de login
 function RightPanel() {
   const navigate = useNavigate();
+  const { login, isAuthenticated, profile } = useAuth();
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Redirecionar usuário já autenticado
+  useEffect(() => {
+    if (isAuthenticated && profile) {
+      const dashboard = profile.role === 'lider' ? '/dashboard-lider' : '/dashboard-liderado';
+      navigate(dashboard, { replace: true });
+    }
+  }, [isAuthenticated, profile, navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implementar lógica de autenticação real
-    // Por enquanto, apenas redireciona para o dashboard
-    navigate("/");
-  };
+    setIsLoading(true);
 
-  const handleGoogleLogin = () => {
-    // TODO: Implementar login com Google
-    console.log("Google login");
+    try {
+      const success = await login(email, password);
+      
+      if (success) {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Redirecionando para seu dashboard...",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro ao fazer login",
+          description: "Email ou senha incorretos. Tente novamente.",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro inesperado",
+        description: "Ocorreu um erro ao tentar fazer login.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -155,6 +164,7 @@ function RightPanel() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com"
               required
+              disabled={isLoading}
               className="w-full border-0 border-b-2 border-[#D1D5DB] rounded-none px-0 py-3 text-lg bg-transparent focus-visible:border-[#1A2A46] focus-visible:ring-0 transition-colors"
             />
           </div>
@@ -170,65 +180,25 @@ function RightPanel() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
+              disabled={isLoading}
               className="w-full border-0 border-b-2 border-[#D1D5DB] rounded-none px-0 py-3 text-lg bg-transparent focus-visible:border-[#1A2A46] focus-visible:ring-0 transition-colors"
             />
           </div>
 
-          <div className="text-right">
-            <a href="#" className="text-sm text-[#6B7280] hover:text-[#1A2A46] transition-colors">
-              Esqueceu a senha?
-            </a>
-          </div>
-
           <Button
             type="submit"
-            className="w-full bg-[#1A2A46] hover:bg-[#111A29] text-white rounded-full py-6 text-base font-semibold transition-all"
+            disabled={isLoading}
+            className="w-full bg-[#1A2A46] hover:bg-[#111A29] text-white rounded-full py-6 text-base font-semibold transition-all disabled:opacity-50"
           >
-            Entrar
+            {isLoading ? "Entrando..." : "Entrar"}
           </Button>
 
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#D1D5DB]" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-[#A0AEC0]">ou</span>
-            </div>
+          {/* Credenciais de teste - apenas para desenvolvimento */}
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg text-xs text-gray-600">
+            <p className="font-semibold mb-2">Credenciais de teste:</p>
+            <p>Líder: ana.lider@gmail.com / ana@123</p>
+            <p>Liderado: bea.santos@gmail.com / bea@123</p>
           </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleGoogleLogin}
-            className="w-full border-2 border-[#D1D5DB] bg-transparent hover:bg-[#F0F2F5] text-[#6B7280] hover:text-[#333] rounded-full py-6 text-base font-semibold transition-all"
-          >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="currentColor"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            Continuar com Google
-          </Button>
-
-          <p className="text-center text-sm text-[#6B7280] mt-6">
-            Não tem uma conta?{" "}
-            <a href="#" className="text-[#1A2A46] font-semibold hover:underline">
-              Criar conta
-            </a>
-          </p>
         </form>
       </div>
     </div>
@@ -248,12 +218,11 @@ export default function Login() {
     <main
       className="relative flex min-h-screen w-full"
       style={{
-        background: 'url("/login.svg") center/cover no-repeat, #090F25',
+        background: 'url("/login-bg.svg") center/cover no-repeat, #090F25',
       }}
     >
       <StarsBackground />
       <LeftPanel title={slogan} />
-      <FloatingRocket />
       <RightPanel />
     </main>
   );
