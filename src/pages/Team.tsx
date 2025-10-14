@@ -60,6 +60,8 @@ const teamMembers = [
 ];
 
 const allAreas = ["BIG DATA/IA", "Machine Learning", "Desenvolvimento"];
+const allSpecializations = ["Backend", "Frontend", "DevOps", "Mobile", "Data Science"];
+const allCompetencies = ["API REST", "React", "Node.js", "Python", "Docker", "Kubernetes", "TypeScript"];
 
 export default function Team() {
   const navigate = useNavigate();
@@ -67,6 +69,8 @@ export default function Team() {
   const [searchName, setSearchName] = useState("");
   const [filterMaturityLevel, setFilterMaturityLevel] = useState<string>("all");
   const [filterArea, setFilterArea] = useState<string>("all");
+  const [filterSpecialization, setFilterSpecialization] = useState<string>("all");
+  const [filterCompetency, setFilterCompetency] = useState<string>("all");
   const [members, setMembers] = useState(teamMembers);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
@@ -128,6 +132,10 @@ export default function Team() {
     if (filterMaturityLevel !== "all" && member.maturityLevel !== filterMaturityLevel) {
       return false;
     }
+
+    if (filterArea !== "all" && !member.areas.some(area => area === filterArea)) {
+      return false;
+    }
     
     return true;
   });
@@ -185,6 +193,46 @@ export default function Team() {
                   <SelectItem value="all">Todas as áreas</SelectItem>
                   {allAreas.map((area) => (
                     <SelectItem key={area} value={area}>{area}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Collapsible defaultOpen>
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <h3 className="font-semibold text-foreground uppercase text-sm">Especialização</h3>
+              <ChevronDown className="w-4 h-4 text-muted-foreground dark:text-accent" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3 space-y-3">
+              <Select value={filterSpecialization} onValueChange={setFilterSpecialization}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma especialização" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas especializações</SelectItem>
+                  {allSpecializations.map((spec) => (
+                    <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <Collapsible defaultOpen>
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <h3 className="font-semibold text-foreground uppercase text-sm">Competência</h3>
+              <ChevronDown className="w-4 h-4 text-muted-foreground dark:text-accent" />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3 space-y-3">
+              <Select value={filterCompetency} onValueChange={setFilterCompetency}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma competência" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas competências</SelectItem>
+                  {allCompetencies.map((comp) => (
+                    <SelectItem key={comp} value={comp}>{comp}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 
 const navItems = [
-  { to: "/", icon: Home, label: "Home" },
+  { to: "/dashboard-lider", icon: Home, label: "Home" },
   { to: "/team", icon: Users, label: "Liderados" },
   { to: "/evaluation", icon: ClipboardCheck, label: "Avaliação" },
   { to: "/settings", icon: Settings, label: "Configurações" },
@@ -49,7 +49,7 @@ export const Sidebar = () => {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === "/"}
+              end={item.to === "/dashboard-lider"}
               className={({ isActive }) =>
                 cn(
                   "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",

@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { ArrowLeft, User, Mail, Briefcase, Target, Code2 } from "lucide-react";
+import { ArrowLeft, User, Mail, Briefcase, Target, Code2, Filter, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useParams, useNavigate } from "react-router-dom";
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer } from "recharts";
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const teamMembers = [
   { 
@@ -62,6 +63,9 @@ export default function MemberDetail() {
   const { memberId } = useParams();
   const navigate = useNavigate();
   const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [radarViewMode, setRadarViewMode] = useState<"all" | "soft" | "custom">("all");
+  const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>(["BIG DATA/IA", "Desenvolvimento Web"]);
   
   const member = teamMembers.find(m => m.id === memberId);
 
@@ -69,13 +73,44 @@ export default function MemberDetail() {
     return <div className="p-8">Membro não encontrado</div>;
   }
 
-  const radarData = [
+  const softSkillsData = [
     { competency: "Comunicação", atual: 3, ideal: 4 },
     { competency: "Trabalho em Equipe", atual: 4, ideal: 4 },
     { competency: "Aprendizado", atual: 2, ideal: 4 },
     { competency: "Iniciativa", atual: 3, ideal: 3 },
     { competency: "Adaptabilidade", atual: 3, ideal: 4 },
   ];
+
+  const hardSkillsData = [
+    { competency: "BIG DATA/IA", atual: 3, ideal: 4 },
+    { competency: "Desenvolvimento Web", atual: 4, ideal: 4 },
+  ];
+
+  const categoryPerformanceData = [
+    { category: "BIG DATA/IA", atual: 3.2, ideal: 4.0 },
+    { category: "Desenvolvimento Web", atual: 3.8, ideal: 4.0 },
+    { category: "Cloud Computing", atual: 2.5, ideal: 3.5 },
+  ];
+
+  const getRadarData = () => {
+    if (radarViewMode === "soft") return softSkillsData;
+    if (radarViewMode === "custom") {
+      return [...softSkillsData, ...hardSkillsData.filter(hs => selectedHardSkills.includes(hs.competency))];
+    }
+    return [...softSkillsData, ...hardSkillsData];
+  };
+
+  const radarData = getRadarData();
+
+  const filteredCategoryData = selectedCategory === "all" 
+    ? categoryPerformanceData 
+    : categoryPerformanceData.filter(d => d.category === selectedCategory);
+
+  const toggleHardSkill = (skill: string) => {
+    setSelectedHardSkills(prev => 
+      prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
+    );
+  };
 
 
   return (
@@ -108,9 +143,40 @@ export default function MemberDetail() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Left Side - Radar Chart */}
             <div className="flex flex-col items-center">
-              <h2 className="text-xl font-semibold text-foreground mb-6">
-                Mapa de Competências
-              </h2>
+              <div className="flex items-center justify-between w-full mb-4">
+                <h2 className="text-xl font-semibold text-foreground">
+                  Mapa de Competências
+                </h2>
+                <Select value={radarViewMode} onValueChange={(v: any) => setRadarViewMode(v)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="soft">Soft Skills</SelectItem>
+                    <SelectItem value="custom">Personalizado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {radarViewMode === "custom" && (
+                <div className="w-full mb-4 p-3 border border-border rounded-lg bg-muted/20">
+                  <p className="text-sm font-medium text-foreground mb-2">Hard Skills:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {hardSkillsData.map((hs) => (
+                      <div key={hs.competency} className="flex items-center gap-2">
+                        <Checkbox 
+                          checked={selectedHardSkills.includes(hs.competency)}
+                          onCheckedChange={() => toggleHardSkill(hs.competency)}
+                        />
+                        <label className="text-sm text-muted-foreground cursor-pointer">
+                          {hs.competency}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               <ResponsiveContainer width="100%" height={350}>
                 <RadarChart data={radarData}>
@@ -183,6 +249,53 @@ export default function MemberDetail() {
               </div>
             </div>
           </div>
+        </Card>
+
+        {/* Desempenho por Categoria */}
+        <Card className="p-8 mb-6 backdrop-blur-sm bg-card/50 border-2">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Filter className="w-6 h-6 text-primary" />
+              <h2 className="text-xl font-semibold text-foreground">
+                Desempenho por Categoria
+              </h2>
+            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filtrar categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas Categorias</SelectItem>
+                {categoryPerformanceData.map((cat) => (
+                  <SelectItem key={cat.category} value={cat.category}>{cat.category}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={filteredCategoryData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis 
+                dataKey="category" 
+                tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+              />
+              <YAxis 
+                domain={[0, 4]}
+                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'hsl(var(--card))', 
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px'
+                }}
+              />
+              <Legend />
+              <Bar dataKey="atual" fill="hsl(var(--primary))" name="Atual" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="ideal" fill="hsl(var(--muted-foreground))" name="Ideal" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </Card>
 
         {/* Competências Técnicas */}
