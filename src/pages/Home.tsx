@@ -7,10 +7,10 @@ import CompetencyMatrixChart from "@/components/CompetencyMatrixChart";
 // Simula dados - em produção viria do backend
 const hasEvaluations = true; // Mude para false para ver estado vazio
 const teamMembers = [
-  { id: "1", name: "Ana Silva", role: "Desenvolvedora Junior", level: "M2", initials: "AS", quadrantX: 2.5, quadrantY: 4.0 },
-  { id: "2", name: "Carlos Santos", role: "Designer Sênior", level: "M3", initials: "CS", quadrantX: 4.1, quadrantY: 3.8 },
-  { id: "3", name: "Mariana Costa", role: "Product Manager", level: "M4", initials: "MC", quadrantX: 4.5, quadrantY: 4.6 },
-  { id: "4", name: "Roberto Lima", role: "Desenvolvedor Pleno", level: "M3", initials: "RL", quadrantX: 3.8, quadrantY: 3.5 },
+  { id: "1", name: "Ana Silva", role: "Desenvolvedora Junior", level: "M2", initials: "AS", quadrantX: 2.5, quadrantY: 2.7 },
+  { id: "2", name: "Carlos Santos", role: "Designer Sênior", level: "M3", initials: "CS", quadrantX: 3.4, quadrantY: 3.8 },
+  { id: "3", name: "Mariana Costa", role: "Product Manager", level: "M4", initials: "MC", quadrantX: 4.0, quadrantY: 4.0 },
+  { id: "4", name: "Roberto Lima", role: "Desenvolvedor Pleno", level: "M3", initials: "RL", quadrantX: 3.2, quadrantY: 3.0 },
 ];
 
 // Dados mockados de gaps de competências técnicas (média de score da equipe por competência)
@@ -108,14 +108,14 @@ export default function Home() {
                 <div key={item.competencia} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground font-medium">{item.competencia}</span>
-                    <span className="font-semibold text-foreground">{item.mediaScore.toFixed(1)}/5.0</span>
+                    <span className="font-semibold text-foreground">{item.mediaScore.toFixed(1)}/4.0</span>
                   </div>
                   <div className="h-3 bg-secondary rounded-full overflow-hidden">
                     <div 
                       className="h-full rounded-full transition-all duration-500" 
                       style={{ 
-                        width: `${(item.mediaScore / 5) * 100}%`,
-                        backgroundColor: item.mediaScore < 2.5 ? 'hsl(var(--destructive))' : item.mediaScore < 3.5 ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-3))'
+                        width: `${(item.mediaScore / 4) * 100}%`,
+                        backgroundColor: item.mediaScore < 2 ? 'hsl(var(--destructive))' : item.mediaScore < 3 ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-3))'
                       }} 
                     />
                   </div>

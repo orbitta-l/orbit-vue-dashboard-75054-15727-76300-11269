@@ -34,9 +34,9 @@ export default function CompetencyMatrixChart({ teamMembers }: CompetencyMatrixC
   const [hoveredLegend, setHoveredLegend] = useState<string | null>(null);
 
   const getQuadrant = (x: number, y: number): keyof typeof QUADRANT_COLORS => {
-    if (x <= 2.5 && y > 2.5) return 'M2';
-    if (x > 2.5 && y > 2.5) return 'M4';
-    if (x <= 2.5 && y <= 2.5) return 'M1';
+    if (x <= 2 && y > 2.5) return 'M2';
+    if (x > 2 && y > 2.5) return 'M4';
+    if (x <= 2 && y <= 2.5) return 'M1';
     return 'M3';
   };
 
@@ -102,20 +102,20 @@ export default function CompetencyMatrixChart({ teamMembers }: CompetencyMatrixC
             {/* Chart area - centered with margins */}
             <g transform="translate(80, 30)">
               {/* Quadrant background colors - very subtle */}
-              <rect x="0" y="0" width="270" height="245" fill={QUADRANT_COLORS.M2} opacity="0.03" />
-              <rect x="270" y="0" width="270" height="245" fill={QUADRANT_COLORS.M4} opacity="0.03" />
-              <rect x="0" y="245" width="270" height="245" fill={QUADRANT_COLORS.M1} opacity="0.03" />
-              <rect x="270" y="245" width="270" height="245" fill={QUADRANT_COLORS.M3} opacity="0.03" />
+              <rect x="0" y="0" width="216" height="306" fill={QUADRANT_COLORS.M2} opacity="0.03" />
+              <rect x="216" y="0" width="324" height="306" fill={QUADRANT_COLORS.M4} opacity="0.03" />
+              <rect x="0" y="306" width="216" height="184" fill={QUADRANT_COLORS.M1} opacity="0.03" />
+              <rect x="216" y="306" width="324" height="184" fill={QUADRANT_COLORS.M3} opacity="0.03" />
 
               {/* Main axis lines - subtle */}
-              <line x1="270" y1="0" x2="270" y2="490" stroke="#B0B0B0" strokeWidth="1.5" strokeDasharray="5,3" opacity="0.5" />
-              <line x1="0" y1="245" x2="540" y2="245" stroke="#B0B0B0" strokeWidth="1.5" strokeDasharray="5,3" opacity="0.5" />
+              <line x1="216" y1="0" x2="216" y2="490" stroke="#B0B0B0" strokeWidth="1.5" strokeDasharray="5,3" opacity="0.5" />
+              <line x1="0" y1="306" x2="540" y2="306" stroke="#B0B0B0" strokeWidth="1.5" strokeDasharray="5,3" opacity="0.5" />
 
               {/* Quadrant labels - positioned consistently in top-right of each area */}
               <g>
                 {/* M2 - Top Left */}
-                <rect x="180" y="20" width="70" height="32" fill={QUADRANT_COLORS.M2} rx="6" opacity="0.95" />
-                <text x="215" y="41" fill="white" fontSize="16" textAnchor="middle" fontWeight="700">M2</text>
+                <rect x="146" y="20" width="70" height="32" fill={QUADRANT_COLORS.M2} rx="6" opacity="0.95" />
+                <text x="181" y="41" fill="white" fontSize="16" textAnchor="middle" fontWeight="700">M2</text>
 
                 {/* M4 - Top Right */}
                 <rect x="450" y="20" width="70" height="32" fill={QUADRANT_COLORS.M4} rx="6" opacity="0.95" />
@@ -126,21 +126,21 @@ export default function CompetencyMatrixChart({ teamMembers }: CompetencyMatrixC
                 <text x="55" y="459" fill="white" fontSize="16" textAnchor="middle" fontWeight="700">M1</text>
 
                 {/* M3 - Bottom Right */}
-                <rect x="290" y="438" width="70" height="32" fill={QUADRANT_COLORS.M3} rx="6" opacity="0.95" />
-                <text x="325" y="459" fill="white" fontSize="16" textAnchor="middle" fontWeight="700">M3</text>
+                <rect x="246" y="438" width="70" height="32" fill={QUADRANT_COLORS.M3} rx="6" opacity="0.95" />
+                <text x="281" y="459" fill="white" fontSize="16" textAnchor="middle" fontWeight="700">M3</text>
               </g>
 
               {/* Axis tick marks and labels */}
-              {[1, 2, 3, 4, 5].map(i => (
+              {[1, 2, 3, 4].map(i => (
                 <g key={`x-${i}`}>
-                  <line x1={i * 108} y1="240" x2={i * 108} y2="250" stroke="#666" strokeWidth="1.5" />
-                  <text x={i * 108} y="270" fill="#666" fontSize="13" textAnchor="middle" fontWeight="500">{i}</text>
+                  <line x1={i * 135} y1="301" x2={i * 135} y2="311" stroke="#666" strokeWidth="1.5" />
+                  <text x={i * 135} y="331" fill="#666" fontSize="13" textAnchor="middle" fontWeight="500">{i}</text>
                 </g>
               ))}
-              {[1, 2, 3, 4, 5].map(i => (
+              {[1, 2, 3, 4].map(i => (
                 <g key={`y-${i}`}>
-                  <line x1="265" y1={490 - i * 98} x2="275" y2={490 - i * 98} stroke="#666" strokeWidth="1.5" />
-                  <text x="250" y={490 - i * 98 + 5} fill="#666" fontSize="13" textAnchor="end" fontWeight="500">{i}</text>
+                  <line x1="211" y1={490 - i * 122.5} x2="221" y2={490 - i * 122.5} stroke="#666" strokeWidth="1.5" />
+                  <text x="196" y={490 - i * 122.5 + 5} fill="#666" fontSize="13" textAnchor="end" fontWeight="500">{i}</text>
                 </g>
               ))}
 
@@ -154,8 +154,8 @@ export default function CompetencyMatrixChart({ teamMembers }: CompetencyMatrixC
 
               {/* Data points with enhanced interactivity */}
               {teamMembers.map((member, idx) => {
-                const x = (member.quadrantX / 5) * 540;
-                const y = 490 - (member.quadrantY / 5) * 490;
+                const x = (member.quadrantX / 4) * 540;
+                const y = 490 - (member.quadrantY / 4) * 490;
                 const color = getMemberColor(member.id);
                 const quadrant = getQuadrant(member.quadrantX, member.quadrantY);
                 
@@ -238,10 +238,10 @@ export default function CompetencyMatrixChart({ teamMembers }: CompetencyMatrixC
                         <p className="text-sm text-muted-foreground">{member.role}</p>
                         <div className="pt-2 mt-2 border-t space-y-1.5">
                           <p className="text-xs text-foreground">
-                            <span className="font-semibold">Competência Técnica:</span> {member.quadrantX.toFixed(1)}/5.0
+                            <span className="font-semibold">Competência Técnica:</span> {member.quadrantX.toFixed(1)}/4.0
                           </p>
                           <p className="text-xs text-foreground">
-                            <span className="font-semibold">Competência Comportamental:</span> {member.quadrantY.toFixed(1)}/5.0
+                            <span className="font-semibold">Competência Comportamental:</span> {member.quadrantY.toFixed(1)}/4.0
                           </p>
                           <p className="text-xs text-foreground">
                             <span className="font-semibold">Quadrante:</span> {quadrant}

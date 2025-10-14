@@ -70,11 +70,11 @@ export default function MemberDetail() {
   }
 
   const radarData = [
-    { competency: "Comunicação", atual: 4, ideal: 5 },
-    { competency: "Trabalho em Equipe", atual: 5, ideal: 5 },
-    { competency: "Aprendizado", atual: 3, ideal: 5 },
-    { competency: "Iniciativa", atual: 4, ideal: 4 },
-    { competency: "Adaptabilidade", atual: 4, ideal: 5 },
+    { competency: "Comunicação", atual: 3, ideal: 4 },
+    { competency: "Trabalho em Equipe", atual: 4, ideal: 4 },
+    { competency: "Aprendizado", atual: 2, ideal: 4 },
+    { competency: "Iniciativa", atual: 3, ideal: 3 },
+    { competency: "Adaptabilidade", atual: 3, ideal: 4 },
   ];
 
 
@@ -119,7 +119,7 @@ export default function MemberDetail() {
                     dataKey="competency" 
                     tick={{ fill: 'hsl(var(--foreground))', fontSize: 11, fontWeight: 500 }}
                   />
-                  <PolarRadiusAxis angle={90} domain={[0, 5]} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+                  <PolarRadiusAxis angle={90} domain={[0, 4]} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
                   <Radar
                     name="Avaliação Atual"
                     dataKey="atual"
@@ -160,7 +160,7 @@ export default function MemberDetail() {
                     <div className="flex-1">
                       <p className="font-medium text-foreground mb-1">{item.competency}</p>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{item.atual} / 5</span>
+                        <span>{item.atual} / 4</span>
                         <span className="text-xs">vs. meta {item.ideal}</span>
                       </div>
                     </div>

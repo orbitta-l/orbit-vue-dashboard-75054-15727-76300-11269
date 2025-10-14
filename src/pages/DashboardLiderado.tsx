@@ -22,12 +22,12 @@ export default function DashboardLiderado() {
     navigate("/", { replace: true });
   };
 
-  // Mock de competências para o Gráfico VERSUS - Escala 1-4 (CRÍTICO)
+  // Mock de competências para o Gráfico VERSUS - Escala 1-4
   const competenciasVersus = [
     { competencia: "Comunicação", atual: 2, ideal: 4 },
     { competencia: "Trabalho em Equipe", atual: 3, ideal: 4 },
-    { competencia: "Aprendizado", atual: 3, ideal: 4 },
-    { competencia: "Iniciativa", atual: 1, ideal: 3 },
+    { competencia: "Aprendizado", atual: 2, ideal: 4 },
+    { competencia: "Iniciativa", atual: 2, ideal: 3 },
     { competencia: "Adaptabilidade", atual: 2, ideal: 4 },
     { competencia: "React", atual: 3, ideal: 4 },
     { competencia: "TypeScript", atual: 2, ideal: 4 },

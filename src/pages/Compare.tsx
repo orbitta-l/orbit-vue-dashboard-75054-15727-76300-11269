@@ -16,30 +16,30 @@ const memberScores: Record<string, any[]> = {
   "1": [
     { competency: "Comunicação", score: 3 },
     { competency: "Trabalho em Equipe", score: 4 },
+    { competency: "Aprendizado", score: 2 },
+    { competency: "Iniciativa", score: 2 },
+    { competency: "Adaptabilidade", score: 3 },
+  ],
+  "2": [
+    { competency: "Comunicação", score: 4 },
+    { competency: "Trabalho em Equipe", score: 4 },
     { competency: "Aprendizado", score: 3 },
     { competency: "Iniciativa", score: 3 },
     { competency: "Adaptabilidade", score: 4 },
   ],
-  "2": [
-    { competency: "Comunicação", score: 5 },
-    { competency: "Trabalho em Equipe", score: 5 },
-    { competency: "Aprendizado", score: 4 },
-    { competency: "Iniciativa", score: 4 },
-    { competency: "Adaptabilidade", score: 5 },
-  ],
   "3": [
-    { competency: "Comunicação", score: 5 },
-    { competency: "Trabalho em Equipe", score: 5 },
-    { competency: "Aprendizado", score: 5 },
-    { competency: "Iniciativa", score: 4 },
-    { competency: "Adaptabilidade", score: 5 },
-  ],
-  "4": [
     { competency: "Comunicação", score: 4 },
     { competency: "Trabalho em Equipe", score: 4 },
     { competency: "Aprendizado", score: 4 },
     { competency: "Iniciativa", score: 4 },
     { competency: "Adaptabilidade", score: 4 },
+  ],
+  "4": [
+    { competency: "Comunicação", score: 3 },
+    { competency: "Trabalho em Equipe", score: 3 },
+    { competency: "Aprendizado", score: 3 },
+    { competency: "Iniciativa", score: 3 },
+    { competency: "Adaptabilidade", score: 3 },
   ],
 };
 
@@ -114,12 +114,12 @@ export default function Compare() {
                 <div key={comp.competency}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm text-muted-foreground">{comp.competency}</span>
-                    <span className="text-sm font-semibold text-foreground">{comp.score}/5</span>
+                    <span className="text-sm font-semibold text-foreground">{comp.score}/4</span>
                   </div>
                   <div className="h-2 bg-secondary rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-primary rounded-full transition-all duration-500" 
-                      style={{ width: `${(comp.score / 5) * 100}%` }} 
+                      style={{ width: `${(comp.score / 4) * 100}%` }} 
                     />
                   </div>
                 </div>
@@ -149,7 +149,7 @@ export default function Compare() {
             />
             <PolarRadiusAxis 
               angle={90} 
-              domain={[0, 5]} 
+              domain={[0, 4]} 
               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
               stroke="hsl(var(--muted-foreground) / 0.3)"
             />
