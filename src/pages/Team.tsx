@@ -11,57 +11,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { MOCK_PERFORMANCE, MOCK_CATEGORIAS, MOCK_ESPECIALIZACOES, MOCK_COMPETENCIAS } from "@/data/mockData";
 
-const teamMembers = [
-  {
-    id: "1",
-    name: "Ana Silva",
-    role: "Estagiário",
-    email: "ana.silva@orbitta.com",
-    areas: ["BIG DATA/IA", "Machine Learning"],
-    initials: "AS",
-    generalScore: 65,
-    maturityLevel: "M2",
-    areaScores: { "BIG DATA/IA": 70, "Machine Learning": 75, "Desenvolvimento": 50 },
-  },
-  {
-    id: "2",
-    name: "Pedro Santos",
-    role: "Especialista I",
-    email: "pedro.santos@orbitta.com",
-    areas: ["Desenvolvimento", "Frontend"],
-    initials: "PS",
-    generalScore: 82,
-    maturityLevel: "M3",
-    areaScores: { "BIG DATA/IA": 65, "Machine Learning": 70, "Desenvolvimento": 90 },
-  },
-  {
-    id: "3",
-    name: "Mariana Costa",
-    role: "Senior",
-    email: "mariana.costa@orbitta.com",
-    areas: ["Product Management", "UX Research"],
-    initials: "MC",
-    generalScore: 92,
-    maturityLevel: "M4",
-    areaScores: { "BIG DATA/IA": 85, "Machine Learning": 88, "Desenvolvimento": 95 },
-  },
-  {
-    id: "4",
-    name: "Roberto Lima",
-    role: "Pleno",
-    email: "roberto.lima@orbitta.com",
-    areas: ["Backend", "DevOps"],
-    initials: "RL",
-    generalScore: 78,
-    maturityLevel: "M3",
-    areaScores: { "BIG DATA/IA": 70, "Machine Learning": 72, "Desenvolvimento": 85 },
-  },
-];
+const teamMembers = MOCK_PERFORMANCE.map(p => ({
+  id: p.id_liderado,
+  name: p.nome_liderado,
+  role: p.cargo,
+  email: `${p.nome_liderado.toLowerCase().replace(' ', '.')}@orbitta.com`,
+  areas: [p.categoria_dominante, p.especializacao_dominante],
+  initials: p.nome_liderado.split(' ').map(n => n[0]).join(''),
+  generalScore: Math.round((p.quadrantX + p.quadrantY) / 2 * 25),
+  maturityLevel: p.nivel_maturidade,
+  categoriaDominante: p.categoria_dominante,
+  especializacaoDominante: p.especializacao_dominante,
+}));
 
-const allAreas = ["BIG DATA/IA", "Machine Learning", "Desenvolvimento"];
-const allSpecializations = ["Backend", "Frontend", "DevOps", "Mobile", "Data Science"];
-const allCompetencies = ["API REST", "React", "Node.js", "Python", "Docker", "Kubernetes", "TypeScript"];
+const allAreas = Array.from(new Set(MOCK_CATEGORIAS.filter(c => c.tipo === 'TECNICA').map(c => c.nome_categoria)));
+const allSpecializations = MOCK_ESPECIALIZACOES.map(e => e.nome_especializacao);
+const allCompetencies = MOCK_COMPETENCIAS.filter(c => c.tipo === 'TECNICA').map(c => c.nome_competencia);
 
 export default function Team() {
   const navigate = useNavigate();
@@ -135,6 +102,17 @@ export default function Team() {
 
     if (filterArea !== "all" && !member.areas.some(area => area === filterArea)) {
       return false;
+    }
+    
+    if (filterSpecialization !== "all" && member.especializacaoDominante !== filterSpecialization) {
+      return false;
+    }
+    
+    if (filterCompetency !== "all") {
+      const liderado = MOCK_PERFORMANCE.find(p => p.id_liderado === member.id);
+      if (!liderado || !liderado.competencias.some(c => c.nome_competencia === filterCompetency)) {
+        return false;
+      }
     }
     
     return true;

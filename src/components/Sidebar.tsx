@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { to: "/dashboard-lider", icon: Home, label: "Home" },
@@ -13,14 +14,19 @@ const navItems = [
 
 export const Sidebar = () => {
   const navigate = useNavigate();
+  const { profile, logout } = useAuth();
 
   const handleLogout = () => {
+    logout();
     toast({
       title: "Saindo...",
       description: "Você foi desconectado com sucesso.",
     });
-    // Aqui você adicionaria a lógica de logout real quando implementar autenticação
     navigate("/");
+  };
+  
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
@@ -35,11 +41,17 @@ export const Sidebar = () => {
         <div className="mb-6">
           <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent/50">
             <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-              <span className="text-sm font-semibold text-accent-foreground">MR</span>
+              <span className="text-sm font-semibold text-accent-foreground">
+                {profile ? getInitials(profile.name) : 'U'}
+              </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">Marina Rodriguez</p>
-              <p className="text-xs text-sidebar-foreground/70 truncate">Tech Lead</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                {profile?.name || 'Usuário'}
+              </p>
+              <p className="text-xs text-sidebar-foreground/70 truncate">
+                {profile?.role === 'lider' ? 'Tech Lead' : 'Desenvolvedor'}
+              </p>
             </div>
           </div>
         </div>

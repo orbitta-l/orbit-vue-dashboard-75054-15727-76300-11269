@@ -19,20 +19,20 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Usuários mockados conforme especificação
+// Usuários mockados conforme MER 3.0
 const MOCK_USERS = [
   {
-    id: '1',
-    email: 'ana.lider@gmail.com',
-    password: 'ana@123',
-    name: 'Ana Silva',
+    id: 'lider-001',
+    email: 'marina.rodriguez@orbitta.com',
+    password: 'marina@123',
+    name: 'Marina Rodriguez',
     role: 'lider' as UserRole,
   },
   {
-    id: '2',
-    email: 'bea.santos@gmail.com',
-    password: 'bea@123',
-    name: 'Beatriz Santos',
+    id: 'lid-001',
+    email: 'ana.silva@orbitta.com',
+    password: 'ana@123',
+    name: 'Ana Silva',
     role: 'liderado' as UserRole,
   },
 ];

@@ -7,12 +7,16 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Settings() {
-  // Dados mockados - Identidade e Papel
+  const { profile } = useAuth();
+  
+  // Dados do usuário autenticado
   const mockUser = {
-    email: "carlos.silva@orbitta.com",
-    role: "LÍDER" as "LÍDER" | "LIDERADO",
+    email: profile?.email || "usuario@orbitta.com",
+    name: profile?.name || "Usuário",
+    role: (profile?.role === 'lider' ? "LÍDER" : "LIDERADO") as "LÍDER" | "LIDERADO",
   };
 
   // Estado para alteração de senha
@@ -124,6 +128,13 @@ export default function Settings() {
         </div>
         
         <div className="space-y-4">
+          <div>
+            <Label className="text-sm text-muted-foreground">Nome</Label>
+            <p className="text-base font-medium text-foreground mt-1">
+              {mockUser.name}
+            </p>
+          </div>
+          
           <div>
             <Label className="text-sm text-muted-foreground">E-mail</Label>
             <p className="text-base font-medium text-foreground mt-1">

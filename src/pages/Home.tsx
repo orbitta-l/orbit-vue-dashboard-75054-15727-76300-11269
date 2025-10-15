@@ -3,30 +3,30 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import CompetencyMatrixChart from "@/components/CompetencyMatrixChart";
+import { MOCK_LIDER, MOCK_PERFORMANCE, calcularGapsEquipe } from "@/data/mockData";
+import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
 
 // Simula dados - em produção viria do backend
 const hasEvaluations = true; // Mude para false para ver estado vazio
-const teamMembers = [
-  { id: "1", name: "Ana Silva", role: "Desenvolvedora Junior", level: "M2", initials: "AS", quadrantX: 2.5, quadrantY: 2.7 },
-  { id: "2", name: "Carlos Santos", role: "Designer Sênior", level: "M3", initials: "CS", quadrantX: 3.4, quadrantY: 3.8 },
-  { id: "3", name: "Mariana Costa", role: "Product Manager", level: "M4", initials: "MC", quadrantX: 4.0, quadrantY: 4.0 },
-  { id: "4", name: "Roberto Lima", role: "Desenvolvedor Pleno", level: "M3", initials: "RL", quadrantX: 3.2, quadrantY: 3.0 },
-];
 
-// Dados mockados de gaps de competências técnicas (média de score da equipe por competência)
-const skillGaps = [
-  { competencia: "Desenvolvimento de API", mediaScore: 2.1 },
-  { competencia: "SQL", mediaScore: 2.5 },
-  { competencia: "Testes Automatizados", mediaScore: 2.7 },
-  { competencia: "Docker & Kubernetes", mediaScore: 3.0 },
-  { competencia: "Python", mediaScore: 3.2 },
-];
+const teamMembers = MOCK_PERFORMANCE.map(p => ({
+  id: p.id_liderado,
+  name: p.nome_liderado,
+  role: p.cargo,
+  level: p.nivel_maturidade,
+  initials: p.nome_liderado.split(' ').map(n => n[0]).join(''),
+  quadrantX: p.quadrantX,
+  quadrantY: p.quadrantY,
+}));
+
+// Gaps de competências técnicas da equipe (ordenado por menor score)
+const skillGaps = calcularGapsEquipe().slice(0, 8);
 
 const leaderProfile = {
-  name: "Marina Rodriguez",
+  name: MOCK_LIDER.nome,
   role: "Tech Lead",
-  initials: "MR",
-  email: "marina.rodriguez@orbitta.com",
+  initials: MOCK_LIDER.nome.split(' ').map(n => n[0]).join(''),
+  email: MOCK_LIDER.email,
   team: "Engenharia de Software"
 };
 
@@ -101,21 +101,36 @@ export default function Home() {
         {/* Gaps de Competências Técnicas */}
         <Card className="p-6 mb-8">
           <h3 className="text-lg font-semibold mb-4 text-foreground">Gaps de Competências Técnicas</h3>
-          <p className="text-sm text-muted-foreground mb-6">Competências com desempenho mais baixo na equipe (média de score)</p>
+          <p className="text-sm text-muted-foreground mb-6">
+            Competências com desempenho mais baixo na equipe (média de score). 
+            <span className="block mt-1">
+              <span className="font-semibold text-red-600 dark:text-red-400">Vermelho intenso</span> = gap crítico | 
+              <span className="font-semibold text-blue-600 dark:text-blue-400"> Azul</span> = desempenho adequado
+            </span>
+          </p>
           {hasEvaluations ? (
             <div className="space-y-4">
               {skillGaps.map((item) => (
-                <div key={item.competencia} className="space-y-2">
+                <div key={item.nome_competencia} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground font-medium">{item.competencia}</span>
-                    <span className="font-semibold text-foreground">{item.mediaScore.toFixed(1)}/4.0</span>
+                    <div className="flex-1">
+                      <span className={`font-medium ${getGapColorClass(item.media_score)}`}>
+                        {item.nome_competencia}
+                      </span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        ({item.nome_categoria}{item.nome_especializacao ? ` › ${item.nome_especializacao}` : ''})
+                      </span>
+                    </div>
+                    <span className={`font-semibold ${getGapColorClass(item.media_score)}`}>
+                      {item.media_score.toFixed(1)}/4.0
+                    </span>
                   </div>
                   <div className="h-3 bg-secondary rounded-full overflow-hidden">
                     <div 
                       className="h-full rounded-full transition-all duration-500" 
                       style={{ 
-                        width: `${(item.mediaScore / 4) * 100}%`,
-                        backgroundColor: item.mediaScore < 2 ? 'hsl(var(--destructive))' : item.mediaScore < 3 ? 'hsl(var(--chart-2))' : 'hsl(var(--chart-3))'
+                        width: `${(item.media_score / 4) * 100}%`,
+                        backgroundColor: getGapColor(item.media_score)
                       }} 
                     />
                   </div>

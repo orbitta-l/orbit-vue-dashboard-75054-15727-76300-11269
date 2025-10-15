@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, User, Mail, Briefcase, Target, Code2, Filter, X } from "lucide-react";
+import { ArrowLeft, User, Mail, Briefcase, Target, Award, Filter, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,328 +7,388 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useParams, useNavigate } from "react-router-dom";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { Checkbox } from "@/components/ui/checkbox";
-
-const teamMembers = [
-  { 
-    id: "1", 
-    name: "Ana Silva", 
-    role: "Estagiário", 
-    email: "ana.silva@orbitta.com", 
-    initials: "AS", 
-    areas: ["React", "TypeScript"],
-    technicalSkills: [
-      { category: "BIG DATA/IA", skills: ["Python", "TensorFlow", "Pandas"], level: "M2" },
-      { category: "Desenvolvimento Web", skills: ["React", "TypeScript", "CSS"], level: "M3" }
-    ]
-  },
-  { 
-    id: "2", 
-    name: "Pedro Santos", 
-    role: "Especialista I", 
-    email: "pedro.santos@orbitta.com", 
-    initials: "PS", 
-    areas: ["Node.js", "Python"],
-    technicalSkills: [
-      { category: "Backend", skills: ["Node.js", "PostgreSQL", "API REST"], level: "M4" },
-      { category: "Cloud Computing", skills: ["AWS", "Docker", "Kubernetes"], level: "M3" }
-    ]
-  },
-  { 
-    id: "3", 
-    name: "Mariana Costa", 
-    role: "Senior", 
-    email: "mariana.costa@orbitta.com", 
-    initials: "MC", 
-    areas: ["UI/UX", "Design"],
-    technicalSkills: [
-      { category: "Design", skills: ["Figma", "Adobe XD", "Photoshop"], level: "M4" },
-      { category: "Frontend", skills: ["HTML", "CSS", "JavaScript"], level: "M4" }
-    ]
-  },
-  { 
-    id: "4", 
-    name: "Roberto Lima", 
-    role: "Pleno", 
-    email: "roberto.lima@orbitta.com", 
-    initials: "RL", 
-    areas: ["Backend", "DevOps"],
-    technicalSkills: [
-      { category: "DevOps", skills: ["Jenkins", "GitLab CI", "Terraform"], level: "M3" },
-      { category: "Monitoramento", skills: ["Prometheus", "Grafana", "ELK"], level: "M3" }
-    ]
-  },
-];
+import { MOCK_PERFORMANCE, MOCK_CATEGORIAS, MOCK_ESPECIALIZACOES } from "@/data/mockData";
+import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
 
 export default function MemberDetail() {
   const { memberId } = useParams();
   const navigate = useNavigate();
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [radarViewMode, setRadarViewMode] = useState<"all" | "soft" | "custom">("all");
-  const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>(["BIG DATA/IA", "Desenvolvimento Web"]);
   
-  const member = teamMembers.find(m => m.id === memberId);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedEspecializacao, setSelectedEspecializacao] = useState<string>("all");
+  const [radarViewMode, setRadarViewMode] = useState<"all" | "soft" | "custom">("all");
+  const [selectedHardCategories, setSelectedHardCategories] = useState<string[]>([]);
+  
+  const liderado = MOCK_PERFORMANCE.find(m => m.id_liderado === memberId);
 
-  if (!member) {
-    return <div className="p-8">Membro não encontrado</div>;
+  if (!liderado) {
+    return (
+      <div className="p-8">
+        <Button onClick={() => navigate(-1)} variant="ghost" className="mb-4">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
+        </Button>
+        <p className="text-muted-foreground">Membro não encontrado</p>
+      </div>
+    );
   }
 
-  const softSkillsData = [
-    { competency: "Comunicação", atual: 3, ideal: 4 },
-    { competency: "Trabalho em Equipe", atual: 4, ideal: 4 },
-    { competency: "Aprendizado", atual: 2, ideal: 4 },
-    { competency: "Iniciativa", atual: 3, ideal: 3 },
-    { competency: "Adaptabilidade", atual: 3, ideal: 4 },
-  ];
+  // Separar competências comportamentais e técnicas
+  const softSkills = liderado.competencias.filter(c => c.tipo === 'COMPORTAMENTAL');
+  const hardSkills = liderado.competencias.filter(c => c.tipo === 'TECNICA');
+  
+  // Categorias técnicas únicas disponíveis para este liderado
+  const availableCategories = Array.from(new Set(hardSkills.map(c => c.nome_categoria)));
+  const availableEspecializacoes = Array.from(
+    new Set(hardSkills.filter(c => c.nome_especializacao).map(c => c.nome_especializacao!))
+  );
 
-  const hardSkillsData = [
-    { competency: "BIG DATA/IA", atual: 3, ideal: 4 },
-    { competency: "Desenvolvimento Web", atual: 4, ideal: 4 },
-  ];
+  // Dados para radar: soft skills + hard skills filtradas
+  const softSkillsRadarData = softSkills.map(c => ({
+    competency: c.nome_competencia,
+    atual: c.media_pontuacao,
+    ideal: 4.0,
+    tipo: 'COMPORTAMENTAL' as const,
+  }));
 
-  const categoryPerformanceData = [
-    { category: "BIG DATA/IA", atual: 3.2, ideal: 4.0 },
-    { category: "Desenvolvimento Web", atual: 3.8, ideal: 4.0 },
-    { category: "Cloud Computing", atual: 2.5, ideal: 3.5 },
-  ];
+  const hardSkillsRadarData = hardSkills.map(c => ({
+    competency: c.nome_competencia,
+    atual: c.media_pontuacao,
+    ideal: 4.0,
+    tipo: 'TECNICA' as const,
+    categoria: c.nome_categoria,
+  }));
 
   const getRadarData = () => {
-    if (radarViewMode === "soft") return softSkillsData;
+    if (radarViewMode === "soft") return softSkillsRadarData;
     if (radarViewMode === "custom") {
-      return [...softSkillsData, ...hardSkillsData.filter(hs => selectedHardSkills.includes(hs.competency))];
+      const filteredHard = hardSkillsRadarData.filter(hs => 
+        selectedHardCategories.includes(hs.categoria)
+      );
+      return [...softSkillsRadarData, ...filteredHard];
     }
-    return [...softSkillsData, ...hardSkillsData];
+    return [...softSkillsRadarData, ...hardSkillsRadarData];
   };
 
-  const radarData = getRadarData();
-
-  const filteredCategoryData = selectedCategory === "all" 
-    ? categoryPerformanceData 
-    : categoryPerformanceData.filter(d => d.category === selectedCategory);
-
-  const toggleHardSkill = (skill: string) => {
-    setSelectedHardSkills(prev => 
-      prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
+  const toggleHardCategory = (category: string) => {
+    setSelectedHardCategories(prev =>
+      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
     );
   };
 
+  // Performance por categoria (agregado)
+  const categoryPerformance = Array.from(
+    hardSkills.reduce((acc, comp) => {
+      const cat = comp.nome_categoria;
+      if (!acc.has(cat)) {
+        acc.set(cat, { soma: 0, count: 0 });
+      }
+      const existing = acc.get(cat)!;
+      existing.soma += comp.media_pontuacao;
+      existing.count += 1;
+      return acc;
+    }, new Map<string, { soma: number; count: number }>())
+  ).map(([cat, { soma, count }]) => ({
+    category: cat,
+    atual: soma / count,
+    ideal: 4.0,
+  }));
+
+  // Performance por especialização (quando categoria selecionada)
+  const especializacaoPerformance = selectedCategory !== "all"
+    ? Array.from(
+        hardSkills
+          .filter(c => c.nome_categoria === selectedCategory && c.nome_especializacao)
+          .reduce((acc, comp) => {
+            const esp = comp.nome_especializacao!;
+            if (!acc.has(esp)) {
+              acc.set(esp, { soma: 0, count: 0 });
+            }
+            const existing = acc.get(esp)!;
+            existing.soma += comp.media_pontuacao;
+            existing.count += 1;
+            return acc;
+          }, new Map<string, { soma: number; count: number }>())
+      ).map(([esp, { soma, count }]) => ({
+        especializacao: esp,
+        atual: soma / count,
+        ideal: 4.0,
+      }))
+    : [];
+
+  // Performance por competência (quando especialização selecionada)
+  const competenciaPerformance = selectedEspecializacao !== "all"
+    ? hardSkills
+        .filter(c => c.nome_especializacao === selectedEspecializacao)
+        .map(c => ({
+          competencia: c.nome_competencia,
+          atual: c.media_pontuacao,
+          ideal: 4.0,
+        }))
+    : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-8">
-      <Button 
-        variant="ghost" 
-        className="mb-6 gap-2 hover:bg-muted/50"
-        onClick={() => navigate("/team")}
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Voltar para Liderados
-      </Button>
+    <div className="p-8">
+      {/* Header */}
+      <div className="mb-6">
+        <Button onClick={() => navigate(-1)} variant="ghost" className="mb-4">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
+        </Button>
+      </div>
 
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            {member.name}
-          </h1>
-          <div className="flex items-center justify-center gap-3 text-muted-foreground mb-2">
-            <Briefcase className="w-5 h-5" />
-            <span className="text-lg">{member.role}</span>
+      {/* Informações Básicas + Categoria/Especialização Dominante */}
+      <Card className="p-6 mb-6 bg-gradient-to-r from-primary/5 to-accent/5">
+        <div className="flex items-start gap-6">
+          <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center">
+            <span className="text-3xl font-bold text-primary-foreground">
+              {liderado.nome_liderado.split(' ').map(n => n[0]).join('')}
+            </span>
           </div>
-          <div className="flex items-center justify-center gap-2 text-muted-foreground">
-            <Mail className="w-4 h-4" />
-            <span>{member.email}</span>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-foreground mb-2">{liderado.nome_liderado}</h1>
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4" />
+                <span>{liderado.cargo}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                <span>
+                  {liderado.nome_liderado.toLowerCase().replace(' ', '.')}@orbitta.com
+                </span>
+              </div>
+            </div>
+            
+            {/* Categoria e Especialização Dominante */}
+            <div className="flex flex-wrap gap-2 mb-2">
+              <Badge variant="default" className="text-sm">
+                {liderado.nivel_maturidade}
+              </Badge>
+              <Badge variant="secondary" className="text-sm flex items-center gap-1">
+                <Award className="w-3 h-3" />
+                {liderado.categoria_dominante}
+              </Badge>
+              <Badge variant="outline" className="text-sm">
+                {liderado.especializacao_dominante}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Especialização dominante identificada com base no melhor desempenho técnico
+            </p>
           </div>
         </div>
+      </Card>
 
-        <Card className="p-8 mb-6 backdrop-blur-sm bg-card/50 border-2">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Left Side - Radar Chart */}
-            <div className="flex flex-col items-center">
-              <div className="flex items-center justify-between w-full mb-4">
-                <h2 className="text-xl font-semibold text-foreground">
-                  Mapa de Competências
-                </h2>
-                <Select value={radarViewMode} onValueChange={(v: any) => setRadarViewMode(v)}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="soft">Soft Skills</SelectItem>
-                    <SelectItem value="custom">Personalizado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+      {/* Gráfico de Radar com filtros */}
+      <Card className="p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">
+              Gráfico de Gap de Conhecimento - VERSUS
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Comparação entre perfil atual e ideal
+            </p>
+          </div>
+          <Select value={radarViewMode} onValueChange={(v: any) => setRadarViewMode(v)}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Competências</SelectItem>
+              <SelectItem value="soft">Apenas Soft Skills</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-              {radarViewMode === "custom" && (
-                <div className="w-full mb-4 p-3 border border-border rounded-lg bg-muted/20">
-                  <p className="text-sm font-medium text-foreground mb-2">Hard Skills:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {hardSkillsData.map((hs) => (
-                      <div key={hs.competency} className="flex items-center gap-2">
-                        <Checkbox 
-                          checked={selectedHardSkills.includes(hs.competency)}
-                          onCheckedChange={() => toggleHardSkill(hs.competency)}
-                        />
-                        <label className="text-sm text-muted-foreground cursor-pointer">
-                          {hs.competency}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+        {radarViewMode === "custom" && (
+          <div className="mb-4 p-4 bg-muted/30 rounded-lg">
+            <p className="text-sm font-medium mb-3 text-foreground">
+              Selecione Categorias Técnicas:
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {availableCategories.map((cat) => (
+                <div key={cat} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`cat-${cat}`}
+                    checked={selectedHardCategories.includes(cat)}
+                    onCheckedChange={() => toggleHardCategory(cat)}
+                  />
+                  <label
+                    htmlFor={`cat-${cat}`}
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    {cat}
+                  </label>
                 </div>
-              )}
-              
-              <ResponsiveContainer width="100%" height={350}>
-                <RadarChart data={radarData}>
-                  <PolarGrid stroke="hsl(var(--muted-foreground) / 0.2)" />
-                  <PolarAngleAxis 
-                    dataKey="competency" 
-                    tick={{ fill: 'hsl(var(--foreground))', fontSize: 11, fontWeight: 500 }}
-                  />
-                  <PolarRadiusAxis angle={90} domain={[0, 4]} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                  <Radar
-                    name="Avaliação Atual"
-                    dataKey="atual"
-                    stroke="hsl(var(--primary))"
-                    fill="hsl(var(--primary))"
-                    fillOpacity={0.6}
-                    strokeWidth={2}
-                  />
-                  <Radar
-                    name="Meta Ideal"
-                    dataKey="ideal"
-                    stroke="hsl(var(--muted-foreground))"
-                    fill="transparent"
-                    strokeDasharray="5 5"
-                    strokeWidth={2}
-                    fillOpacity={0}
-                  />
-                  <Legend 
-                    wrapperStyle={{ paddingTop: '20px' }}
-                    iconType="circle"
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Right Side - Competency Details */}
-            <div className="flex flex-col">
-              <h2 className="text-xl font-semibold text-foreground mb-6">
-                Análise de Competências
-              </h2>
-              
-              <div className="space-y-4 flex-1">
-                {radarData.map((item) => (
-                  <div key={item.competency} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
-                    <div className={`mt-0.5 ${item.atual >= item.ideal ? 'text-primary' : 'text-muted-foreground'}`}>
-                      ✓
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-foreground mb-1">{item.competency}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{item.atual} / 4</span>
-                        <span className="text-xs">vs. meta {item.ideal}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-border">
-                <div className="flex items-center gap-3 mb-3">
-                  <Target className="w-5 h-5 text-muted-foreground" />
-                  <p className="text-sm font-medium text-muted-foreground">Áreas de Atuação</p>
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                  {member.areas.map((area) => (
-                    <Badge key={area} variant="secondary" className="text-sm px-3 py-1">
-                      {area}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-        </Card>
+        )}
 
-        {/* Desempenho por Categoria */}
-        <Card className="p-8 mb-6 backdrop-blur-sm bg-card/50 border-2">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <Filter className="w-6 h-6 text-primary" />
-              <h2 className="text-xl font-semibold text-foreground">
-                Desempenho por Categoria
-              </h2>
+        <ResponsiveContainer width="100%" height={400}>
+          <RadarChart data={getRadarData()}>
+            <PolarGrid stroke="hsl(var(--border))" />
+            <PolarAngleAxis 
+              dataKey="competency" 
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+            />
+            <PolarRadiusAxis angle={90} domain={[0, 4]} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+            <Radar name="Perfil Atual" dataKey="atual" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.5} />
+            <Radar name="Perfil Ideal" dataKey="ideal" stroke="hsl(var(--accent))" fill="hsl(var(--accent))" fillOpacity={0.3} />
+            <Legend wrapperStyle={{ paddingTop: '20px' }} />
+          </RadarChart>
+        </ResponsiveContainer>
+      </Card>
+
+      {/* Análise de Competências (Lista) */}
+      <Card className="p-6 mb-6">
+        <h3 className="text-lg font-semibold mb-4 text-foreground">Análise de Competências</h3>
+        <div className="space-y-3">
+          {getRadarData().map((item) => (
+            <div key={item.competency} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+              <span className="font-medium text-foreground">{item.competency}</span>
+              <div className="flex items-center gap-4">
+                <span className={`text-sm ${getGapColorClass(item.atual)}`}>
+                  Atual: {item.atual.toFixed(1)}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  Ideal: {item.ideal.toFixed(1)}
+                </span>
+              </div>
             </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Desempenho por Categoria/Especialização/Competência (Drill-down Hierárquico) */}
+      <Card className="p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">Desempenho Detalhado (Drill-Down)</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Filtre por categoria → especialização → competência
+            </p>
+          </div>
+          <div className="flex gap-2">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filtrar categoria" />
+              <SelectTrigger className="w-64">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Selecione Categoria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas Categorias</SelectItem>
-                {categoryPerformanceData.map((cat) => (
-                  <SelectItem key={cat.category} value={cat.category}>{cat.category}</SelectItem>
+                <SelectItem value="all">Todas as Categorias</SelectItem>
+                {availableCategories.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            
+            {selectedCategory !== "all" && especializacaoPerformance.length > 0 && (
+              <Select value={selectedEspecializacao} onValueChange={setSelectedEspecializacao}>
+                <SelectTrigger className="w-64">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Selecione Especialização" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Especializações</SelectItem>
+                  {availableEspecializacoes
+                    .filter(esp => hardSkills.some(c => 
+                      c.nome_categoria === selectedCategory && c.nome_especializacao === esp
+                    ))
+                    .map(esp => (
+                      <SelectItem key={esp} value={esp}>{esp}</SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
+        </div>
 
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={filteredCategoryData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis 
-                dataKey="category" 
-                tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-              />
-              <YAxis 
-                domain={[0, 4]}
-                tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--card))', 
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px'
-                }}
-              />
-              <Legend />
-              <Bar dataKey="atual" fill="hsl(var(--primary))" name="Atual" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="ideal" fill="hsl(var(--muted-foreground))" name="Ideal" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={
+            selectedEspecializacao !== "all" 
+              ? competenciaPerformance 
+              : selectedCategory !== "all"
+                ? especializacaoPerformance
+                : categoryPerformance
+          }>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis 
+              dataKey={
+                selectedEspecializacao !== "all" 
+                  ? "competencia" 
+                  : selectedCategory !== "all"
+                    ? "especializacao"
+                    : "category"
+              } 
+              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+              angle={-15}
+              textAnchor="end"
+              height={80}
+            />
+            <YAxis domain={[0, 4]} tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: 'hsl(var(--card))', 
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px'
+              }}
+            />
+            <Legend />
+            <Bar dataKey="atual" fill="hsl(var(--primary))" name="Pontuação Atual" />
+            <Bar dataKey="ideal" fill="hsl(var(--accent))" name="Pontuação Ideal" />
+          </BarChart>
+        </ResponsiveContainer>
+        
+        <div className="mt-4 text-sm text-muted-foreground">
+          <p>
+            {selectedEspecializacao !== "all" 
+              ? `Exibindo competências da especialização "${selectedEspecializacao}"`
+              : selectedCategory !== "all"
+                ? `Exibindo especializações da categoria "${selectedCategory}"`
+                : "Exibindo todas as categorias técnicas"}
+          </p>
+        </div>
+      </Card>
 
-        {/* Competências Técnicas */}
-        <Card className="p-8 backdrop-blur-sm bg-card/50 border-2">
-          <div className="flex items-center gap-3 mb-6">
-            <Code2 className="w-6 h-6 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">
-              Competências Técnicas
-            </h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {member.technicalSkills?.map((skillGroup) => (
-              <div key={skillGroup.category} className="p-4 rounded-lg border border-border bg-muted/30">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-foreground">{skillGroup.category}</h3>
-                  <Badge className="bg-primary/10 text-primary hover:bg-primary/20">
-                    {skillGroup.level}
+      {/* Áreas de Atuação */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4 text-foreground">Competências Técnicas por Categoria</h3>
+        <div className="space-y-4">
+          {Array.from(
+            hardSkills.reduce((acc, comp) => {
+              const cat = comp.nome_categoria;
+              if (!acc.has(cat)) {
+                acc.set(cat, []);
+              }
+              acc.get(cat)!.push(comp);
+              return acc;
+            }, new Map<string, typeof hardSkills>())
+          ).map(([categoria, competencias]) => (
+            <div key={categoria}>
+              <h4 className="font-semibold text-sm text-primary mb-2">{categoria}</h4>
+              <div className="flex flex-wrap gap-2">
+                {competencias.map((comp) => (
+                  <Badge 
+                    key={comp.id_competencia} 
+                    variant="secondary"
+                    className="text-xs"
+                    style={{ 
+                      backgroundColor: getGapColor(comp.media_pontuacao),
+                      color: comp.media_pontuacao < 2.5 ? '#fff' : '#000'
+                    }}
+                  >
+                    {comp.nome_competencia} ({comp.media_pontuacao.toFixed(1)})
                   </Badge>
-                </div>
-                <div className="space-y-2">
-                  {skillGroup.skills.map((skill) => (
-                    <div key={skill} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-                      <span>{skill}</span>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }
