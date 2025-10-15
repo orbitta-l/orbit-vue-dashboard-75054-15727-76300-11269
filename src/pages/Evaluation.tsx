@@ -12,6 +12,18 @@ import { toast } from "@/hooks/use-toast";
 import { technicalTemplates, type TechnicalCategoryTemplate } from "./EvaluationTemplates";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+  ESCALA_MIN, 
+  ESCALA_MAX, 
+  LIMIAR_MATURIDADE,
+  calcularMediaPonderada,
+  calcularNivelMaturidade,
+  validarAutoavaliacao,
+  validarPontuacao,
+  type AvaliacaoCompleta,
+  type PontuacaoAvaliacao,
+  type RadarDataPoint
+} from "@/types/mer";
 
 const teamMembers = [
   { id: "1", name: "Ana Silva", role: "Estagiário", maturityLevel: "M2", initials: "AS" },
@@ -20,16 +32,19 @@ const teamMembers = [
   { id: "4", name: "Roberto Lima", role: "Pleno", maturityLevel: "M3", initials: "RL" },
 ];
 
+// Competências comportamentais seguindo MER 3.0
+// Peso: 1=baixa, 2=média, 3=alta
 const behavioralCompetencies = [
-  { id: 1, name: "Comunicação", weight: 2, max: 4 },
-  { id: 2, name: "Trabalho em Equipe", weight: 3, max: 4 },
-  { id: 3, name: "Capacidade de Aprendizado", weight: 3, max: 4 },
-  { id: 4, name: "Iniciativa", weight: 1, max: 4 },
-  { id: 5, name: "Adaptabilidade", weight: 2, max: 4 },
+  { id: "comp-1", name: "Comunicação", weight: 2, max: ESCALA_MAX, tipo: 'COMPORTAMENTAL' as const },
+  { id: "comp-2", name: "Trabalho em Equipe", weight: 3, max: ESCALA_MAX, tipo: 'COMPORTAMENTAL' as const },
+  { id: "comp-3", name: "Capacidade de Aprendizado", weight: 3, max: ESCALA_MAX, tipo: 'COMPORTAMENTAL' as const },
+  { id: "comp-4", name: "Iniciativa", weight: 1, max: ESCALA_MAX, tipo: 'COMPORTAMENTAL' as const },
+  { id: "comp-5", name: "Adaptabilidade", weight: 2, max: ESCALA_MAX, tipo: 'COMPORTAMENTAL' as const },
 ];
 
-const idealScores: Record<number, number> = {
-  1: 4, 2: 4, 3: 4, 4: 3, 5: 4
+// Notas ideais baseadas no Template do Cargo (TEMPLATE_COMPETENCIA)
+const idealScores: Record<string, number> = {
+  "comp-1": 4, "comp-2": 4, "comp-3": 4, "comp-4": 3, "comp-5": 4
 };
 
 interface TechnicalSkill {
@@ -50,17 +65,69 @@ export default function Evaluation() {
   const navigate = useNavigate();
   const member = teamMembers.find(m => m.id === memberId);
   
-  const [scores, setScores] = useState<Record<number, number>>({
-    1: 2, 2: 2, 3: 2, 4: 2, 5: 2
+  // Estado das pontuações comportamentais (inicia com valor médio da escala)
+  const [scores, setScores] = useState<Record<string, number>>({
+    "comp-1": LIMIAR_MATURIDADE, 
+    "comp-2": LIMIAR_MATURIDADE, 
+    "comp-3": LIMIAR_MATURIDADE, 
+    "comp-4": LIMIAR_MATURIDADE, 
+    "comp-5": LIMIAR_MATURIDADE
   });
   
   const [technicalCategories, setTechnicalCategories] = useState<TechnicalCategory[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState<string>("");
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  
+  // Estado para os campos derivados (eixos X e Y) - calculados em tempo real
+  const [eixoX, setEixoX] = useState<number>(LIMIAR_MATURIDADE);
+  const [eixoY, setEixoY] = useState<number>(LIMIAR_MATURIDADE);
 
-  const handleScoreChange = (id: number, value: number[]) => {
-    setScores({ ...scores, [id]: value[0] });
+  // PASSO B.3: Atualização em tempo real do gráfico de radar
+  const handleScoreChange = (id: string, value: number[]) => {
+    const novaPontuacao = value[0];
+    
+    // Validar pontuação dentro da escala permitida (1-4)
+    if (!validarPontuacao(novaPontuacao)) {
+      toast({
+        title: "Pontuação inválida",
+        description: `A pontuação deve estar entre ${ESCALA_MIN} e ${ESCALA_MAX}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setScores({ ...scores, [id]: novaPontuacao });
   };
+  
+  // Recalcular Eixo Y (comportamental) sempre que scores mudar
+  useEffect(() => {
+    const pontuacoesComportamentais = behavioralCompetencies.map(comp => ({
+      pontuacao: scores[comp.id] || LIMIAR_MATURIDADE,
+      peso: comp.weight
+    }));
+    
+    const novoEixoY = calcularMediaPonderada(pontuacoesComportamentais);
+    setEixoY(parseFloat(novoEixoY.toFixed(2)));
+  }, [scores]);
+  
+  // Recalcular Eixo X (técnico) sempre que technicalCategories mudar
+  useEffect(() => {
+    const todasSkillsTecnicas: Array<{ pontuacao: number; peso: number }> = [];
+    
+    technicalCategories.forEach(category => {
+      category.skills.forEach(skill => {
+        // Por padrão, peso 2 (médio) para skills técnicas
+        todasSkillsTecnicas.push({ pontuacao: skill.score, peso: 2 });
+      });
+    });
+    
+    if (todasSkillsTecnicas.length > 0) {
+      const novoEixoX = calcularMediaPonderada(todasSkillsTecnicas);
+      setEixoX(parseFloat(novoEixoX.toFixed(2)));
+    } else {
+      setEixoX(LIMIAR_MATURIDADE);
+    }
+  }, [technicalCategories]);
 
   const handleTechnicalScoreChange = (categoryId: string, skillId: string, value: number[]) => {
     setTechnicalCategories(prev => 
@@ -121,6 +188,7 @@ export default function Evaluation() {
     });
   };
 
+  // PASSO A.3: Salvamento atômico da avaliação completa
   const handleSaveEvaluation = () => {
     const incompleteCategoriesCount = technicalCategories.filter(cat => !cat.completed).length;
     
@@ -132,10 +200,75 @@ export default function Evaluation() {
       });
       return;
     }
-
+    
+    // PASSO B.1: Validação de autoavaliação
+    const id_lider = "current-user-id"; // TODO: obter do contexto de autenticação
+    const id_liderado = memberId || "";
+    
+    if (!validarAutoavaliacao(id_lider, id_liderado)) {
+      toast({
+        title: "Autoavaliação não permitida",
+        description: "Você não pode avaliar a si mesmo.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // PASSO A.2: Calcular nível de maturidade
+    const nivel_maturidade = calcularNivelMaturidade(eixoY, eixoX);
+    
+    // Montar estrutura de pontuações comportamentais com snapshot
+    const pontuacoesComportamentais: Array<Omit<PontuacaoAvaliacao, 'id_avaliacao' | 'created_at'>> = 
+      behavioralCompetencies.map(comp => ({
+        id_competencia: comp.id,
+        pontuacao: scores[comp.id] || LIMIAR_MATURIDADE,
+        peso_aplicado: comp.weight as 1 | 2 | 3,
+        nota_ideal_aplicada: idealScores[comp.id] || ESCALA_MAX,
+      }));
+    
+    // Montar estrutura de pontuações técnicas com snapshot
+    const pontuacoesTecnicas: Array<Omit<PontuacaoAvaliacao, 'id_avaliacao' | 'created_at'>> = [];
+    const categorias_avaliadas: Array<{ id_categoria: string }> = [];
+    
+    technicalCategories.forEach(category => {
+      // Adicionar categoria à lista de categorias avaliadas (AVALIACAO_CATEGORIA)
+      categorias_avaliadas.push({ id_categoria: category.id });
+      
+      category.skills.forEach(skill => {
+        pontuacoesTecnicas.push({
+          id_competencia: skill.id,
+          pontuacao: skill.score,
+          peso_aplicado: 2, // Peso padrão médio para técnicas
+          nota_ideal_aplicada: ESCALA_MAX, // Ideal padrão
+        });
+      });
+    });
+    
+    // PASSO A.3: Montar objeto completo de avaliação (transação atômica)
+    const avaliacaoCompleta: AvaliacaoCompleta = {
+      avaliacao: {
+        data_avaliacao: new Date(),
+        id_liderado,
+        id_lider,
+        id_cargo: "cargo-default-id", // TODO: obter cargo do liderado
+        eixo_x_tecnico_geral: eixoX,
+        eixo_y_comportamental: eixoY,
+        nivel_maturidade,
+        observacoes: null,
+        status: 'CONCLUIDA',
+      },
+      pontuacoes: [...pontuacoesComportamentais, ...pontuacoesTecnicas],
+      categorias_avaliadas: categorias_avaliadas.map(cat => ({ id_categoria: cat.id_categoria })),
+    };
+    
+    console.log("Avaliação Completa (MER 3.0):", avaliacaoCompleta);
+    
+    // TODO: Enviar para Edge Function em uma única requisição
+    // await supabase.functions.invoke('save-evaluation', { body: avaliacaoCompleta })
+    
     toast({
-      title: "Avaliação completa salva!",
-      description: "Todas as avaliações foram salvas com sucesso.",
+      title: "Avaliação salva com sucesso!",
+      description: `Nível de Maturidade: ${nivel_maturidade} | Eixo X: ${eixoX.toFixed(2)} | Eixo Y: ${eixoY.toFixed(2)}`,
     });
     navigate("/evaluation");
   };
@@ -144,21 +277,25 @@ export default function Evaluation() {
     return <div className="p-8">Membro não encontrado</div>;
   }
 
-  // Dados do gráfico radar - Atualiza em tempo real
-  const radarData = behavioralCompetencies.map(comp => ({
+  // PASSO B.3: Dados do gráfico radar - Atualiza em tempo real
+  const radarData: RadarDataPoint[] = behavioralCompetencies.map(comp => ({
     competency: comp.name,
-    atual: scores[comp.id] || 0,
-    ideal: idealScores[comp.id] || 5
+    atual: scores[comp.id] || LIMIAR_MATURIDADE,
+    ideal: idealScores[comp.id] || ESCALA_MAX,
+    peso: comp.weight,
+    tipo: comp.tipo
   }));
 
-  // Adiciona skills técnicas da categoria ativa ao gráfico radar
+  // PASSO B.3: Adiciona skills técnicas da categoria ativa ao gráfico radar (dinâmico)
   const activeCategory = technicalCategories.find(cat => cat.id === activeCategoryId);
   if (activeCategory) {
     activeCategory.skills.forEach(skill => {
       radarData.push({
         competency: skill.name,
         atual: skill.score,
-        ideal: 4,
+        ideal: ESCALA_MAX,
+        peso: 2, // Peso médio para técnicas
+        tipo: 'TECNICA'
       });
     });
   }
