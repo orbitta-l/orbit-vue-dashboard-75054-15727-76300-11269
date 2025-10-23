@@ -2,10 +2,11 @@
 import { Usuario, Cargo, Categoria, Especializacao, Competencia } from '@/types/mer';
 
 // ============ USUÁRIOS ============
+// Líder com dados completos
 export const MOCK_LIDER: Usuario = {
   id_usuario: 'lider-001',
-  nome: 'Marina Rodriguez',
-  email: 'marina.rodriguez@orbitta.com',
+  nome: 'Juliana Martins',
+  email: 'juli.lider@gmail.com',
   senha: 'hashed',
   role: 'LIDER',
   organization_id: 'org-001',
@@ -15,23 +16,26 @@ export const MOCK_LIDER: Usuario = {
   updated_at: new Date('2024-01-01'),
 };
 
+// Líder novo (sem dados)
+export const MOCK_LIDER_NOVO: Usuario = {
+  id_usuario: 'lider-002',
+  nome: 'Thais Costa',
+  email: 'thais.lider@gmail.com',
+  senha: 'hashed',
+  role: 'LIDER',
+  organization_id: 'org-001',
+  lider_id: null,
+  avatar_url: null,
+  created_at: new Date('2024-01-01'),
+  updated_at: new Date('2024-01-01'),
+};
+
+// Liderado com dados (time da juli.lider)
 export const MOCK_LIDERADOS: Usuario[] = [
   {
     id_usuario: 'lid-001',
-    nome: 'Ana Silva',
-    email: 'ana.silva@orbitta.com',
-    senha: 'hashed',
-    role: 'LIDERADO',
-    organization_id: 'org-001',
-    lider_id: 'lider-001',
-    avatar_url: null,
-    created_at: new Date('2024-01-01'),
-    updated_at: new Date('2024-01-01'),
-  },
-  {
-    id_usuario: 'lid-002',
-    nome: 'Carlos Santos',
-    email: 'carlos.santos@orbitta.com',
+    nome: 'Antonio Pereira',
+    email: 'tone.p@gmail.com',
     senha: 'hashed',
     role: 'LIDERADO',
     organization_id: 'org-001',
@@ -42,20 +46,8 @@ export const MOCK_LIDERADOS: Usuario[] = [
   },
   {
     id_usuario: 'lid-003',
-    nome: 'Mariana Costa',
-    email: 'mariana.costa@orbitta.com',
-    senha: 'hashed',
-    role: 'LIDERADO',
-    organization_id: 'org-001',
-    lider_id: 'lider-001',
-    avatar_url: null,
-    created_at: new Date('2024-01-01'),
-    updated_at: new Date('2024-01-01'),
-  },
-  {
-    id_usuario: 'lid-004',
-    nome: 'Roberto Lima',
-    email: 'roberto.lima@orbitta.com',
+    nome: 'Lara Mendes',
+    email: 'lara.mendes@orbitta.com',
     senha: 'hashed',
     role: 'LIDERADO',
     organization_id: 'org-001',
@@ -65,6 +57,20 @@ export const MOCK_LIDERADOS: Usuario[] = [
     updated_at: new Date('2024-01-01'),
   },
 ];
+
+// Liderado novo (sem dados)
+export const MOCK_LIDERADO_NOVO: Usuario = {
+  id_usuario: 'lid-002',
+  nome: 'Ramon Silva',
+  email: 'ramon.p@gmail.com',
+  senha: 'hashed',
+  role: 'LIDERADO',
+  organization_id: 'org-001',
+  lider_id: 'lider-002',
+  avatar_url: null,
+  created_at: new Date('2024-01-01'),
+  updated_at: new Date('2024-01-01'),
+};
 
 // ============ CARGOS ============
 export const MOCK_CARGOS: Cargo[] = [
@@ -232,7 +238,7 @@ export interface LideradoPerformance {
 export const MOCK_PERFORMANCE: LideradoPerformance[] = [
   {
     id_liderado: 'lid-001',
-    nome_liderado: 'Ana Silva',
+    nome_liderado: 'Antonio Pereira',
     cargo: 'Desenvolvedor Junior',
     nivel_maturidade: 'M2',
     quadrantX: 2.3,
@@ -251,8 +257,8 @@ export const MOCK_PERFORMANCE: LideradoPerformance[] = [
     ],
   },
   {
-    id_liderado: 'lid-002',
-    nome_liderado: 'Carlos Santos',
+    id_liderado: 'lid-003',
+    nome_liderado: 'Lara Mendes',
     cargo: 'Designer Sênior',
     nivel_maturidade: 'M3',
     quadrantX: 3.4,

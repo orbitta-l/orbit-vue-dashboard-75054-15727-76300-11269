@@ -194,10 +194,17 @@ function RightPanel() {
           </Button>
 
           {/* Credenciais de teste - apenas para desenvolvimento */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg text-xs text-gray-600">
-            <p className="font-semibold mb-2">Credenciais de teste:</p>
-            <p>Líder: ana.lider@gmail.com / ana@123</p>
-            <p>Liderado: bea.santos@gmail.com / bea@123</p>
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg text-xs text-gray-600 space-y-3">
+            <div>
+              <p className="font-semibold mb-1">Com dados:</p>
+              <p>Líder: juli.lider@gmail.com / juli@123</p>
+              <p>Liderado: tone.p@gmail.com / tone@123</p>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">Sem dados (novos usuários):</p>
+              <p>Líder: thais.lider@gmail.com / thais@123</p>
+              <p>Liderado: ramon.p@gmail.com / ramon@123</p>
+            </div>
           </div>
         </form>
       </div>

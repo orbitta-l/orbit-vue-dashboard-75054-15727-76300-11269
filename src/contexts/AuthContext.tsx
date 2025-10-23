@@ -19,20 +19,38 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Usuários mockados conforme MER 3.0
+// Usuários mockados - 4 perfis de teste
 const MOCK_USERS = [
+  // Líder com dados completos
   {
     id: 'lider-001',
-    email: 'marina.rodriguez@orbitta.com',
-    password: 'marina@123',
-    name: 'Marina Rodriguez',
+    email: 'juli.lider@gmail.com',
+    password: 'juli@123',
+    name: 'Juliana Martins',
     role: 'lider' as UserRole,
   },
+  // Liderado com dados completos
   {
     id: 'lid-001',
-    email: 'ana.silva@orbitta.com',
-    password: 'ana@123',
-    name: 'Ana Silva',
+    email: 'tone.p@gmail.com',
+    password: 'tone@123',
+    name: 'Antonio Pereira',
+    role: 'liderado' as UserRole,
+  },
+  // Líder novo (sem dados)
+  {
+    id: 'lider-002',
+    email: 'thais.lider@gmail.com',
+    password: 'thais@123',
+    name: 'Thais Costa',
+    role: 'lider' as UserRole,
+  },
+  // Liderado novo (sem dados)
+  {
+    id: 'lid-002',
+    email: 'ramon.p@gmail.com',
+    password: 'ramon@123',
+    name: 'Ramon Silva',
     role: 'liderado' as UserRole,
   },
 ];

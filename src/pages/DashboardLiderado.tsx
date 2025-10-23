@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Target, BookOpen, TrendingUp, Filter } from "lucide-react";
+import { LogOut, Target, BookOpen, TrendingUp, Filter, ClipboardCheck, Lightbulb } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
@@ -25,6 +25,10 @@ import { useState } from "react";
 export default function DashboardLiderado() {
   const { profile, logout } = useAuth();
   const navigate = useNavigate();
+  
+  // Detecta se o liderado tem dados
+  const hasData = profile?.email === 'tone.p@gmail.com';
+  
   const [radarViewMode, setRadarViewMode] = useState<"all" | "soft" | "custom">("all");
   const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>(["React", "TypeScript", "API REST"]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -98,7 +102,52 @@ export default function DashboardLiderado() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        <div className="grid gap-6 md:grid-cols-3 mb-8">
+        {!hasData ? (
+          <Card className="p-8 text-center bg-muted/20">
+            <div className="max-w-2xl mx-auto">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+                <ClipboardCheck className="w-12 h-12 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-3">
+                Você ainda não possui avaliações
+              </h2>
+              <p className="text-muted-foreground mb-8 text-lg">
+                Aguarde seu líder realizar a primeira avaliação para visualizar seu progresso e plano de desenvolvimento.
+              </p>
+              
+              <Card className="p-6 text-left bg-card mb-6">
+                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-accent" />
+                  Como funciona a Metodologia Orbitta
+                </h3>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <div className="flex gap-3">
+                    <span className="font-bold text-primary">1.</span>
+                    <p>Seu líder realiza uma avaliação abrangente das suas competências técnicas e comportamentais</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="font-bold text-primary">2.</span>
+                    <p>Você recebe um perfil de maturidade (M1 a M4) baseado no desempenho geral</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="font-bold text-primary">3.</span>
+                    <p>Visualize gaps de conhecimento comparando seu perfil atual com o ideal do cargo</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="font-bold text-primary">4.</span>
+                    <p>Acompanhe seu plano de desenvolvimento personalizado com objetivos claros</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Button variant="outline" onClick={() => navigate('/')} className="gap-2">
+                Voltar ao Início
+              </Button>
+            </div>
+          </Card>
+        ) : (
+          <>
+            <div className="grid gap-6 md:grid-cols-3 mb-8">
           {/* Cards de Estatísticas Pessoais */}
           <Card className="hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
@@ -319,9 +368,11 @@ export default function DashboardLiderado() {
                   <li>Solicitar feedback do líder mensalmente</li>
                 </ul>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+        )}
       </main>
     </div>
   );

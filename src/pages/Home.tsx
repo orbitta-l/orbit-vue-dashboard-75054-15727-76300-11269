@@ -1,13 +1,12 @@
-import { Users as UsersIcon, TrendingUp, Award, BarChart3 } from "lucide-react";
+import { Users as UsersIcon, TrendingUp, Award, BarChart3, UserPlus, ClipboardList } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import CompetencyMatrixChart from "@/components/CompetencyMatrixChart";
-import { MOCK_LIDER, MOCK_PERFORMANCE, calcularGapsEquipe } from "@/data/mockData";
+import { MOCK_LIDER, MOCK_LIDER_NOVO, MOCK_PERFORMANCE, calcularGapsEquipe } from "@/data/mockData";
 import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
-
-// Simula dados - em produção viria do backend
-const hasEvaluations = true; // Mude para false para ver estado vazio
 
 const teamMembers = MOCK_PERFORMANCE.map(p => ({
   id: p.id_liderado,
@@ -52,53 +51,82 @@ const StatCard = ({ icon: Icon, title, value, trend }: any) => (
 
 export default function Home() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
+
+  // Detecta se o líder logado tem dados
+  const isLiderComDados = profile?.email === 'juli.lider@gmail.com';
+  const hasEvaluations = isLiderComDados;
+
+  // Dados do líder baseado no perfil logado
+  const currentLeaderData = isLiderComDados ? MOCK_LIDER : MOCK_LIDER_NOVO;
+  const leaderProfile = {
+    name: currentLeaderData.nome,
+    role: "Tech Lead",
+    initials: currentLeaderData.nome.split(' ').map(n => n[0]).join(''),
+    email: currentLeaderData.email,
+    team: "Engenharia de Software"
+  };
 
   return (
     <div className="p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard da Equipe</h1>
-          <p className="text-muted-foreground">Visão geral do desempenho e métricas da sua equipe</p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard da Equipe</h1>
+        <p className="text-muted-foreground">Visão geral do desempenho e métricas da sua equipe</p>
+      </div>
 
-        {/* Perfil do Líder */}
-        <Card className="p-6 mb-8 bg-gradient-to-r from-primary/5 to-accent/5">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-2xl font-bold text-primary-foreground">{leaderProfile.initials}</span>
+      {/* Perfil do Líder */}
+      <Card className="p-6 mb-8 bg-gradient-to-r from-primary/5 to-accent/5">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
+            <span className="text-2xl font-bold text-primary-foreground">{leaderProfile.initials}</span>
+          </div>
+          <div className="flex-1">
+            <h2 className="text-xl font-bold text-foreground">{leaderProfile.name}</h2>
+            <p className="text-muted-foreground">{leaderProfile.role} • {leaderProfile.team}</p>
+            <p className="text-sm text-muted-foreground">{leaderProfile.email}</p>
+          </div>
+        </div>
+      </Card>
+
+      {hasEvaluations ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <StatCard icon={UsersIcon} title="Total de Membros" value="2" />
+            <StatCard icon={Award} title="Avaliações Completas" value="6" trend="+2 este mês" />
+            <StatCard icon={BarChart3} title="Maturidade Média" value="M2.5" trend="+0.2 vs anterior" />
+          </div>
+        </>
+      ) : (
+        <Card className="p-8 mb-8 text-center bg-muted/20">
+          <div className="max-w-md mx-auto">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+              <ClipboardList className="w-10 h-10 text-primary" />
             </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-bold text-foreground">{leaderProfile.name}</h2>
-              <p className="text-muted-foreground">{leaderProfile.role} • {leaderProfile.team}</p>
-              <p className="text-sm text-muted-foreground">{leaderProfile.email}</p>
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              Nenhuma avaliação disponível ainda
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Comece avaliando seu primeiro liderado para visualizar métricas e gráficos de desempenho da equipe.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button onClick={() => navigate('/evaluation')} className="gap-2">
+                <ClipboardList className="w-4 h-4" />
+                Iniciar Primeira Avaliação
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/team')} className="gap-2">
+                <UserPlus className="w-4 h-4" />
+                Ver Equipe
+              </Button>
             </div>
           </div>
         </Card>
+      )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <StatCard icon={UsersIcon} title="Total de Membros" value="4" />
-          <StatCard icon={Award} title="Avaliações Completas" value="12" trend="+3 este mês" />
-          <StatCard icon={BarChart3} title="Maturidade Média" value="M2.8" trend="+0.3 vs anterior" />
-        </div>
+      {/* Gráfico de Quadrante */}
+      {hasEvaluations && <CompetencyMatrixChart teamMembers={teamMembers} />}
 
-        {/* Gráfico de Quadrante */}
-        {hasEvaluations ? (
-          <CompetencyMatrixChart teamMembers={teamMembers} />
-        ) : (
-          <Card className="p-6 mb-8">
-            <h3 className="text-lg font-semibold mb-4 text-foreground">Maturidade da Equipe (Gráfico de Quadrante)</h3>
-            <p className="text-sm text-muted-foreground mb-6">Distribuição estratégica dos membros por competências comportamentais (Y) e técnicas (X)</p>
-            <div className="flex items-center justify-center h-96">
-              <div className="text-center">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                  <BarChart3 className="w-12 h-12 text-muted-foreground" />
-                </div>
-                <p className="text-muted-foreground">Nenhuma avaliação realizada ainda</p>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Gaps de Competências Técnicas */}
+      {/* Gaps de Competências Técnicas */}
+      {hasEvaluations && (
         <Card className="p-6 mb-8">
           <h3 className="text-lg font-semibold mb-4 text-foreground">Gaps de Competências Técnicas</h3>
           <p className="text-sm text-muted-foreground mb-6">
@@ -108,48 +136,39 @@ export default function Home() {
               <span className="font-semibold text-blue-600 dark:text-blue-400"> Azul</span> = desempenho adequado
             </span>
           </p>
-          {hasEvaluations ? (
-            <div className="space-y-4">
-              {skillGaps.map((item) => (
-                <div key={item.nome_competencia} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex-1">
-                      <span className={`font-medium ${getGapColorClass(item.media_score)}`}>
-                        {item.nome_competencia}
-                      </span>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        ({item.nome_categoria}{item.nome_especializacao ? ` › ${item.nome_especializacao}` : ''})
-                      </span>
-                    </div>
-                    <span className={`font-semibold ${getGapColorClass(item.media_score)}`}>
-                      {item.media_score.toFixed(1)}/4.0
+          <div className="space-y-4">
+            {skillGaps.map((item) => (
+              <div key={item.nome_competencia} className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex-1">
+                    <span className={`font-medium ${getGapColorClass(item.media_score)}`}>
+                      {item.nome_competencia}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2">
+                      ({item.nome_categoria}{item.nome_especializacao ? ` › ${item.nome_especializacao}` : ''})
                     </span>
                   </div>
-                  <div className="h-3 bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full rounded-full transition-all duration-500" 
-                      style={{ 
-                        width: `${(item.media_score / 4) * 100}%`,
-                        backgroundColor: getGapColor(item.media_score)
-                      }} 
-                    />
-                  </div>
+                  <span className={`font-semibold ${getGapColorClass(item.media_score)}`}>
+                    {item.media_score.toFixed(1)}/4.0
+                  </span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                  <Award className="w-12 h-12 text-muted-foreground" />
+                <div className="h-3 bg-secondary rounded-full overflow-hidden">
+                  <div 
+                    className="h-full rounded-full transition-all duration-500" 
+                    style={{ 
+                      width: `${(item.media_score / 4) * 100}%`,
+                      backgroundColor: getGapColor(item.media_score)
+                    }} 
+                  />
                 </div>
-                <p className="text-muted-foreground">Nenhuma avaliação realizada ainda</p>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
         </Card>
+      )}
 
-        {/* Acesso Rápido aos Membros */}
+      {/* Acesso Rápido aos Membros */}
+      {hasEvaluations && (
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-foreground">Acesso Rápido aos Membros</h3>
@@ -178,6 +197,7 @@ export default function Home() {
             ))}
           </div>
         </Card>
-      </div>
+      )}
+    </div>
   );
 }
