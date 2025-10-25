@@ -7,75 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.svg";
 
-// Componente de fundo com estrelas animadas
-function StarsBackground() {
-  const [stars, setStars] = useState<Array<{
-    id: number;
-    top: number;
-    left: number;
-    delay: number;
-    duration: number;
-  }>>([]);
-
-  useEffect(() => {
-    const generateStars = () => {
-      const newStars = [];
-      for (let i = 0; i < 15; i++) {
-        newStars.push({
-          id: i,
-          top: Math.random() * 100,
-          left: Math.random() * 100,
-          delay: -Math.random() * 3,
-          duration: 1 + Math.random() * 2,
-        });
-      }
-      setStars(newStars);
-    };
-
-    generateStars();
-  }, []);
-
-  return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-      {stars.map((star) => (
-        <div
-          key={star.id}
-          className="absolute animate-shoot"
-          style={{
-            top: `${star.top}%`,
-            left: `${star.left}%`,
-            animationDuration: `${star.duration}s`,
-            animationDelay: `${star.delay}s`,
-          }}
-        >
-          <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_2px_rgba(255,255,255,0.8)]" />
-        </div>
-      ))}
-
-      <style>{`
-        @keyframes shoot {
-          0% {
-            transform: translate(0, 0);
-            opacity: 0;
-          }
-          10% {
-            opacity: 1;
-          }
-          90% {
-            opacity: 1;
-          }
-          100% {
-            transform: translate(-300px, -300px);
-            opacity: 0;
-          }
-        }
-        .animate-shoot {
-          animation: shoot linear infinite;
-        }
-      `}</style>
-    </div>
-  );
-}
+// Sem estrelas no login conforme requisito
 
 // Painel esquerdo com branding
 function LeftPanel({ title }: { title: React.ReactNode }) {
@@ -228,7 +160,6 @@ export default function Login() {
         background: 'url("/login-bg.svg") center/cover no-repeat, #090F25',
       }}
     >
-      <StarsBackground />
       <LeftPanel title={slogan} />
       <RightPanel />
     </main>
