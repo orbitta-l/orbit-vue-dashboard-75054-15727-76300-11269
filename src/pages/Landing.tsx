@@ -8,8 +8,8 @@ export default function Landing() {
   const [currentLeaderFeature, setCurrentLeaderFeature] = useState(0);
   const [currentEmployeeFeature, setCurrentEmployeeFeature] = useState(0);
 
+  const [activeSection, setActiveSection] = useState('inicio');
   const sectionIds = ['inicio', 'obstaculos', 'solucao', 'funcionalidades', 'leis'];
-  const activeSection = useScrollSpy(sectionIds);
 
   useEffect(() => {
     const handleScroll = () => {
