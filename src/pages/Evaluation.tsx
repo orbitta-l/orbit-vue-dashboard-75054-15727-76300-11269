@@ -8,8 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { useAuth, Liderado } from "@/contexts/AuthContext";
 import { 
   softSkillTemplates, 
-  technicalCategories, 
-  cargoToCategoryMapping,
+  technicalCategories,
   SoftSkillTemplate,
   TechnicalCategory,
 } from "@/data/evaluationTemplates";
@@ -52,11 +51,6 @@ export default function Evaluation() {
     }
     setMember(currentMember);
 
-    if (!currentMember.cargo_id) {
-      setLoading(false);
-      return;
-    }
-
     const template = softSkillTemplates.find(t => t.cargo_id === currentMember.cargo_id);
     setSoftTemplate(template || null);
     if (template) {
@@ -67,9 +61,8 @@ export default function Evaluation() {
       setSoftScores(initialScores);
     }
     
-    const allowedCategoryIds = cargoToCategoryMapping[currentMember.cargo_id] || [];
-    const filteredCategories = technicalCategories.filter(cat => allowedCategoryIds.includes(cat.id));
-    setAvailableCategories(filteredCategories);
+    // Carrega todas as categorias técnicas, sem filtro por cargo
+    setAvailableCategories(technicalCategories);
 
     setLoading(false);
   }, [memberId, liderados, navigate]);

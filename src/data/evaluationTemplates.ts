@@ -434,14 +434,3 @@ export const technicalCategories: TechnicalCategory[] = [
     ],
   },
 ];
-
-
-// ==================================
-// MAPEAMENTO DE CARGO PARA CATEGORIAS TÉCNICAS
-// ==================================
-
-export const cargoToCategoryMapping: Record<string, string[]> = {
-  "junior": ["dev-web"],
-  "pleno": ["dev-web", "devops"],
-  "senior": ["dev-web", "devops"],
-};
