@@ -158,16 +158,20 @@ export function calcularNivelMaturidade(
   eixo_y_comportamental: number,
   eixo_x_tecnico_geral: number
 ): NivelMaturidade {
-  if (eixo_y_comportamental >= LIMIAR_MATURIDADE && eixo_x_tecnico_geral < LIMIAR_MATURIDADE) {
-    return 'M1'; // Alto Empenho, Baixa Competência Técnica
+  // M1: Baixo Técnico, Baixo Comportamental
+  if (eixo_x_tecnico_geral <= LIMIAR_MATURIDADE && eixo_y_comportamental <= LIMIAR_MATURIDADE) {
+    return 'M1';
   }
-  if (eixo_y_comportamental < LIMIAR_MATURIDADE && eixo_x_tecnico_geral < LIMIAR_MATURIDADE) {
-    return 'M2'; // Baixo Empenho, Baixa Competência Técnica
+  // M2: Baixo Técnico, Alto Comportamental
+  if (eixo_x_tecnico_geral <= LIMIAR_MATURIDADE && eixo_y_comportamental > LIMIAR_MATURIDADE) {
+    return 'M2';
   }
-  if (eixo_y_comportamental < LIMIAR_MATURIDADE && eixo_x_tecnico_geral >= LIMIAR_MATURIDADE) {
-    return 'M3'; // Baixo Empenho, Alta Competência Técnica
+  // M3: Alto Técnico, Baixo Comportamental
+  if (eixo_x_tecnico_geral > LIMIAR_MATURIDADE && eixo_y_comportamental <= LIMIAR_MATURIDADE) {
+    return 'M3';
   }
-  return 'M4'; // Alto Empenho, Alta Competência Técnica
+  // M4: Alto Técnico, Alto Comportamental
+  return 'M4';
 }
 
 /**

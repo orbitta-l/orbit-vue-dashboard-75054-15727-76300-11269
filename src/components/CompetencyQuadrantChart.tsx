@@ -21,10 +21,10 @@ interface CompetencyQuadrantChartProps {
 }
 
 const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
-  M1: "hsl(var(--chart-1))",
-  M2: "hsl(var(--chart-2))",
-  M3: "hsl(var(--chart-3))",
-  M4: "hsl(var(--chart-4))",
+  M1: "hsl(var(--destructive))", // Baixo T, Baixo C (Vermelho)
+  M2: "hsl(var(--color-mid))",    // Baixo T, Alto C (Amarelo)
+  M3: "hsl(var(--accent))",       // Alto T, Baixo C (Laranja)
+  M4: "hsl(var(--color-good))",   // Alto T, Alto C (Verde)
 };
 
 const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -130,10 +130,10 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                 <ReferenceLine x={2.5} stroke="hsl(var(--border))" strokeDasharray="4 4" />
                 <ReferenceLine y={2.5} stroke="hsl(var(--border))" strokeDasharray="4 4" />
 
-                <ReferenceArea x1={1} x2={2.5} y1={1} y2={2.5} fill={QUADRANT_COLORS.M1} fillOpacity={0.05} />
-                <ReferenceArea x1={1} x2={2.5} y1={2.5} y2={4} fill={QUADRANT_COLORS.M2} fillOpacity={0.05} />
-                <ReferenceArea x1={2.5} x2={4} y1={1} y2={2.5} fill={QUADRANT_COLORS.M3} fillOpacity={0.05} />
-                <ReferenceArea x1={2.5} x2={4} y1={2.5} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.05} />
+                <ReferenceArea x1={1} x2={2.5} y1={1} y2={2.5} fill={QUADRANT_COLORS.M1} fillOpacity={0.1} />
+                <ReferenceArea x1={1} x2={2.5} y1={2.5} y2={4} fill={QUADRANT_COLORS.M2} fillOpacity={0.1} />
+                <ReferenceArea x1={2.5} x2={4} y1={1} y2={2.5} fill={QUADRANT_COLORS.M3} fillOpacity={0.1} />
+                <ReferenceArea x1={2.5} x2={4} y1={2.5} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.1} />
 
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
                 
@@ -154,7 +154,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
             </ResponsiveContainer>
             {/* Quadrant Badges */}
             <div className="absolute top-2 left-1/4 text-center">
-              <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M2 }}>M2 ({quadrantCounts.M2 || 0})</div>
+              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M2 }}>M2 ({quadrantCounts.M2 || 0})</div>
             </div>
             <div className="absolute top-2 right-1/4 text-center">
               <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M4 }}>M4 ({quadrantCounts.M4 || 0})</div>
@@ -163,7 +163,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
               <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M1 }}>M1 ({quadrantCounts.M1 || 0})</div>
             </div>
             <div className="absolute bottom-2 right-1/2 transform translate-x-1/2 text-center">
-              <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M3 }}>M3 ({quadrantCounts.M3 || 0})</div>
+              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M3 }}>M3 ({quadrantCounts.M3 || 0})</div>
             </div>
           </div>
         </div>
