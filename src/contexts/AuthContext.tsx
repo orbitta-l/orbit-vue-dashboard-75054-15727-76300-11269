@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
-import { MOCK_PERFORMANCE, MOCK_LIDER } from '@/data/mockData';
-import { SexoTipo } from '@/types/mer';
+import { MOCK_PERFORMANCE, MOCK_LIDER, MOCK_LIDERADOS as MOCK_USERS_LIDERADOS } from '@/data/mockData';
+import { SexoTipo, LideradoPerformance, NivelMaturidade, calcularNivelMaturidade, calcularIdade } from '@/types/mer';
 
 export type UserRole = 'lider' | 'liderado';
 
@@ -11,18 +11,9 @@ export interface Profile {
   role: UserRole;
 }
 
-export interface Liderado {
-  id: string;
-  nome: string;
-  email?: string;
-  cargo_id?: string;
-  sexo?: SexoTipo;
-  data_nascimento?: string;
-  lider_id?: string;
-  // Frontend-specific fields
-  maturityLevel?: string;
-  areas?: string[];
-  especializacaoDominante?: string;
+// Liderado agora é a interface completa de LideradoPerformance
+export interface Liderado extends LideradoPerformance {
+  lider_id: string; // Adiciona lider_id para consistência com Usuario
 }
 
 export interface Avaliacao {
@@ -40,13 +31,14 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  liderados: Liderado[];
+  liderados: Liderado[]; // Agora holds LideradoPerformance data
   setLiderados: React.Dispatch<React.SetStateAction<Liderado[]>>;
   avaliacoes: Avaliacao[];
   setAvaliacoes: React.Dispatch<React.SetStateAction<Avaliacao[]>>;
   isPrimeiroAcesso: boolean;
-  addLiderado: (novo: Liderado) => void;
+  addLiderado: (novo: Omit<Liderado, 'nivel_maturidade' | 'eixo_x_tecnico_geral' | 'eixo_y_comportamental' | 'categoria_dominante' | 'especializacao_dominante' | 'competencias' | 'idade' | 'lider_id'> & { lider_id: string }) => void;
   addAvaliacao: (nova: Avaliacao) => void;
+  updateLideradoPerformance: (lideradoId: string, performanceData: Partial<LideradoPerformance>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -77,30 +69,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (storedProfile) {
       const parsedProfile = JSON.parse(storedProfile);
       setProfile(parsedProfile);
-      if (parsedProfile.email === MOCK_LIDER.email) {
+      if (parsedProfile.role === 'lider' && !ALWAYS_FIRST.includes(parsedProfile.email)) {
         loadMockData(parsedProfile.id);
       }
     }
   }, []);
 
   const loadMockData = (liderId: string) => {
-    const lideradosIniciais = MOCK_PERFORMANCE.map((p) => ({
-      id: p.id_liderado,
-      nome: p.nome_liderado,
-      cargo_id: p.cargo_id,
-      email: `${p.nome_liderado.split(' ')[0].toLowerCase()}@orbitta.com`,
-      maturityLevel: p.nivel_maturidade,
-      areas: [p.categoria_dominante, p.especializacao_dominante],
-      especializacaoDominante: p.especializacao_dominante,
+    const lideradosCompletos: Liderado[] = MOCK_PERFORMANCE.map((p) => ({
+      ...p,
+      lider_id: liderId, // Associa ao líder mockado
     }));
-    setLiderados(lideradosIniciais);
+    setLiderados(lideradosCompletos);
 
     const avals = MOCK_PERFORMANCE.map((p) => ({
       id: `av-${p.id_liderado}`,
       id_lider: liderId,
       id_liderado: p.id_liderado,
-      eixo_x: p.quadrantX,
-      eixo_y: p.quadrantY,
+      eixo_x: p.eixo_x_tecnico_geral,
+      eixo_y: p.eixo_y_comportamental,
       nivel: p.nivel_maturidade,
       data: new Date().toISOString(),
     }));
@@ -134,8 +121,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('orbitta_profile');
   };
 
-  const addLiderado = (novo: Liderado) => setLiderados((prev) => [...prev, novo]);
+  const addLiderado = (novo: Omit<Liderado, 'nivel_maturidade' | 'eixo_x_tecnico_geral' | 'eixo_y_comportamental' | 'categoria_dominante' | 'especializacao_dominante' | 'competencias' | 'idade'> & { lider_id: string }) => {
+    const newLiderado: Liderado = {
+      ...novo,
+      nivel_maturidade: 'M1', // Default inicial
+      eixo_x_tecnico_geral: 0,
+      eixo_y_comportamental: 0,
+      categoria_dominante: 'Não Avaliado',
+      especializacao_dominante: 'Não Avaliado',
+      competencias: [],
+      idade: calcularIdade(novo.data_nascimento),
+    };
+    setLiderados((prev) => [...prev, newLiderado]);
+  };
+
   const addAvaliacao = (nova: Avaliacao) => setAvaliacoes((prev) => [...prev, nova]);
+
+  const updateLideradoPerformance = (lideradoId: string, performanceData: Partial<LideradoPerformance>) => {
+    setLiderados(prev => prev.map(l => 
+      l.id_liderado === lideradoId ? { ...l, ...performanceData } : l
+    ));
+  };
 
   const primeiroAcesso = useMemo(() => isPrimeiroAcesso(profile, liderados, avaliacoes), [profile, liderados, avaliacoes]);
 
@@ -153,6 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isPrimeiroAcesso: primeiroAcesso,
         addLiderado,
         addAvaliacao,
+        updateLideradoPerformance,
       }}
     >
       {children}

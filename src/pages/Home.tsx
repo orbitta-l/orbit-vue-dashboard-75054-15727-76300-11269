@@ -66,23 +66,19 @@ export default function Home() {
     if (isPrimeiroAcesso) return { quadrante: [], barras: [], pizza: [], gaps: undefined, recentes: [] };
 
     const teamPerformance = liderados.map(liderado => {
-      const avaliacao = avaliacoes.find(av => av.id_liderado === liderado.id);
-      const mockData = MOCK_PERFORMANCE.find(p => p.id_liderado === liderado.id);
-      const eixo_x = avaliacao?.eixo_x ?? mockData?.quadrantX ?? 0;
-      const eixo_y = avaliacao?.eixo_y ?? mockData?.quadrantY ?? 0;
-      
+      // Liderado do AuthContext já contém todos os dados de performance
       return {
-        id_liderado: liderado.id,
-        nome_liderado: liderado.nome,
-        cargo: liderado.cargo_id || 'Não definido',
-        nivel_maturidade: calcularNivelMaturidade(eixo_y, eixo_x),
-        eixo_x_tecnico_geral: eixo_x,
-        eixo_y_comportamental: eixo_y,
-        categoria_dominante: mockData?.categoria_dominante || 'N/A',
-        especializacao_dominante: mockData?.especializacao_dominante || 'N/A',
-        competencias: mockData?.competencias || [],
-        sexo: mockData?.sexo || 'NAO_INFORMADO',
-        idade: mockData?.idade || 0,
+        id_liderado: liderado.id_liderado,
+        nome_liderado: liderado.nome_liderado,
+        cargo: liderado.cargo,
+        nivel_maturidade: liderado.nivel_maturidade,
+        eixo_x_tecnico_geral: liderado.eixo_x_tecnico_geral,
+        eixo_y_comportamental: liderado.eixo_y_comportamental,
+        categoria_dominante: liderado.categoria_dominante,
+        especializacao_dominante: liderado.especializacao_dominante,
+        competencias: liderado.competencias,
+        sexo: liderado.sexo,
+        idade: liderado.idade,
       };
     });
 
@@ -129,7 +125,7 @@ export default function Home() {
 
     const recentes = avaliacoes.slice(-3).map(av => ({
       id: av.id,
-      nome_liderado: liderados.find(l => l.id === av.id_liderado)?.nome ?? "Desconhecido",
+      nome_liderado: liderados.find(l => l.id_liderado === av.id_liderado)?.nome_liderado ?? "Desconhecido",
       data_avaliacao: new Date(av.data),
     }));
 

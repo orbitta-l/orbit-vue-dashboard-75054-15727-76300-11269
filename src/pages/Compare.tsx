@@ -4,70 +4,132 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer } from "recharts";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth, Liderado } from "@/contexts/AuthContext";
+import { technicalCategories, softSkillTemplates } from "@/data/evaluationTemplates";
+import { CompetenciaTipo } from "@/types/mer";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-const teamMembers = [
-  { id: "1", name: "Ana Silva", role: "Estagiário", initials: "AS" },
-  { id: "2", name: "Pedro Santos", role: "Especialista I", initials: "PS" },
-  { id: "3", name: "Mariana Costa", role: "Senior", initials: "MC" },
-  { id: "4", name: "Roberto Lima", role: "Pleno", initials: "RL" },
-];
-
-const memberScores: Record<string, any[]> = {
-  "1": [
-    { competency: "Comunicação", score: 3 },
-    { competency: "Trabalho em Equipe", score: 4 },
-    { competency: "Aprendizado", score: 2 },
-    { competency: "Iniciativa", score: 2 },
-    { competency: "Adaptabilidade", score: 3 },
-  ],
-  "2": [
-    { competency: "Comunicação", score: 4 },
-    { competency: "Trabalho em Equipe", score: 4 },
-    { competency: "Aprendizado", score: 3 },
-    { competency: "Iniciativa", score: 3 },
-    { competency: "Adaptabilidade", score: 4 },
-  ],
-  "3": [
-    { competency: "Comunicação", score: 4 },
-    { competency: "Trabalho em Equipe", score: 4 },
-    { competency: "Aprendizado", score: 4 },
-    { competency: "Iniciativa", score: 4 },
-    { competency: "Adaptabilidade", score: 4 },
-  ],
-  "4": [
-    { competency: "Comunicação", score: 3 },
-    { competency: "Trabalho em Equipe", score: 3 },
-    { competency: "Aprendizado", score: 3 },
-    { competency: "Iniciativa", score: 3 },
-    { competency: "Adaptabilidade", score: 3 },
-  ],
-};
+type ComparisonLevel = "category" | "specialization" | "competency";
 
 export default function Compare() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const memberIds = searchParams.get("members")?.split(",") || [];
-  const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [filterSpecialization, setFilterSpecialization] = useState<string>("all");
-  const [radarViewMode, setRadarViewMode] = useState<"all" | "soft" | "custom">("all");
-  const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>(["Comunicação", "Trabalho em Equipe"]);
-  
-  const selectedMembers = memberIds
-    .map(id => teamMembers.find(m => m.id === id))
-    .filter(Boolean);
+  const { liderados } = useAuth();
 
-  const allCompetencies = ["Comunicação", "Trabalho em Equipe", "Aprendizado", "Iniciativa", "Adaptabilidade"];
-  const allCategories = ["Técnicas", "Comportamentais"];
-  const allSpecializations = ["Backend", "Frontend", "DevOps", "Mobile"];
+  const [comparisonLevel, setComparisonLevel] = useState<ComparisonLevel>("category");
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
+  const [selectedSpecializationFilter, setSelectedSpecializationFilter] = useState<string>("all");
+  const [customSelectedCompetencies, setCustomSelectedCompetencies] = useState<string[]>([]);
+  const [isCompetencySelectOpen, setIsCompetencySelectOpen] = useState(false);
 
-  const toggleHardSkill = (skill: string) => {
-    setSelectedHardSkills(prev => 
-      prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
-    );
+  const selectedMembers = useMemo(() => 
+    liderados.filter(m => memberIds.includes(m.id_liderado)), 
+    [liderados, memberIds]
+  );
+
+  const allAvailableCategories = useMemo(() => {
+    const categories = new Set<string>();
+    selectedMembers.forEach(member => {
+      member.competencias.forEach(comp => {
+        if (comp.tipo === 'TECNICA' && comp.nome_categoria) {
+          categories.add(comp.nome_categoria);
+        }
+      });
+    });
+    return Array.from(categories).sort();
+  }, [selectedMembers]);
+
+  const allAvailableSpecializations = useMemo(() => {
+    const specializations = new Set<string>();
+    selectedMembers.forEach(member => {
+      member.competencias.forEach(comp => {
+        if (comp.tipo === 'TECNICA' && comp.nome_especializacao && (selectedCategoryFilter === 'all' || comp.nome_categoria === selectedCategoryFilter)) {
+          specializations.add(comp.nome_especializacao);
+        }
+      });
+    });
+    return Array.from(specializations).sort();
+  }, [selectedMembers, selectedCategoryFilter]);
+
+  const allAvailableCompetencies = useMemo(() => {
+    const competencies = new Set<string>();
+    selectedMembers.forEach(member => {
+      member.competencias.forEach(comp => {
+        if (comp.tipo === 'TECNICA' && (selectedCategoryFilter === 'all' || comp.nome_categoria === selectedCategoryFilter) && (selectedSpecializationFilter === 'all' || comp.nome_especializacao === selectedSpecializationFilter)) {
+          competencies.add(comp.nome_competencia);
+        } else if (comp.tipo === 'COMPORTAMENTAL' && selectedCategoryFilter === 'Soft Skills') {
+          competencies.add(comp.nome_competencia);
+        }
+      });
+    });
+    return Array.from(competencies).sort();
+  }, [selectedMembers, selectedCategoryFilter, selectedSpecializationFilter]);
+
+  const getRadarChartData = () => {
+    if (selectedMembers.length < 2) return [];
+
+    const data: Record<string, any> = {};
+    const subjects = new Set<string>();
+
+    selectedMembers.forEach(member => {
+      member.competencias.forEach(comp => {
+        let subjectKey: string | null = null;
+        let score = comp.media_pontuacao;
+
+        if (comparisonLevel === "category") {
+          if (selectedCategoryFilter === "all") {
+            if (comp.tipo === 'TECNICA' && comp.nome_categoria) {
+              subjectKey = comp.nome_categoria;
+            } else if (comp.tipo === 'COMPORTAMENTAL') {
+              subjectKey = 'Soft Skills'; // Agrupar todas as soft skills em uma categoria
+            }
+          } else if (comp.nome_categoria === selectedCategoryFilter) {
+            subjectKey = comp.nome_especializacao || comp.nome_competencia; // Se categoria específica, mostrar especializações ou competências
+          } else if (selectedCategoryFilter === 'Soft Skills' && comp.tipo === 'COMPORTAMENTAL') {
+            subjectKey = comp.nome_competencia;
+          }
+        } else if (comparisonLevel === "specialization") {
+          if (comp.nome_especializacao === selectedSpecializationFilter) {
+            subjectKey = comp.nome_competencia;
+          }
+        } else if (comparisonLevel === "competency" && customSelectedCompetencies.includes(comp.nome_competencia)) {
+          subjectKey = comp.nome_competencia;
+        }
+
+        if (subjectKey) {
+          subjects.add(subjectKey);
+          if (!data[subjectKey]) {
+            data[subjectKey] = { subject: subjectKey };
+          }
+          data[subjectKey][member.nome_liderado] = (data[subjectKey][member.nome_liderado] || 0) + score;
+          data[subjectKey][`${member.nome_liderado}_count`] = (data[subjectKey][`${member.nome_liderado}_count`] || 0) + 1;
+        }
+      });
+    });
+
+    // Calculate averages for subjects that were aggregated
+    const finalData = Array.from(subjects).map(subject => {
+      const item: any = { subject };
+      selectedMembers.forEach(member => {
+        const totalScore = data[subject]?.[member.nome_liderado] || 0;
+        const count = data[subject]?.[`${member.nome_liderado}_count`] || 0;
+        item[member.nome_liderado] = count > 0 ? parseFloat((totalScore / count).toFixed(1)) : 0;
+      });
+      item.fullMark = 4; // Max score for radar chart
+      return item;
+    });
+
+    return finalData;
   };
+
+  const radarData = getRadarChartData();
+
+  const colors = ["hsl(var(--primary))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
 
   if (selectedMembers.length < 2) {
     return (
@@ -85,15 +147,90 @@ export default function Compare() {
     );
   }
 
-  const radarData = memberScores[selectedMembers[0]!.id].map((item, index) => {
-    const dataPoint: any = { competency: item.competency };
-    selectedMembers.forEach((member) => {
-      dataPoint[member!.name] = memberScores[member!.id][index].score;
-    });
-    return dataPoint;
-  });
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
 
-  const colors = ["hsl(var(--primary))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
+  const getDominantInfo = (member: Liderado) => {
+    if (member.categoria_dominante && member.especializacao_dominante) {
+      return `${member.categoria_dominante} > ${member.especializacao_dominante}`;
+    }
+    return member.categoria_dominante || 'N/A';
+  };
+
+  const getComparisonAnalysis = () => {
+    if (radarData.length === 0) return "Não há dados suficientes para uma análise com os filtros atuais.";
+
+    let analysisText = "";
+    const memberScores: Record<string, number> = {};
+    const memberStrengths: Record<string, string[]> = {};
+    const memberWeaknesses: Record<string, string[]> = {};
+
+    selectedMembers.forEach(member => {
+      memberScores[member.nome_liderado] = 0;
+      memberStrengths[member.nome_liderado] = [];
+      memberWeaknesses[member.nome_liderado] = [];
+    });
+
+    radarData.forEach(item => {
+      selectedMembers.forEach(member => {
+        const score = item[member.nome_liderado] || 0;
+        memberScores[member.nome_liderado] += score;
+        if (score >= 3.5) {
+          memberStrengths[member.nome_liderado].push(item.subject);
+        } else if (score <= 2.0 && score > 0) { // Score > 0 para ignorar competências não avaliadas
+          memberWeaknesses[member.nome_liderado].push(item.subject);
+        }
+      });
+    });
+
+    const avgScores: Record<string, number> = {};
+    selectedMembers.forEach(member => {
+      avgScores[member.nome_liderado] = memberScores[member.nome_liderado] / radarData.length;
+    });
+
+    const sortedMembersByAvg = Object.entries(avgScores).sort(([, avgA], [, avgB]) => avgB - avgA);
+    const bestMember = sortedMembersByAvg[0]?.[0];
+    const bestAvg = sortedMembersByAvg[0]?.[1];
+
+    analysisText += `Com base nos filtros atuais, `;
+    if (bestMember) {
+      analysisText += `<strong class="text-primary">${bestMember}</strong> apresenta o melhor desempenho geral com média de <strong class="text-primary">${bestAvg.toFixed(1)}/4.0</strong>. `;
+    }
+
+    if (selectedMembers.length > 1) {
+      const firstMember = selectedMembers[0];
+      const secondMember = selectedMembers[1];
+
+      const firstMemberStrengths = memberStrengths[firstMember.nome_liderado];
+      const secondMemberStrengths = memberStrengths[secondMember.nome_liderado];
+
+      if (firstMemberStrengths.length > 0 || secondMemberStrengths.length > 0) {
+        analysisText += `Em termos de pontos fortes, `;
+        if (firstMemberStrengths.length > 0) {
+          analysisText += `<strong class="text-primary">${firstMember.nome_liderado}</strong> se destaca em <strong class="text-primary">${firstMemberStrengths.join(", ")}</strong>. `;
+        }
+        if (secondMemberStrengths.length > 0) {
+          analysisText += `Já <strong class="text-chart-2">${secondMember.nome_liderado}</strong> demonstra força em <strong class="text-chart-2">${secondMemberStrengths.join(", ")}</strong>. `;
+        }
+      }
+
+      const firstMemberWeaknesses = memberWeaknesses[firstMember.nome_liderado];
+      const secondMemberWeaknesses = memberWeaknesses[secondMember.nome_liderado];
+
+      if (firstMemberWeaknesses.length > 0 || secondMemberWeaknesses.length > 0) {
+        analysisText += `Para oportunidades de desenvolvimento, `;
+        if (firstMemberWeaknesses.length > 0) {
+          analysisText += `<strong class="text-primary">${firstMember.nome_liderado}</strong> pode focar em <strong class="text-destructive">${firstMemberWeaknesses.join(", ")}</strong>. `;
+        }
+        if (secondMemberWeaknesses.length > 0) {
+          analysisText += `<strong class="text-chart-2">${secondMember.nome_liderado}</strong> pode aprimorar <strong class="text-destructive">${secondMemberWeaknesses.join(", ")}</strong>.`;
+        }
+      }
+    }
+
+    return analysisText || "Selecione filtros para uma análise mais detalhada.";
+  };
 
   return (
     <div className="p-8">
@@ -115,28 +252,28 @@ export default function Compare() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {selectedMembers.map((member) => (
-          <Card key={member!.id} className="p-6">
+          <Card key={member.id_liderado} className="p-6">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-lg font-bold text-primary">{member!.initials}</span>
+                <span className="text-lg font-bold text-primary">{getInitials(member.nome_liderado)}</span>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground">{member!.name}</h3>
-                <Badge variant="secondary">{member!.role}</Badge>
+                <h3 className="text-lg font-semibold text-foreground">{member.nome_liderado}</h3>
+                <Badge variant="secondary">{member.cargo}</Badge>
               </div>
             </div>
             
             <div className="space-y-3">
-              {memberScores[member!.id].map((comp) => (
-                <div key={comp.competency}>
+              {member.competencias.map((comp) => (
+                <div key={comp.id_competencia}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-muted-foreground">{comp.competency}</span>
-                    <span className="text-sm font-semibold text-foreground">{comp.score}/4</span>
+                    <span className="text-sm text-muted-foreground">{comp.nome_competencia}</span>
+                    <span className="text-sm font-semibold text-foreground">{comp.media_pontuacao.toFixed(1)}/4</span>
                   </div>
                   <div className="h-2 bg-secondary rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-primary rounded-full transition-all duration-500" 
-                      style={{ width: `${(comp.score / 4) * 100}%` }} 
+                      style={{ width: `${(comp.media_pontuacao / 4) * 100}%` }} 
                     />
                   </div>
                 </div>
@@ -157,34 +294,100 @@ export default function Compare() {
                 Análise comparativa de desempenho entre liderados selecionados
               </p>
             </div>
-            <Select value={radarViewMode} onValueChange={(v: any) => setRadarViewMode(v)}>
+            <Select value={comparisonLevel} onValueChange={(v: ComparisonLevel) => {
+              setComparisonLevel(v);
+              setSelectedCategoryFilter("all");
+              setSelectedSpecializationFilter("all");
+              setCustomSelectedCompetencies([]);
+            }}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue />
+                <SelectValue placeholder="Nível de Comparação" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="soft">Soft Skills</SelectItem>
-                <SelectItem value="custom">Personalizado</SelectItem>
+                <SelectItem value="category">Por Categoria</SelectItem>
+                <SelectItem value="specialization">Por Especialização</SelectItem>
+                <SelectItem value="competency">Competências Personalizadas</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {radarViewMode === "custom" && (
+          {comparisonLevel === "category" && (
             <div className="mb-4 p-3 border border-border rounded-lg bg-muted/20">
-              <p className="text-sm font-medium text-foreground mb-2">Competências:</p>
-              <div className="flex flex-wrap gap-2">
-                {allCompetencies.map((comp) => (
-                  <div key={comp} className="flex items-center gap-2">
-                    <Checkbox 
-                      checked={selectedHardSkills.includes(comp)}
-                      onCheckedChange={() => toggleHardSkill(comp)}
-                    />
-                    <label className="text-sm text-muted-foreground cursor-pointer">
-                      {comp}
-                    </label>
-                  </div>
-                ))}
-              </div>
+              <p className="text-sm font-medium text-foreground mb-2">Filtrar Categoria:</p>
+              <Select value={selectedCategoryFilter} onValueChange={setSelectedCategoryFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas as Categorias" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Categorias (incl. Soft Skills)</SelectItem>
+                  <SelectItem value="Soft Skills">Soft Skills</SelectItem>
+                  {allAvailableCategories.map(cat => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {comparisonLevel === "specialization" && (
+            <div className="mb-4 p-3 border border-border rounded-lg bg-muted/20">
+              <p className="text-sm font-medium text-foreground mb-2">Filtrar Especialização:</p>
+              <Select value={selectedSpecializationFilter} onValueChange={setSelectedSpecializationFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas as Especializações" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Especializações</SelectItem>
+                  {allAvailableSpecializations.map(spec => (
+                    <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {comparisonLevel === "competency" && (
+            <div className="mb-4 p-3 border border-border rounded-lg bg-muted/20">
+              <p className="text-sm font-medium text-foreground mb-2">Competências Personalizadas:</p>
+              <Popover open={isCompetencySelectOpen} onOpenChange={setIsCompetencySelectOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    {customSelectedCompetencies.length > 0 ? customSelectedCompetencies.join(", ") : "Selecione competências..."}
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                  <Command>
+                    <CommandInput placeholder="Buscar competência..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhuma competência encontrada.</CommandEmpty>
+                      <CommandGroup>
+                        {allAvailableCompetencies.map(comp => (
+                          <CommandItem
+                            key={comp}
+                            onSelect={() => {
+                              setCustomSelectedCompetencies(prev => 
+                                prev.includes(comp) ? prev.filter(c => c !== comp) : [...prev, comp]
+                              );
+                            }}
+                          >
+                            <Checkbox
+                              checked={customSelectedCompetencies.includes(comp)}
+                              onCheckedChange={() => {
+                                setCustomSelectedCompetencies(prev => 
+                                  prev.includes(comp) ? prev.filter(c => c !== comp) : [...prev, comp]
+                                );
+                              }}
+                              className="mr-2"
+                            />
+                            {comp}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           )}
         
@@ -195,7 +398,7 @@ export default function Compare() {
               strokeWidth={1}
             />
             <PolarAngleAxis 
-              dataKey="competency" 
+              dataKey="subject" 
               tick={{ fill: 'hsl(var(--foreground))', fontSize: 13, fontWeight: 500 }}
             />
             <PolarRadiusAxis 
@@ -206,11 +409,11 @@ export default function Compare() {
             />
             {selectedMembers.map((member, index) => (
               <Radar
-                key={member!.id}
-                name={member!.name}
-                dataKey={member!.name}
-                stroke={colors[index]}
-                fill={colors[index]}
+                key={member.id_liderado}
+                name={member.nome_liderado}
+                dataKey={member.nome_liderado}
+                stroke={colors[index % colors.length]}
+                fill={colors[index % colors.length]}
                 fillOpacity={0.4}
                 strokeWidth={2}
               />
@@ -230,74 +433,28 @@ export default function Compare() {
           
           <div className="space-y-4">
             <div className="p-3 bg-card rounded-lg border border-border">
-              <p className="text-sm font-semibold text-foreground mb-1">Melhor Desempenho Geral:</p>
-              <p className="text-sm text-muted-foreground">
-                <strong className="text-primary">{selectedMembers[0]?.name}</strong> apresenta o melhor desempenho geral com média de <strong>3.6/4</strong> nas competências avaliadas.
-              </p>
+              <p className="text-sm font-semibold text-foreground mb-1">Visão Geral:</p>
+              <p className="text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: getComparisonAnalysis() }} />
             </div>
 
             <div className="p-3 bg-card rounded-lg border border-border">
-              <p className="text-sm font-semibold text-foreground mb-1">Diferencial Principal:</p>
+              <p className="text-sm font-semibold text-foreground mb-1">Filtros Ativos:</p>
               <p className="text-sm text-muted-foreground">
-                {selectedMembers[0]?.name} se destaca em <strong>Trabalho em Equipe</strong> (4/4) e <strong>Aprendizado</strong> (4/4), enquanto {selectedMembers[1]?.name} apresenta pontos fortes em <strong>Comunicação</strong> (4/4).
-              </p>
-            </div>
-
-            <div className="p-3 bg-card rounded-lg border border-border">
-              <p className="text-sm font-semibold text-foreground mb-1">Recomendação:</p>
-              <p className="text-sm text-muted-foreground">
-                Para projetos que exigem alta capacidade de aprendizado rápido e colaboração, <strong className="text-primary">{selectedMembers[0]?.name}</strong> é a escolha mais adequada.
+                Nível: <Badge variant="secondary">{comparisonLevel === 'category' ? 'Por Categoria' : comparisonLevel === 'specialization' ? 'Por Especialização' : 'Competências Personalizadas'}</Badge>
+                {selectedCategoryFilter !== 'all' && <Badge variant="secondary" className="ml-2">Categoria: {selectedCategoryFilter}</Badge>}
+                {selectedSpecializationFilter !== 'all' && <Badge variant="secondary" className="ml-2">Especialização: {selectedSpecializationFilter}</Badge>}
+                {customSelectedCompetencies.length > 0 && <Badge variant="secondary" className="ml-2">Competências: {customSelectedCompetencies.join(', ')}</Badge>}
               </p>
             </div>
 
             <div className="mt-4 p-4 bg-accent/10 rounded-lg border-l-4 border-accent">
               <p className="text-xs text-muted-foreground">
-                💡 <strong>Dica:</strong> Use os filtros abaixo para comparar por categorias ou especializações específicas.
+                💡 <strong>Dica:</strong> Use os filtros para refinar a comparação e obter insights mais específicos.
               </p>
             </div>
           </div>
         </Card>
       </div>
-
-      {/* Filtros de Comparação */}
-      <Card className="p-6 mb-8 bg-card">
-        <div className="flex items-center gap-3 mb-4">
-          <Filter className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold text-foreground">Filtros de Comparação</h3>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Filtrar por Categoria</label>
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas Categorias</SelectItem>
-                {allCategories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-foreground mb-2 block">Filtrar por Especialização</label>
-            <Select value={filterSpecialization} onValueChange={setFilterSpecialization}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma especialização" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas Especializações</SelectItem>
-                {allSpecializations.map((spec) => (
-                  <SelectItem key={spec} value={spec}>{spec}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 }

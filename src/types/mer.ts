@@ -283,13 +283,15 @@ export interface LideradoPerformance {
   id_liderado: string;
   nome_liderado: string;
   cargo: string;
+  cargo_id: string;
   nivel_maturidade: NivelMaturidade;
   eixo_x_tecnico_geral: number;
   eixo_y_comportamental: number;
   categoria_dominante: string;
   especializacao_dominante: string;
-  sexo: SexoTipo;
-  idade: number;
+  sexo: SexoTipo; // Adicionado
+  data_nascimento: string; // Adicionado
+  idade: number; // Adicionado
   competencias: {
     id_competencia: string;
     nome_competencia: string;

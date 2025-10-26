@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { calcularNivelMaturidade } from "@/types/mer";
+import { calcularNivelMaturidade, LideradoPerformance, CompetenciaTipo } from "@/types/mer";
 import EvaluationRadarChart from "@/components/EvaluationRadarChart";
 import SpecializationSelectionModal from "@/components/SpecializationSelectionModal";
 
@@ -25,7 +25,7 @@ interface TechBlock {
 export default function Evaluation() {
   const { memberId } = useParams<{ memberId: string }>();
   const navigate = useNavigate();
-  const { profile, liderados, addAvaliacao, avaliacoes } = useAuth();
+  const { profile, liderados, addAvaliacao, avaliacoes, updateLideradoPerformance } = useAuth();
 
   const [member, setMember] = useState<Liderado | undefined>(undefined);
   const [softTemplate, setSoftTemplate] = useState<SoftSkillTemplate | null>(null);
@@ -43,7 +43,7 @@ export default function Evaluation() {
   }, [avaliacoes, memberId]);
 
   useEffect(() => {
-    const currentMember = liderados.find((l) => l.id === memberId);
+    const currentMember = liderados.find((l) => l.id_liderado === memberId); // Usar id_liderado
     if (!currentMember) {
       toast({ variant: "destructive", title: "Liderado não encontrado" });
       navigate("/evaluation", { replace: true });
@@ -132,7 +132,7 @@ export default function Evaluation() {
     const eixoX = allTechScores.length > 0 ? allTechScores.reduce((a, b) => a + b, 0) / allTechScores.length : 0;
     const nivel_maturidade = calcularNivelMaturidade(eixoY, eixoX);
 
-    addAvaliacao({
+    const newEvaluation = {
       id: `av-${Date.now()}`,
       id_lider: profile!.id,
       id_liderado: memberId!,
@@ -140,9 +140,91 @@ export default function Evaluation() {
       eixo_y: parseFloat(eixoY.toFixed(2)),
       nivel: nivel_maturidade,
       data: new Date().toISOString(),
+    };
+    addAvaliacao(newEvaluation);
+
+    // Atualizar o objeto liderado no AuthContext com os novos dados de performance
+    const updatedCompetencias = [
+      ...(softTemplate?.competencias.map(skill => ({
+        id_competencia: skill.id,
+        nome_competencia: skill.name,
+        tipo: 'COMPORTAMENTAL' as CompetenciaTipo,
+        id_categoria: 'soft-skills-geral', // ID genérico para soft skills
+        nome_categoria: 'Soft Skills',
+        id_especializacao: null,
+        nome_especializacao: null,
+        media_pontuacao: softScores[skill.id] || 0,
+      })) || []),
+      ...techBlocks.flatMap(block => {
+        const category = technicalCategories.find(c => c.id === block.categoria_id);
+        const specialization = category?.especializacoes.find(s => s.id === block.especializacao_id);
+        return specialization?.competencias.map(comp => ({
+          id_competencia: comp.id,
+          nome_competencia: comp.name,
+          tipo: 'TECNICA' as CompetenciaTipo,
+          id_categoria: block.categoria_id,
+          nome_categoria: category?.name || 'N/A',
+          id_especializacao: block.especializacao_id,
+          nome_especializacao: specialization?.name || 'N/A',
+          media_pontuacao: block.scores[comp.id] || 0,
+        })) || [];
+      }),
+    ];
+
+    // Determinar categoria e especialização dominante
+    let categoriaDominante = 'Não Avaliado';
+    let especializacaoDominante = 'Não Avaliado';
+
+    if (updatedCompetencias.length > 0) {
+      const techCompetencias = updatedCompetencias.filter(c => c.tipo === 'TECNICA');
+      if (techCompetencias.length > 0) {
+        const categoriaMedias: Record<string, { soma: number, count: number }> = {};
+        techCompetencias.forEach(comp => {
+          if (!categoriaMedias[comp.id_categoria]) {
+            categoriaMedias[comp.id_categoria] = { soma: 0, count: 0 };
+          }
+          categoriaMedias[comp.id_categoria].soma += comp.media_pontuacao;
+          categoriaMedias[comp.id_categoria].count++;
+        });
+
+        const mediasCalculadas = Object.entries(categoriaMedias).map(([id, { soma, count }]) => ({
+          id_categoria: id,
+          media: soma / count,
+        }));
+
+        const melhorCategoria = mediasCalculadas.sort((a, b) => b.media - a.media)[0];
+        categoriaDominante = technicalCategories.find(c => c.id === melhorCategoria.id_categoria)?.name || 'N/A';
+
+        const especializacaoMedias: Record<string, { soma: number, count: number }> = {};
+        techCompetencias.filter(c => c.id_categoria === melhorCategoria.id_categoria && c.id_especializacao).forEach(comp => {
+          if (!especializacaoMedias[comp.id_especializacao!]) {
+            especializacaoMedias[comp.id_especializacao!] = { soma: 0, count: 0 };
+          }
+          especializacaoMedias[comp.id_especializacao!].soma += comp.media_pontuacao;
+          especializacaoMedias[comp.id_especializacao!].count++;
+        });
+
+        const mediasEspecializacaoCalculadas = Object.entries(especializacaoMedias).map(([id, { soma, count }]) => ({
+          id_especializacao: id,
+          media: soma / count,
+        }));
+
+        const melhorEspecializacao = mediasEspecializacaoCalculadas.sort((a, b) => b.media - a.media)[0];
+        const cat = technicalCategories.find(c => c.id === melhorCategoria.id_categoria);
+        especializacaoDominante = cat?.especializacoes.find(s => s.id === melhorEspecializacao.id_especializacao)?.name || 'N/A';
+      }
+    }
+
+    updateLideradoPerformance(memberId!, {
+      eixo_x_tecnico_geral: newEvaluation.eixo_x,
+      eixo_y_comportamental: newEvaluation.eixo_y,
+      nivel_maturidade: newEvaluation.nivel,
+      competencias: updatedCompetencias,
+      categoria_dominante: categoriaDominante,
+      especializacao_dominante: especializacaoDominante,
     });
 
-    toast({ title: "Avaliação completa salva!", description: `A avaliação de ${member?.nome} foi concluída com sucesso.` });
+    toast({ title: "Avaliação completa salva!", description: `A avaliação de ${member?.nome_liderado} foi concluída com sucesso.` });
     navigate("/evaluation");
   };
 
@@ -163,8 +245,8 @@ export default function Evaluation() {
           <h1 className="text-3xl font-bold text-foreground">Avaliação de Competências</h1>
         </div>
         <div className="flex items-center gap-2">
-          <p className="text-xl font-semibold text-foreground">{member.nome}</p>
-          <Badge variant="secondary" className="capitalize">{member.cargo_id || "Não definido"}</Badge>
+          <p className="text-xl font-semibold text-foreground">{member.nome_liderado}</p>
+          <Badge variant="secondary" className="capitalize">{member.cargo || "Não definido"}</Badge>
           {lastEvaluation && <Badge className="bg-primary/10 text-primary">{lastEvaluation.nivel}</Badge>}
         </div>
       </Card>
@@ -174,7 +256,7 @@ export default function Evaluation() {
           <Card>
             <CardHeader>
               <CardTitle>Competências Comportamentais</CardTitle>
-              <CardDescription>Avalie as habilidades de {member.nome}</CardDescription>
+              <CardDescription>Avalie as habilidades de {member.nome_liderado}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {softTemplate?.competencias.map(skill => (

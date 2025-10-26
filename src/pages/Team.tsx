@@ -45,7 +45,7 @@ type Step1Form = z.infer<typeof step1Schema>;
 
 export default function Team() {
   const navigate = useNavigate();
-  const { liderados, addLiderado } = useAuth();
+  const { liderados, addLiderado, profile } = useAuth(); // Obter profile para lider_id
 
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [searchName, setSearchName] = useState("");
@@ -53,7 +53,6 @@ export default function Team() {
   const [filterArea, setFilterArea] = useState<string>("all");
   const [filterSpecialization, setFilterSpecialization] = useState<string>("all");
   const [filterCompetency, setFilterCompetency] = useState<string>("all");
-  const [members, setMembers] = useState(liderados);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [modalStep, setModalStep] = useState(1);
   const [tempPassword, setTempPassword] = useState("");
@@ -88,7 +87,7 @@ export default function Team() {
     const isValid = await trigger();
     if (isValid) {
       const values = getValues();
-      if (members.some(m => m.email === values.email)) {
+      if (liderados.some(m => m.email === values.email)) { // Usar liderados do AuthContext
         toast({ variant: "destructive", title: "E-mail já cadastrado", description: "Este e-mail já pertence a um membro da equipe." });
         return;
       }
@@ -99,17 +98,19 @@ export default function Team() {
   };
 
   const handleConclude = () => {
-    if (!provisionedData) return;
+    if (!provisionedData || !profile) return; // Precisa do profile para lider_id
+    
     const novoLiderado = {
-      id: `lid-${Date.now()}`,
-      nome: provisionedData.nome,
+      id_liderado: `lid-${Date.now()}`, // Usar id_liderado conforme LideradoPerformance
+      nome_liderado: provisionedData.nome,
       email: provisionedData.email,
       sexo: provisionedData.sexo as SexoTipo,
       data_nascimento: provisionedData.data_nascimento,
-      cargo_id: undefined,
+      cargo: "Não definido", // Valor inicial
+      cargo_id: "nao-definido", // Valor inicial
+      lider_id: profile.id, // Adicionar lider_id
     };
-    addLiderado(novoLiderado);
-    setMembers((prev) => [...prev, novoLiderado]);
+    addLiderado(novoLiderado); // Chamar addLiderado com o novo formato
     toast({ title: "Liderado provisionado!", description: "Complete o perfil do liderado antes de avaliar." });
     resetModal();
   };
@@ -129,18 +130,18 @@ export default function Team() {
 
   const handleDeleteMember = (memberId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setMembers(prev => prev.filter(m => m.id !== memberId));
-    toast({ title: "Liderado removido!" });
+    // setMembers(prev => prev.filter(m => m.id !== memberId)); // Não usar setMembers diretamente
+    // TODO: Implementar remoção de liderado no AuthContext
+    toast({ title: "Funcionalidade em desenvolvimento", description: "A remoção de liderados ainda não está implementada." });
   };
 
-  const filteredMembers = members.filter(member => {
-    if (searchName && !member.nome.toLowerCase().includes(searchName.toLowerCase())) return false;
-    if (filterMaturityLevel !== "all" && member.maturityLevel !== filterMaturityLevel) return false;
-    if (filterArea !== "all" && !member.areas?.some(area => area === filterArea)) return false;
-    if (filterSpecialization !== "all" && member.especializacaoDominante !== filterSpecialization) return false;
+  const filteredMembers = liderados.filter(member => { // Usar liderados do AuthContext
+    if (searchName && !member.nome_liderado.toLowerCase().includes(searchName.toLowerCase())) return false;
+    if (filterMaturityLevel !== "all" && member.nivel_maturidade !== filterMaturityLevel) return false;
+    if (filterArea !== "all" && !member.competencias?.some(comp => comp.nome_categoria === filterArea)) return false;
+    if (filterSpecialization !== "all" && member.especializacao_dominante !== filterSpecialization) return false;
     if (filterCompetency !== "all") {
-      const lideradoPerf = MOCK_PERFORMANCE.find(p => p.id_liderado === member.id);
-      if (!lideradoPerf || !lideradoPerf.competencias.some(c => c.nome_competencia === filterCompetency)) return false;
+      if (!member.competencias.some(c => c.nome_competencia === filterCompetency)) return false;
     }
     return true;
   });
@@ -304,24 +305,24 @@ export default function Team() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMembers.map((member) => (
-            <Card key={member.id} className="relative overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group" onClick={() => navigate(`/team/${member.id}`)}>
+            <Card key={member.id_liderado} className="relative overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group" onClick={() => navigate(`/team/${member.id_liderado}`)}>
               <div className="absolute top-4 right-4 z-10 flex gap-2">
-                <div onClick={(e) => handleDeleteMember(member.id, e)} className="w-10 h-10 rounded-full bg-background border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center cursor-pointer transition-all" title="Remover liderado"><Trash2 className="w-4 h-4" /></div>
-                <div onClick={(e) => { e.stopPropagation(); toggleMemberSelection(member.id); }} className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition-all ${selectedMembers.includes(member.id) ? 'bg-primary text-primary-foreground' : 'bg-background border-2 border-primary text-primary hover:bg-primary/10'}`} title="Adicionar para comparação">
-                  {selectedMembers.includes(member.id) ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                <div onClick={(e) => handleDeleteMember(member.id_liderado, e)} className="w-10 h-10 rounded-full bg-background border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center cursor-pointer transition-all" title="Remover liderado"><Trash2 className="w-4 h-4" /></div>
+                <div onClick={(e) => { e.stopPropagation(); toggleMemberSelection(member.id_liderado); }} className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition-all ${selectedMembers.includes(member.id_liderado) ? 'bg-primary text-primary-foreground' : 'bg-background border-2 border-primary text-primary hover:bg-primary/10'}`} title="Adicionar para comparação">
+                  {selectedMembers.includes(member.id_liderado) ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                 </div>
               </div>
               <div className="p-6 pt-20">
                 <div className="flex flex-col items-center text-center mb-4">
-                  <Avatar className="w-16 h-16 mb-3"><AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">{member.nome?.split(' ').map((n) => n[0]).join('').toUpperCase()}</AvatarFallback></Avatar>
-                  <h3 className="font-semibold text-lg text-foreground mb-1">{member.nome}</h3>
-                  {member.cargo_id ? <Badge variant="secondary" className="mb-2">{member.cargo_id}</Badge> : <Badge variant="outline" className="mb-2">Perfil incompleto</Badge>}
-                  {member.maturityLevel && <Badge className="bg-primary/10 text-primary hover:bg-primary/20">{member.maturityLevel}</Badge>}
+                  <Avatar className="w-16 h-16 mb-3"><AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">{member.nome_liderado?.split(' ').map((n) => n[0]).join('').toUpperCase()}</AvatarFallback></Avatar>
+                  <h3 className="font-semibold text-lg text-foreground mb-1">{member.nome_liderado}</h3>
+                  {member.cargo ? <Badge variant="secondary" className="mb-2">{member.cargo}</Badge> : <Badge variant="outline" className="mb-2">Perfil incompleto</Badge>}
+                  {member.nivel_maturidade && <Badge className="bg-primary/10 text-primary hover:bg-primary/20">{member.nivel_maturidade}</Badge>}
                 </div>
                 <div className="space-y-2 pt-4 border-t border-border">
                   <p className="text-xs text-muted-foreground text-center mb-2">{member.email}</p>
                   <div className="space-y-1">
-                    {member.areas?.map((area) => (<div key={area} className="flex items-center gap-2 text-sm text-muted-foreground"><div className="w-2 h-2 bg-muted-foreground rounded-full"></div><span className="truncate">{area}</span></div>))}
+                    {member.competencias?.filter(c => c.tipo === 'TECNICA' && c.nome_categoria).map((comp) => (<div key={comp.id_categoria} className="flex items-center gap-2 text-sm text-muted-foreground"><div className="w-2 h-2 bg-muted-foreground rounded-full"></div><span className="truncate">{comp.nome_categoria}</span></div>))}
                   </div>
                 </div>
               </div>

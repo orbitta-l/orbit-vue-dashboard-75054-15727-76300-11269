@@ -1,5 +1,5 @@
 // Mock Data centralizado e coeso - MER 4.0
-import { Usuario, Cargo, Categoria, Especializacao, Competencia } from '@/types/mer';
+import { Usuario, Cargo, Categoria, Especializacao, Competencia, SexoTipo, LideradoPerformance } from '@/types/mer';
 
 // ============ USUÁRIOS ============
 // Líder com dados completos
@@ -570,67 +570,81 @@ export const MOCK_ESPECIALIZACOES: Especializacao[] = [
 // ============ COMPETÊNCIAS ============
 export const MOCK_COMPETENCIAS: Competencia[] = [
   // Soft Skills
-  { id_competencia: 'comp-001', nome: 'Comunicação', tipo: 'COMPORTAMENTAL', descricao: 'Habilidade de comunicação', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-002', nome: 'Trabalho em Equipe', tipo: 'COMPORTAMENTAL', descricao: 'Colaboração em equipe', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-003', nome: 'Liderança', tipo: 'COMPORTAMENTAL', descricao: 'Capacidade de liderança', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-004', nome: 'Resolução de Problemas', tipo: 'COMPORTAMENTAL', descricao: 'Solução de problemas', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comunicacao', nome: 'Comunicação', tipo: 'COMPORTAMENTAL', descricao: 'Habilidade de comunicação', created_at: new Date('2024-01-01') },
+  { id_competencia: 'trabalho-equipe', nome: 'Trabalho em Equipe', tipo: 'COMPORTAMENTAL', descricao: 'Colaboração em equipe', created_at: new Date('2024-01-01') },
+  { id_competencia: 'lideranca', nome: 'Liderança', tipo: 'COMPORTAMENTAL', descricao: 'Capacidade de liderança', created_at: new Date('2024-01-01') },
+  { id_competencia: 'resolucao-problemas', nome: 'Resolução de Problemas', tipo: 'COMPORTAMENTAL', descricao: 'Solução de problemas', created_at: new Date('2024-01-01') },
+  { id_competencia: 'adaptabilidade', nome: 'Adaptabilidade', tipo: 'COMPORTAMENTAL', description: "Ajustar-se a novas condições e desafios com flexibilidade.", created_at: new Date('2024-01-01') },
+  { id_competencia: 'aprendizado', nome: 'Vontade de Aprender', tipo: 'COMPORTAMENTAL', description: "Demonstrar curiosidade e iniciativa para adquirir novos conhecimentos.", created_at: new Date('2024-01-01') },
+  { id_competencia: 'lideranca-tecnica', nome: 'Liderança Técnica', tipo: 'COMPORTAMENTAL', description: "Orientar e influenciar tecnicamente outros membros da equipe.", created_at: new Date('2024-01-01') },
+  { id_competencia: 'pensamento-critico', nome: 'Pensamento Crítico', tipo: 'COMPORTAMENTAL', description: "Analisar informações de forma objetiva e tomar decisões estratégicas.", created_at: new Date('2024-01-01') },
+  { id_competencia: 'mentoria', nome: 'Mentoria', tipo: 'COMPORTAMENTAL', description: "Capacidade de ensinar e desenvolver outros membros da equipe.", created_at: new Date('2024-01-01') },
+  { id_competencia: 'visao-negocio', nome: 'Visão de Negócio', tipo: 'COMPORTAMENTAL', description: "Compreender e alinhar as entregas técnicas com os objetivos do negócio.", created_at: new Date('2024-01-01') },
+  { id_competencia: 'iniciativa', nome: 'Iniciativa e Proatividade', tipo: 'COMPORTAMENTAL', description: "Agir antecipadamente, identificando oportunidades e riscos.", created_at: new Date('2024-01-01') },
   
   // Frontend (cat-002, esp-001)
-  { id_competencia: 'comp-005', nome: 'React', tipo: 'TECNICA', descricao: 'Framework React', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-006', nome: 'TypeScript', tipo: 'TECNICA', descricao: 'Linguagem TypeScript', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-007', nome: 'CSS/Tailwind', tipo: 'TECNICA', descricao: 'Estilização', created_at: new Date('2024-01-01') },
-  
+  { id_competencia: 'react', nome: 'React', tipo: 'TECNICA', descricao: 'Framework React', created_at: new Date('2024-01-01') },
+  { id_competencia: 'typescript', nome: 'TypeScript', tipo: 'TECNICA', descricao: 'Linguagem TypeScript', created_at: new Date('2024-01-01') },
+  { id_competencia: 'css-tailwind', nome: 'CSS/Tailwind', tipo: 'TECNICA', descricao: 'Estilização', created_at: new Date('2024-01-01') },
+  { id_competencia: 'design-responsivo', nome: 'Design Responsivo (HTML/CSS)', tipo: 'TECNICA', descricao: 'Construção de UI responsivas com boas práticas de layout e semântica.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'interatividade-js', nome: 'Interatividade (JavaScript/DOM)', tipo: 'TECNICA', descricao: 'Criação de interfaces interativas e manipulação do DOM.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'performance-web', nome: 'Otimização de Performance Web', tipo: 'TECNICA', descricao: 'Melhorias de carregamento, renderização e métricas web vitais.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'acessibilidade-web', nome: 'Desenvolvimento Acessível', tipo: 'TECNICA', descricao: 'Garantia de acessibilidade (WAI-ARIA) e inclusão em interfaces web.', created_at: new Date('2024-01-01') },
+
   // Backend (cat-002, esp-002)
-  { id_competencia: 'comp-008', nome: 'Node.js', tipo: 'TECNICA', descricao: 'Runtime Node.js', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-009', nome: 'Desenvolvimento de API REST', tipo: 'TECNICA', descricao: 'APIs RESTful', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-010', nome: 'SQL', tipo: 'TECNICA', descricao: 'Banco de dados SQL', created_at: new Date('2024-01-01') },
+  { id_competencia: 'nodejs', nome: 'Node.js', tipo: 'TECNICA', descricao: 'Runtime Node.js', created_at: new Date('2024-01-01') },
+  { id_competencia: 'api-rest', nome: 'Desenvolvimento de API REST', tipo: 'TECNICA', descricao: 'APIs RESTful', created_at: new Date('2024-01-01') },
+  { id_competencia: 'sql', nome: 'SQL', tipo: 'TECNICA', descricao: 'Banco de dados SQL', created_at: new Date('2024-01-01') },
+  { id_competencia: 'modelagem-sql-nosql', nome: 'Modelagem e Consultas SQL/NoSQL', tipo: 'TECNICA', descricao: 'Projetar esquemas e escrever consultas eficientes.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'regras-negocio', nome: 'Implementação de Regras de Negócio', tipo: 'TECNICA', descricao: 'Codificação de lógicas de domínio e validações no servidor.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'autenticacao-acesso', nome: 'Autenticação e Controle de Acesso', tipo: 'TECNICA', descricao: 'Sessões, tokens, OAuth2/OpenID e autorização por papéis.', created_at: new Date('2024-01-01') },
   
   // Machine Learning (cat-003, esp-003)
-  { id_competencia: 'comp-011', nome: 'Python', tipo: 'TECNICA', descricao: 'Linguagem Python', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-012', nome: 'TensorFlow', tipo: 'TECNICA', descricao: 'Framework TensorFlow', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-013', nome: 'Algoritmos ML', tipo: 'TECNICA', descricao: 'Algoritmos de ML', created_at: new Date('2024-01-01') },
-  
+  { id_competencia: 'python', nome: 'Python', tipo: 'TECNICA', descricao: 'Linguagem Python', created_at: new Date('2024-01-01') },
+  { id_competencia: 'tensorflow', nome: 'TensorFlow', tipo: 'TECNICA', descricao: 'Framework TensorFlow', created_at: new Date('2024-01-01') },
+  { id_competencia: 'algoritmos-ml', nome: 'Algoritmos ML', tipo: 'TECNICA', descricao: 'Algoritmos de ML', created_at: new Date('2024-01-01') },
+  { id_competencia: 'modelagem-preditiva', nome: 'Modelagem Preditiva', tipo: 'TECNICA', descricao: 'Seleção de algoritmos, tuning e validação cruzada.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'treino-avaliacao', nome: 'Treinamento e Avaliação', tipo: 'TECNICA', descricao: 'Métricas, overfitting/underfitting e experimentação.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'bibliotecas-ml', nome: 'Uso de Bibliotecas de ML', tipo: 'TECNICA', descricao: 'Aplicação prática com frameworks do ecossistema.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'interpretacao-resultados', nome: 'Interpretação de Resultados', tipo: 'TECNICA', descricao: 'Explicabilidade, feature importance e limitações.', created_at: new Date('2024-01-01') },
+
   // Data Engineering (cat-003, esp-004)
-  { id_competencia: 'comp-014', nome: 'Apache Spark', tipo: 'TECNICA', descricao: 'Framework Spark', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-015', nome: 'ETL Pipelines', tipo: 'TECNICA', descricao: 'Pipelines ETL', created_at: new Date('2024-01-01') },
+  { id_competencia: 'apache-spark', nome: 'Apache Spark', tipo: 'TECNICA', descricao: 'Framework Spark', created_at: new Date('2024-01-01') },
+  { id_competencia: 'etl-pipelines', nome: 'ETL Pipelines', tipo: 'TECNICA', descricao: 'Pipelines ETL', created_at: new Date('2024-01-01') },
+  { id_competencia: 'etl', nome: 'ETL', tipo: 'TECNICA', descricao: 'Extração, transformação e carga de dados de múltiplas fontes.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'eda', nome: 'Análise Exploratória', tipo: 'TECNICA', descricao: 'Explorar dados, tratar outliers e hipóteses iniciais.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'visualizacao-dados', nome: 'Visualização de Dados', tipo: 'TECNICA', descricao: 'Criação de gráficos e dashboards para tomada de decisão.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comunicacao-insights', nome: 'Comunicação de Insights', tipo: 'TECNICA', descricao: 'Storytelling com dados e suporte a decisões do negócio.', created_at: new Date('2024-01-01') },
   
   // Cloud & Infrastructure (cat-004, esp-005)
-  { id_competencia: 'comp-016', nome: 'Docker', tipo: 'TECNICA', descricao: 'Containerização', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-017', nome: 'Kubernetes', tipo: 'TECNICA', descricao: 'Orquestração', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-018', nome: 'AWS/GCP', tipo: 'TECNICA', descricao: 'Cloud providers', created_at: new Date('2024-01-01') },
+  { id_competencia: 'docker', nome: 'Docker', tipo: 'TECNICA', descricao: 'Containerização', created_at: new Date('2024-01-01') },
+  { id_competencia: 'kubernetes', nome: 'Kubernetes', tipo: 'TECNICA', descricao: 'Orquestração', created_at: new Date('2024-01-01') },
+  { id_competencia: 'aws-gcp', nome: 'AWS/GCP', tipo: 'TECNICA', descricao: 'Cloud providers', created_at: new Date('2024-01-01') },
+  { id_competencia: 'monitoramento', nome: 'Monitoramento', tipo: 'TECNICA', descricao: 'Coleta de métricas e observabilidade de serviços.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'cloud-services', nome: 'Serviços de Nuvem', tipo: 'TECNICA', descricao: 'Provisionamento e operação em provedores cloud.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'troubleshooting', nome: 'Troubleshooting', tipo: 'TECNICA', descricao: 'Diagnóstico e mitigação de incidentes de produção.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'integracao-continua', nome: 'Integração Contínua', tipo: 'TECNICA', descricao: 'Pipelines de build e testes automatizados.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'entrega-continua', nome: 'Entrega Contínua', tipo: 'TECNICA', descricao: 'Estratégias de release e deploy automatizado.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'iac', nome: 'Infraestrutura como Código (IaC)', tipo: 'TECNICA', descricao: 'Provisionamento automatizado e versionado de infra.', created_at: new Date('2024-01-01') },
+  { id_competencia: 'fluxos-colaborativos', nome: 'Fluxos Colaborativos', tipo: 'TECNICA', descricao: 'Práticas DevOps e colaboração entre times.', created_at: new Date('2024-01-01') },
 ];
 
 // ============ MAPEAMENTO ESPECIALIZAÇÃO -> COMPETÊNCIAS ============
 export const ESPECIALIZACAO_COMPETENCIAS = {
-  'esp-001': ['comp-005', 'comp-006', 'comp-007'], // Frontend
-  'esp-002': ['comp-008', 'comp-009', 'comp-010'], // Backend
-  'esp-003': ['comp-011', 'comp-012', 'comp-013'], // ML
-  'esp-004': ['comp-014', 'comp-015'], // Data Engineering
-  'esp-005': ['comp-016', 'comp-017', 'comp-018'], // Cloud
+  'frontend-web': ['design-responsivo', 'interatividade-js', 'performance-web', 'acessibilidade-web'],
+  'backend-web': ['api-rest', 'modelagem-sql-nosql', 'regras-negocio', 'autenticacao-acesso'],
+  'mobile-nativo': ['programacao-nativa', 'recursos-nativos', 'publicacao-lojas', 'padroes-ui-ux-plataforma'],
+  'mobile-cross': ['reutilizacao-codigo', 'estado-mobile', 'integracao-apis-mobile', 'teste-debug-mobile'],
+  'analise-viz': ['etl', 'eda', 'visualizacao-dados', 'comunicacao-insights'],
+  'machine-learning': ['modelagem-preditiva', 'treino-avaliacao', 'bibliotecas-ml', 'interpretacao-resultados'],
+  'infra-containers': ['docker', 'monitoramento', 'cloud-services', 'troubleshooting'],
+  'ci-cd-automacao': ['integracao-continua', 'entrega-continua', 'iac', 'fluxos-colaborativos'],
+  'appsec': ['owasp', 'criptografia', 'autenticacao-segura', 'postura-etica'],
+  'infra-segura': ['iam', 'hardening', 'seguranca-rede', 'resposta-incidentes'],
+  'ux-research': ['entrevistas', 'personas-jornadas', 'arquitetura-informacao', 'testes-heuristicas'],
+  'ui-design': ['design-visual', 'prototipos', 'design-system', 'justificativas-visuais'],
 };
 
-// ============ DADOS DE PERFORMANCE (MV_LIDERADO_COMPETENCIAS simulado) ============
-export interface LideradoPerformance {
-  id_liderado: string;
-  nome_liderado: string;
-  cargo: string;
-  cargo_id: string;
-  nivel_maturidade: 'M1' | 'M2' | 'M3' | 'M4';
-  quadrantX: number; // eixo_x_tecnico_geral
-  quadrantY: number; // eixo_y_comportamental
-  categoria_dominante: string;
-  especializacao_dominante: string;
-  competencias: {
-    id_competencia: string;
-    nome_competencia: string;
-    tipo: 'TECNICA' | 'COMPORTAMENTAL';
-    id_categoria: string;
-    nome_categoria: string;
-    id_especializacao: string | null;
-    nome_especializacao: string | null;
-    media_pontuacao: number;
-  }[];
-}
 
 export const MOCK_PERFORMANCE: LideradoPerformance[] = [
   {
@@ -639,20 +653,23 @@ export const MOCK_PERFORMANCE: LideradoPerformance[] = [
     cargo: 'Desenvolvedor Junior',
     cargo_id: 'junior',
     nivel_maturidade: 'M1',
-    quadrantX: 2.2,
-    quadrantY: 2.75,
+    eixo_x_tecnico_geral: 2.2,
+    eixo_y_comportamental: 2.75,
     categoria_dominante: 'Desenvolvimento Web',
-    especializacao_dominante: 'Frontend',
+    especializacao_dominante: 'Frontend Web',
+    sexo: 'MASCULINO',
+    data_nascimento: '2000-08-12',
+    idade: 23,
     competencias: [
       { id_competencia: 'comunicacao', nome_competencia: 'Comunicação', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 2.5 },
       { id_competencia: 'trabalho-equipe', nome_competencia: 'Trabalho em Equipe', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 3.0 },
       { id_competencia: 'adaptabilidade', nome_competencia: 'Adaptabilidade', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 2.0 },
       { id_competencia: 'aprendizado', nome_competencia: 'Vontade de Aprender', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 3.5 },
-      { id_competencia: 'react', nome_competencia: 'React', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'frontend', nome_especializacao: 'Frontend Web', media_pontuacao: 2.5 },
-      { id_competencia: 'typescript', nome_competencia: 'TypeScript', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'frontend', nome_especializacao: 'Frontend Web', media_pontuacao: 2.0 },
-      { id_competencia: 'css-tailwind', nome_competencia: 'CSS/Tailwind', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'frontend', nome_especializacao: 'Frontend Web', media_pontuacao: 3.0 },
-      { id_competencia: 'api-rest', nome_competencia: 'Desenvolvimento de API REST', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend', nome_especializacao: 'Backend Web', media_pontuacao: 1.5 },
-      { id_competencia: 'sql', nome_competencia: 'SQL', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend', nome_especializacao: 'Backend Web', media_pontuacao: 2.0 },
+      { id_competencia: 'design-responsivo', nome_competencia: 'Design Responsivo (HTML/CSS)', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'frontend-web', nome_especializacao: 'Frontend Web', media_pontuacao: 2.5 },
+      { id_competencia: 'interatividade-js', nome_competencia: 'Interatividade (JavaScript/DOM)', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'frontend-web', nome_especializacao: 'Frontend Web', media_pontuacao: 2.0 },
+      { id_competencia: 'performance-web', nome_competencia: 'Otimização de Performance Web', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'frontend-web', nome_especializacao: 'Frontend Web', media_pontuacao: 3.0 },
+      { id_competencia: 'api-rest', nome_competencia: 'Criação e Gestão de APIs (REST)', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend-web', nome_especializacao: 'Backend Web', media_pontuacao: 1.5 },
+      { id_competencia: 'modelagem-sql-nosql', nome_competencia: 'Modelagem e Consultas SQL/NoSQL', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend-web', nome_especializacao: 'Backend Web', media_pontuacao: 2.0 },
     ],
   },
   {
@@ -661,20 +678,23 @@ export const MOCK_PERFORMANCE: LideradoPerformance[] = [
     cargo: 'Designer Sênior',
     cargo_id: 'senior',
     nivel_maturidade: 'M4',
-    quadrantX: 3.4,
-    quadrantY: 2.75,
-    categoria_dominante: 'Desenvolvimento Web',
-    especializacao_dominante: 'Frontend',
+    eixo_x_tecnico_geral: 3.4,
+    eixo_y_comportamental: 2.75,
+    categoria_dominante: 'UX/UI Design',
+    especializacao_dominante: 'UI Design',
+    sexo: 'FEMININO',
+    data_nascimento: '1993-11-25',
+    idade: 30,
     competencias: [
       { id_competencia: 'lideranca-tecnica', nome_competencia: 'Liderança Técnica', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 3.5 },
       { id_competencia: 'pensamento-critico', nome_competencia: 'Pensamento Crítico', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 3.0 },
       { id_competencia: 'mentoria', nome_competencia: 'Mentoria', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 2.5 },
       { id_competencia: 'visao-negocio', nome_competencia: 'Visão de Negócio', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 2.0 },
-      { id_competencia: 'react', nome_competencia: 'React', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'frontend', nome_especializacao: 'Frontend Web', media_pontuacao: 4.0 },
-      { id_competencia: 'typescript', nome_competencia: 'TypeScript', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'frontend', nome_especializacao: 'Frontend Web', media_pontuacao: 3.5 },
-      { id_competencia: 'css-tailwind', nome_competencia: 'CSS/Tailwind', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'frontend', nome_especializacao: 'Frontend Web', media_pontuacao: 4.0 },
-      { id_competencia: 'docker', nome_competencia: 'Docker', tipo: 'TECNICA', id_categoria: 'devops', nome_categoria: 'DevOps', id_especializacao: 'cloud-infra', nome_especializacao: 'Cloud & Infrastructure', media_pontuacao: 3.0 },
-      { id_competencia: 'kubernetes', nome_competencia: 'Kubernetes', tipo: 'TECNICA', id_categoria: 'devops', nome_categoria: 'DevOps', id_especializacao: 'cloud-infra', nome_especializacao: 'Cloud & Infrastructure', media_pontuacao: 2.5 },
+      { id_competencia: 'design-visual', nome_competencia: 'Design Visual', tipo: 'TECNICA', id_categoria: 'ux-ui', nome_categoria: 'UX/UI Design', id_especializacao: 'ui-design', nome_especializacao: 'UI Design', media_pontuacao: 4.0 },
+      { id_competencia: 'prototipos', nome_competencia: 'Protótipos Interativos', tipo: 'TECNICA', id_categoria: 'ux-ui', nome_categoria: 'UX/UI Design', id_especializacao: 'ui-design', nome_especializacao: 'UI Design', media_pontuacao: 3.5 },
+      { id_competencia: 'design-system', nome_competencia: 'Design System', tipo: 'TECNICA', id_categoria: 'ux-ui', nome_categoria: 'UX/UI Design', id_especializacao: 'ui-design', nome_especializacao: 'UI Design', media_pontuacao: 4.0 },
+      { id_competencia: 'entrevistas', nome_competencia: 'Entrevistas', tipo: 'TECNICA', id_categoria: 'ux-ui', nome_categoria: 'UX/UI Design', id_especializacao: 'ux-research', nome_especializacao: 'UX Research', media_pontuacao: 3.0 },
+      { id_competencia: 'personas-jornadas', nome_competencia: 'Personas e Jornadas', tipo: 'TECNICA', id_categoria: 'ux-ui', nome_categoria: 'UX/UI Design', id_especializacao: 'ux-research', nome_especializacao: 'UX Research', media_pontuacao: 2.5 },
     ],
   },
   {
@@ -683,19 +703,22 @@ export const MOCK_PERFORMANCE: LideradoPerformance[] = [
     cargo: 'Desenvolvedor Pleno',
     cargo_id: 'pleno',
     nivel_maturidade: 'M4',
-    quadrantX: 2.5,
-    quadrantY: 2.75,
+    eixo_x_tecnico_geral: 2.5,
+    eixo_y_comportamental: 2.75,
     categoria_dominante: 'Desenvolvimento Web',
-    especializacao_dominante: 'Backend',
+    especializacao_dominante: 'Backend Web',
+    sexo: 'FEMININO',
+    data_nascimento: '1996-09-05',
+    idade: 27,
     competencias: [
       { id_competencia: 'comunicacao', nome_competencia: 'Comunicação', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 3.0 },
       { id_competencia: 'trabalho-equipe', nome_competencia: 'Trabalho em Equipe', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 3.5 },
       { id_competencia: 'resolucao-problemas', nome_competencia: 'Resolução de Problemas', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 2.5 },
       { id_competencia: 'iniciativa', nome_competencia: 'Iniciativa e Proatividade', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 2.0 },
-      { id_competencia: 'nodejs', nome_competencia: 'Node.js', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend', nome_especializacao: 'Backend Web', media_pontuacao: 3.0 },
-      { id_competencia: 'api-rest', nome_competencia: 'Desenvolvimento de API REST', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend', nome_especializacao: 'Backend Web', media_pontuacao: 2.5 },
-      { id_competencia: 'sql', nome_competencia: 'SQL', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend', nome_especializacao: 'Backend Web', media_pontuacao: 2.5 },
-      { id_competencia: 'docker', nome_competencia: 'Docker', tipo: 'TECNICA', id_categoria: 'devops', nome_categoria: 'DevOps', id_especializacao: 'cloud-infra', nome_especializacao: 'Cloud & Infrastructure', media_pontuacao: 2.0 },
+      { id_competencia: 'nodejs', nome_competencia: 'Node.js', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend-web', nome_especializacao: 'Backend Web', media_pontuacao: 3.0 },
+      { id_competencia: 'api-rest', nome_competencia: 'Criação e Gestão de APIs (REST)', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend-web', nome_especializacao: 'Backend Web', media_pontuacao: 2.5 },
+      { id_competencia: 'modelagem-sql-nosql', nome_competencia: 'Modelagem e Consultas SQL/NoSQL', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend-web', nome_especializacao: 'Backend Web', media_pontuacao: 2.5 },
+      { id_competencia: 'docker', nome_competencia: 'Docker', tipo: 'TECNICA', id_categoria: 'cloud-devops', nome_categoria: 'Cloud e DevOps', id_especializacao: 'infra-containers', nome_especializacao: 'Infraestrutura e Containers', media_pontuacao: 2.0 },
     ],
   },
   {
@@ -704,20 +727,23 @@ export const MOCK_PERFORMANCE: LideradoPerformance[] = [
     cargo: 'Desenvolvedor Pleno',
     cargo_id: 'pleno',
     nivel_maturidade: 'M4',
-    quadrantX: 2.8,
-    quadrantY: 2.5,
+    eixo_x_tecnico_geral: 2.8,
+    eixo_y_comportamental: 2.5,
     categoria_dominante: 'Desenvolvimento Web',
-    especializacao_dominante: 'Backend',
+    especializacao_dominante: 'Backend Web',
+    sexo: 'MASCULINO',
+    data_nascimento: '1995-02-10',
+    idade: 29,
     competencias: [
       { id_competencia: 'comunicacao', nome_competencia: 'Comunicação', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 2.5 },
       { id_competencia: 'trabalho-equipe', nome_competencia: 'Trabalho em Equipe', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 2.0 },
       { id_competencia: 'resolucao-problemas', nome_competencia: 'Resolução de Problemas', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 3.0 },
       { id_competencia: 'iniciativa', nome_competencia: 'Iniciativa e Proatividade', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 2.5 },
-      { id_competencia: 'nodejs', nome_competencia: 'Node.js', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend', nome_especializacao: 'Backend Web', media_pontuacao: 3.5 },
-      { id_competencia: 'api-rest', nome_competencia: 'Desenvolvimento de API REST', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend', nome_especializacao: 'Backend Web', media_pontuacao: 3.0 },
-      { id_competencia: 'sql', nome_competencia: 'SQL', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend', nome_especializacao: 'Backend Web', media_pontuacao: 3.0 },
-      { id_competencia: 'docker', nome_competencia: 'Docker', tipo: 'TECNICA', id_categoria: 'devops', nome_categoria: 'DevOps', id_especializacao: 'cloud-infra', nome_especializacao: 'Cloud & Infrastructure', media_pontuacao: 2.5 },
-      { id_competencia: 'kubernetes', nome_competencia: 'Kubernetes', tipo: 'TECNICA', id_categoria: 'devops', nome_categoria: 'DevOps', id_especializacao: 'cloud-infra', nome_especializacao: 'Cloud & Infrastructure', media_pontuacao: 2.0 },
+      { id_competencia: 'nodejs', nome_competencia: 'Node.js', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend-web', nome_especializacao: 'Backend Web', media_pontuacao: 3.5 },
+      { id_competencia: 'api-rest', nome_competencia: 'Criação e Gestão de APIs (REST)', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend-web', nome_especializacao: 'Backend Web', media_pontuacao: 3.0 },
+      { id_competencia: 'modelagem-sql-nosql', nome_competencia: 'Modelagem e Consultas SQL/NoSQL', tipo: 'TECNICA', id_categoria: 'dev-web', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'backend-web', nome_especializacao: 'Backend Web', media_pontuacao: 3.0 },
+      { id_competencia: 'docker', nome_competencia: 'Docker', tipo: 'TECNICA', id_categoria: 'cloud-devops', nome_categoria: 'Cloud e DevOps', id_especializacao: 'infra-containers', nome_especializacao: 'Infraestrutura e Containers', media_pontuacao: 2.5 },
+      { id_competencia: 'kubernetes', nome_competencia: 'Kubernetes', tipo: 'TECNICA', id_categoria: 'cloud-devops', nome_categoria: 'Cloud e DevOps', id_especializacao: 'infra-containers', nome_especializacao: 'Infraestrutura e Containers', media_pontuacao: 2.0 },
     ],
   },
 ];
