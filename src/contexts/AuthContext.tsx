@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { MOCK_PERFORMANCE, MOCK_LIDER } from '@/data/mockData';
+import { SexoTipo } from '@/types/mer';
 
 export type UserRole = 'lider' | 'liderado';
 
@@ -13,9 +14,12 @@ export interface Profile {
 export interface Liderado {
   id: string;
   nome: string;
-  cargo_id?: string;
   email?: string;
-  role?: string;
+  cargo_id?: string;
+  sexo?: SexoTipo;
+  data_nascimento?: string;
+  lider_id?: string;
+  // Frontend-specific fields
   maturityLevel?: string;
   areas?: string[];
   especializacaoDominante?: string;
@@ -60,9 +64,7 @@ export function isPrimeiroAcesso(user: Profile | null, liderados: Liderado[], av
   if (!user) return true;
   if (ALWAYS_FIRST.includes(user.email)) return true;
   if (user.role !== 'lider') return false;
-  const semLiderados = (liderados?.length ?? 0) === 0;
-  const semAvaliacoes = (avaliacoes?.length ?? 0) === 0;
-  return semLiderados || semAvaliacoes;
+  return (liderados?.length ?? 0) === 0 || (avaliacoes?.length ?? 0) === 0;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -75,7 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (storedProfile) {
       const parsedProfile = JSON.parse(storedProfile);
       setProfile(parsedProfile);
-      // Recarregar dados mockados na inicialização da sessão para o usuário correto
       if (parsedProfile.email === MOCK_LIDER.email) {
         loadMockData(parsedProfile.id);
       }
@@ -88,7 +89,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       nome: p.nome_liderado,
       cargo_id: p.cargo,
       email: `${p.nome_liderado.split(' ')[0].toLowerCase()}@orbitta.com`,
-      role: p.cargo,
       maturityLevel: p.nivel_maturidade,
       areas: [p.categoria_dominante, p.especializacao_dominante],
       especializacaoDominante: p.especializacao_dominante,
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(userProfile);
       localStorage.setItem('orbitta_profile', JSON.stringify(userProfile));
 
-      if (user.role === 'lider' && user.email === MOCK_LIDER.email) {
+      if (user.role === 'lider' && !ALWAYS_FIRST.includes(user.email)) {
         loadMockData(user.id);
       } else {
         setLiderados([]);

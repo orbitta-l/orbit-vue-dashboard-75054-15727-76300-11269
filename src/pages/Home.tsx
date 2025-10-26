@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Users as UsersIcon, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -8,60 +8,68 @@ import CompetencyQuadrantChart from "@/components/CompetencyQuadrantChart";
 import DistributionPieChart from "@/components/DistributionPieChart";
 import KnowledgeGapsSection from "@/components/KnowledgeGapsSection";
 import RecentEvaluationsSection from "@/components/RecentEvaluationsSection";
+import CompetencyBarsChart from "@/components/CompetencyBarsChart";
 import { MOCK_PERFORMANCE } from "@/data/mockData";
 
 export default function Home() {
   const navigate = useNavigate();
-  const {
-    isPrimeiroAcesso,
-    liderados,
-    avaliacoes,
-  } = useAuth();
+  const { isPrimeiroAcesso, liderados, avaliacoes } = useAuth();
 
-  // Combine data from different sources into a single, consistent structure for the charts.
-  const teamDataForCharts = useMemo(() => {
-    if (isPrimeiroAcesso) return [];
-    
-    return liderados.map(liderado => {
+  const dashboardData = useMemo(() => {
+    if (isPrimeiroAcesso) return { quadrante: [], barras: [], pizza: [], gaps: undefined, recentes: [] };
+
+    const teamPerformance = liderados.map(liderado => {
       const avaliacao = avaliacoes.find(av => av.id_liderado === liderado.id);
-      // Fallback to mock data for fields not present in a new evaluation (e.g., competencias)
       const mockData = MOCK_PERFORMANCE.find(p => p.id_liderado === liderado.id);
-
       const eixo_x = avaliacao?.eixo_x ?? mockData?.quadrantX ?? 0;
       const eixo_y = avaliacao?.eixo_y ?? mockData?.quadrantY ?? 0;
-
       return {
         id_liderado: liderado.id,
         nome_liderado: liderado.nome,
         cargo: liderado.cargo_id || '',
         nivel_maturidade: avaliacao?.nivel || mockData?.nivel_maturidade || 'M1',
-        
-        // Provide both property name variants for component compatibility
-        quadrantX: eixo_x,
-        quadrantY: eixo_y,
         eixo_x_tecnico_geral: eixo_x,
         eixo_y_comportamental: eixo_y,
-
-        // Add other fields required by the components
-        categoria_dominante: mockData?.categoria_dominante || '',
-        especializacao_dominante: mockData?.especializacao_dominante || '',
+        categoria_dominante: mockData?.categoria_dominante || 'N/A',
+        especializacao_dominante: mockData?.especializacao_dominante || 'N/A',
         competencias: mockData?.competencias || [],
         sexo: mockData?.sexo || 'NAO_INFORMADO',
         idade: mockData?.idade || 0,
       };
     });
-  }, [isPrimeiroAcesso, liderados, avaliacoes]);
 
-  // Format data for the recent evaluations section
-  const recentesData = isPrimeiroAcesso
-    ? []
-    : avaliacoes
-        .slice(-3)
-        .map((av) => ({
-          id: av.id,
-          nome_liderado: liderados.find((l) => l.id === av.id_liderado)?.nome ?? "Desconhecido",
-          data_avaliacao: new Date(av.data),
-        }));
+    const allCompetencies = teamPerformance.flatMap(p => p.competencias);
+    const competencyMap = new Map<string, { soma: number; count: number; tipo: 'TECNICA' | 'COMPORTAMENTAL' }>();
+    allCompetencies.forEach(c => {
+      const existing = competencyMap.get(c.nome_competencia);
+      if (existing) {
+        existing.soma += c.media_pontuacao;
+        existing.count++;
+      } else {
+        competencyMap.set(c.nome_competencia, { soma: c.media_pontuacao, count: 1, tipo: c.tipo });
+      }
+    });
+
+    const barras = Array.from(competencyMap.entries()).map(([key, value]) => ({
+      competencia: key,
+      media: value.soma / value.count,
+      tipo: value.tipo,
+    }));
+
+    const recentes = avaliacoes.slice(-3).map(av => ({
+      id: av.id,
+      nome_liderado: liderados.find(l => l.id === av.id_liderado)?.nome ?? "Desconhecido",
+      data_avaliacao: new Date(av.data),
+    }));
+
+    return {
+      quadrante: teamPerformance,
+      barras,
+      pizza: teamPerformance, // Pizza component will process this
+      gaps: teamPerformance, // Gaps component will process this
+      recentes,
+    };
+  }, [isPrimeiroAcesso, liderados, avaliacoes]);
 
   return (
     <div className="p-8">
@@ -84,22 +92,27 @@ export default function Home() {
 
       <CompetencyQuadrantChart
         empty={isPrimeiroAcesso}
-        teamMembers={teamDataForCharts}
+        teamMembers={dashboardData.quadrante}
+      />
+      
+      <CompetencyBarsChart
+        empty={isPrimeiroAcesso}
+        data={dashboardData.barras}
       />
 
       <DistributionPieChart
         empty={isPrimeiroAcesso}
-        teamMembers={teamDataForCharts as any}
+        teamMembers={dashboardData.pizza as any}
       />
 
       <KnowledgeGapsSection
         empty={isPrimeiroAcesso}
-        teamMembers={teamDataForCharts as any}
+        teamMembers={dashboardData.gaps as any}
       />
 
       <RecentEvaluationsSection
         empty={isPrimeiroAcesso}
-        evaluations={recentesData}
+        evaluations={dashboardData.recentes}
         onEvaluationClick={(id) => navigate(`/evaluation/${id}`)}
       />
     </div>
