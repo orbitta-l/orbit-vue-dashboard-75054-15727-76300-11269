@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { LideradoPerformance, NivelMaturidade } from "@/types/mer";
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, ReferenceLine, Cell } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, ReferenceLine, Cell } from 'recharts';
 import { Avatar, AvatarFallback } from "./ui/avatar";
 
 interface CompetencyQuadrantChartProps {
