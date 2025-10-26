@@ -84,14 +84,27 @@ export default function Home() {
     });
 
     const allCompetencies = teamPerformance.flatMap(p => p.competencias);
-    const competencyMap = new Map<string, { soma: number; count: number; tipo: 'TECNICA' | 'COMPORTAMENTAL' }>();
+    const competencyMap = new Map<string, { 
+        soma: number; 
+        count: number; 
+        tipo: 'TECNICA' | 'COMPORTAMENTAL';
+        categoria: string;
+        especializacao: string | null;
+    }>();
+    
     allCompetencies.forEach(c => {
       const existing = competencyMap.get(c.nome_competencia);
       if (existing) {
         existing.soma += c.media_pontuacao;
         existing.count++;
       } else {
-        competencyMap.set(c.nome_competencia, { soma: c.media_pontuacao, count: 1, tipo: c.tipo });
+        competencyMap.set(c.nome_competencia, { 
+            soma: c.media_pontuacao, 
+            count: 1, 
+            tipo: c.tipo,
+            categoria: c.nome_categoria,
+            especializacao: c.nome_especializacao
+        });
       }
     });
 
@@ -99,6 +112,8 @@ export default function Home() {
       competencia: key,
       media: value.soma / value.count,
       tipo: value.tipo,
+      categoria: value.categoria,
+      especializacao: value.especializacao,
     }));
 
     const recentes = avaliacoes.slice(-3).map(av => ({
