@@ -15,15 +15,30 @@ import { MOCK_PERFORMANCE, MOCK_CATEGORIAS, MOCK_ESPECIALIZACOES, MOCK_COMPETENC
 import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { SexoTipo } from "@/types/mer";
 
 const allAreas = Array.from(new Set(MOCK_CATEGORIAS.filter(c => c.tipo === 'TECNICA').map(c => c.nome_categoria)));
 const allSpecializations = MOCK_ESPECIALIZACOES.map(e => e.nome);
 const allCompetencies = MOCK_COMPETENCIAS.filter(c => c.tipo === 'TECNICA').map(c => c.nome);
 
 const step1Schema = z.object({
+  nome: z.string().min(2, "Nome é obrigatório"),
   email: z.string().email('E-mail inválido').min(1, "E-mail é obrigatório"),
+  sexo: z.enum(["FEMININO", "MASCULINO", "NAO_BINARIO", "NAO_INFORMADO"], { required_error: "Sexo é obrigatório" }),
+  data_nascimento: z.string().min(1, "Data de nascimento é obrigatória").refine((val) => {
+    const birthDate = new Date(val);
+    const today = new Date();
+    birthDate.setMinutes(birthDate.getMinutes() + birthDate.getTimezoneOffset());
+    if (birthDate > today) return false;
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 14;
+  }, "A data não pode ser futura e a idade mínima é 14 anos."),
 });
 
 type Step1Form = z.infer<typeof step1Schema>;
@@ -42,11 +57,17 @@ export default function Team() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [modalStep, setModalStep] = useState(1);
   const [tempPassword, setTempPassword] = useState("");
-  const [provisionedEmail, setProvisionedEmail] = useState("");
+  const [provisionedData, setProvisionedData] = useState<Step1Form | null>(null);
 
-  const { register, handleSubmit, formState: { errors, isValid }, trigger, getValues } = useForm<Step1Form>({
+  const { register, control, formState: { errors }, trigger, getValues, reset } = useForm<Step1Form>({
     resolver: zodResolver(step1Schema),
-    mode: "onBlur"
+    mode: "onBlur",
+    defaultValues: {
+      nome: "",
+      email: "",
+      sexo: "NAO_INFORMADO",
+      data_nascimento: "",
+    }
   });
 
   const toggleMemberSelection = (memberId: string) => {
@@ -66,23 +87,25 @@ export default function Team() {
   const handleNextStep = async () => {
     const isValid = await trigger();
     if (isValid) {
-      const email = getValues("email");
-      // Mock check for existing email
-      if (members.some(m => m.email === email)) {
+      const values = getValues();
+      if (members.some(m => m.email === values.email)) {
         toast({ variant: "destructive", title: "E-mail já cadastrado", description: "Este e-mail já pertence a um membro da equipe." });
         return;
       }
-      setProvisionedEmail(email);
+      setProvisionedData(values);
       setTempPassword(Math.random().toString(36).slice(-8));
       setModalStep(2);
     }
   };
 
   const handleConclude = () => {
+    if (!provisionedData) return;
     const novoLiderado = {
       id: `lid-${Date.now()}`,
-      nome: "Novo Liderado",
-      email: provisionedEmail,
+      nome: provisionedData.nome,
+      email: provisionedData.email,
+      sexo: provisionedData.sexo as SexoTipo,
+      data_nascimento: provisionedData.data_nascimento,
       cargo_id: undefined,
     };
     addLiderado(novoLiderado);
@@ -95,7 +118,8 @@ export default function Team() {
     setIsAddDialogOpen(false);
     setModalStep(1);
     setTempPassword("");
-    setProvisionedEmail("");
+    setProvisionedData(null);
+    reset();
   };
 
   const handleCopyPassword = () => {
@@ -203,18 +227,51 @@ export default function Team() {
               <DialogHeader>
                 <DialogTitle>{modalStep === 1 ? "Adicione o liderado" : "Senha de acesso"}</DialogTitle>
                 <DialogDescription>
-                  {modalStep === 1 ? "Digite o email do liderado para gerar a senha de acesso." : "Compartilhe a senha abaixo com seu liderado."}
+                  {modalStep === 1 ? "Digite os dados do liderado para gerar a senha de acesso." : "Compartilhe a senha abaixo com seu liderado."}
                 </DialogDescription>
               </DialogHeader>
               <Progress value={modalStep * 50} className="w-full my-4" />
               {modalStep === 1 ? (
                 <div className="space-y-4 mt-4">
                   <div>
+                    <Label htmlFor="nome">Nome completo</Label>
+                    <Input id="nome" placeholder="João da Silva" {...register("nome")} />
+                    {errors.nome && <p className="text-sm text-destructive mt-1">{errors.nome.message}</p>}
+                  </div>
+                  <div>
                     <Label htmlFor="email">E-mail</Label>
                     <Input id="email" type="email" placeholder="joao.silva@orbitta.com" {...register("email")} />
                     {errors.email && <p className="text-sm text-destructive mt-1">{errors.email.message}</p>}
                   </div>
-                  <Button onClick={handleNextStep} className="w-full gap-2" disabled={!isValid}>Avançar <ArrowRight className="w-4 h-4" /></Button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="sexo">Sexo</Label>
+                      <Controller
+                        name="sexo"
+                        control={control}
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="FEMININO">Feminino</SelectItem>
+                              <SelectItem value="MASCULINO">Masculino</SelectItem>
+                              <SelectItem value="NAO_BINARIO">Não Binário</SelectItem>
+                              <SelectItem value="NAO_INFORMADO">Não Informado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {errors.sexo && <p className="text-sm text-destructive mt-1">{errors.sexo.message}</p>}
+                    </div>
+                    <div>
+                      <Label htmlFor="data_nascimento">Data de Nascimento</Label>
+                      <Input id="data_nascimento" type="date" {...register("data_nascimento")} />
+                      {errors.data_nascimento && <p className="text-sm text-destructive mt-1">{errors.data_nascimento.message}</p>}
+                    </div>
+                  </div>
+                  <Button onClick={handleNextStep} className="w-full gap-2">Avançar <ArrowRight className="w-4 h-4" /></Button>
                 </div>
               ) : (
                 <div className="space-y-4 mt-4">
