@@ -13,6 +13,7 @@ import { MOCK_PERFORMANCE } from "@/data/mockData";
 import { MetricCard } from "@/components/MetricCard";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { softSkillTemplates, technicalCategories } from "@/data/evaluationTemplates";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -83,16 +84,14 @@ export default function Home() {
       };
     });
 
-    const allCompetencies = teamPerformance.flatMap(p => p.competencias);
+    // 1. Obter médias das competências que foram avaliadas
+    const allEvaluatedCompetencies = teamPerformance.flatMap(p => p.competencias);
     const competencyMap = new Map<string, { 
         soma: number; 
         count: number; 
-        tipo: 'TECNICA' | 'COMPORTAMENTAL';
-        categoria: string;
-        especializacao: string | null;
     }>();
     
-    allCompetencies.forEach(c => {
+    allEvaluatedCompetencies.forEach(c => {
       const existing = competencyMap.get(c.nome_competencia);
       if (existing) {
         existing.soma += c.media_pontuacao;
@@ -100,21 +99,44 @@ export default function Home() {
       } else {
         competencyMap.set(c.nome_competencia, { 
             soma: c.media_pontuacao, 
-            count: 1, 
-            tipo: c.tipo,
-            categoria: c.nome_categoria,
-            especializacao: c.nome_especializacao
+            count: 1,
         });
       }
     });
 
-    const barras = Array.from(competencyMap.entries()).map(([key, value]) => ({
-      competencia: key,
-      media: value.soma / value.count,
-      tipo: value.tipo,
-      categoria: value.categoria,
-      especializacao: value.especializacao,
-    }));
+    // 2. Criar uma lista mestre de todas as competências a partir dos templates
+    const allTemplateCompetencies = [
+      ...softSkillTemplates.flatMap(t => t.competencias.map(c => ({
+        competencia: c.name,
+        tipo: 'COMPORTAMENTAL' as const,
+        categoria: 'Soft Skills',
+        especializacao: null
+      }))),
+      ...technicalCategories.flatMap(cat => 
+        cat.especializacoes.flatMap(spec => 
+          spec.competencias.map(comp => ({
+            competencia: comp.name,
+            tipo: 'TECNICA' as const,
+            categoria: cat.name,
+            especializacao: spec.name
+          }))
+        )
+      )
+    ];
+    
+    // Remove duplicatas caso existam nos templates
+    const uniqueTemplateCompetencies = Array.from(new Map(allTemplateCompetencies.map(item => [item.competencia, item])).values());
+
+    // 3. Mesclar a lista mestre com as médias calculadas
+    const barras = uniqueTemplateCompetencies.map(templateComp => {
+      const evaluatedData = competencyMap.get(templateComp.competencia);
+      const media = evaluatedData ? evaluatedData.soma / evaluatedData.count : 0;
+      
+      return {
+        ...templateComp,
+        media,
+      };
+    });
 
     const recentes = avaliacoes.slice(-3).map(av => ({
       id: av.id,

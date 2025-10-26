@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, LabelList } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, LabelList, Cell } from 'recharts';
 import { Label } from "./ui/label";
 
 type BarItem = { 
@@ -191,8 +191,25 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
             contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
           />
           <ReferenceLine y={2.5} stroke="hsl(var(--color-accent))" strokeDasharray="4 4" />
-          <Bar dataKey="media" fill={empty ? "hsl(var(--color-muted))" : "hsl(var(--color-brand))"} barSize={40}>
-            <LabelList dataKey="media" position="top" formatter={(value: number) => value.toFixed(1)} fill={empty ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))"} />
+          <Bar dataKey="media" barSize={40}>
+            {chartData.data.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={
+                  empty 
+                    ? "hsl(var(--color-muted))" 
+                    : entry.media > 0 
+                      ? "hsl(var(--color-brand))" 
+                      : "hsl(var(--muted))"
+                } 
+              />
+            ))}
+            <LabelList 
+              dataKey="media" 
+              position="top" 
+              formatter={(value: number) => (value > 0 ? value.toFixed(1) : '')} 
+              fill={empty ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))"} 
+            />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
