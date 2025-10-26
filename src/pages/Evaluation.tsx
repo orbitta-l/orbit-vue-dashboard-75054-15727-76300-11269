@@ -11,14 +11,13 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { calcularNivelMaturidade } from "@/types/mer";
 import EvaluationRadarChart from "@/components/EvaluationRadarChart";
-import CategorySelectionModal from "@/components/CategorySelectionModal";
+import SpecializationSelectionModal from "@/components/SpecializationSelectionModal";
 
 interface TechBlock {
   categoria_id: string;
-  especializacao_id?: string;
+  especializacao_id: string;
   scores: Record<string, number>;
   completed: boolean;
 }
@@ -70,7 +69,7 @@ export default function Evaluation() {
 
     const techData = techBlocks.flatMap(block => {
       const category = technicalCategories.find(c => c.id === block.categoria_id);
-      if (!category || !block.especializacao_id) return [];
+      if (!category) return [];
       
       const specialization = category.especializacoes.find(s => s.id === block.especializacao_id);
       return specialization?.competencias.map(comp => ({
@@ -83,41 +82,46 @@ export default function Evaluation() {
     return [...softData, ...techData];
   }, [softScores, techBlocks, softTemplate]);
 
-  const availableCategories = useMemo(() => {
-    const usedCategoryIds = new Set(techBlocks.map(b => b.categoria_id));
-    return technicalCategories.filter(c => !usedCategoryIds.has(c.id));
-  }, [techBlocks]);
+  const selectedSpecializationIds = useMemo(() => techBlocks.map(b => b.especializacao_id), [techBlocks]);
+  const allSpecializationIds = useMemo(() => technicalCategories.flatMap(c => c.especializacoes.map(s => s.id)), []);
+  const canAddMore = selectedSpecializationIds.length < allSpecializationIds.length;
 
-  const handleAddCategory = (categoryId: string) => {
-    setTechBlocks(prev => [...prev, { categoria_id: categoryId, scores: {}, completed: false }]);
-    setActiveTab(categoryId);
+  const handleAddSpecialization = (categoryId: string, specializationId: string) => {
+    const category = technicalCategories.find(c => c.id === categoryId);
+    const specialization = category?.especializacoes.find(s => s.id === specializationId);
+    const initialScores = specialization?.competencias.reduce((acc, comp) => ({ ...acc, [comp.id]: 1 }), {}) || {};
+
+    setTechBlocks(prev => [...prev, { 
+      categoria_id: categoryId, 
+      especializacao_id: specializationId,
+      scores: initialScores, 
+      completed: false 
+    }]);
+    setActiveTab(specializationId);
   };
 
-  const handleEspecializacaoChange = (categoryId: string, especializacaoId: string) => {
+  const handleScoreChange = (specializationId: string, competencyId: string, value: number) => {
     setTechBlocks(prev => prev.map(b => 
-      b.categoria_id === categoryId ? { ...b, especializacao_id: especializacaoId, scores: {}, completed: false } : b
+      b.especializacao_id === specializationId ? { ...b, scores: { ...b.scores, [competencyId]: value }, completed: false } : b
     ));
   };
 
-  const handleScoreChange = (categoryId: string, competencyId: string, value: number) => {
+  const handleSaveBlock = (specializationId: string) => {
     setTechBlocks(prev => prev.map(b => 
-      b.categoria_id === categoryId ? { ...b, scores: { ...b.scores, [competencyId]: value }, completed: false } : b
+      b.especializacao_id === specializationId ? { ...b, completed: true } : b
     ));
+    toast({ title: "Bloco salvo!", description: "As notas desta especialização foram salvas localmente." });
   };
 
-  const handleSaveBlock = (categoryId: string) => {
-    setTechBlocks(prev => prev.map(b => 
-      b.categoria_id === categoryId ? { ...b, completed: true } : b
-    ));
-    toast({ title: "Bloco salvo!", description: "As notas desta categoria foram salvas localmente." });
-  };
-
-  const isFinalSaveEnabled = techBlocks.every(b => b.completed);
+  const isFinalSaveEnabled = techBlocks.length > 0 && techBlocks.every(b => b.completed);
 
   const handleSaveEvaluation = () => {
     if (!isFinalSaveEnabled) {
       const unsavedCount = techBlocks.filter(b => !b.completed).length;
-      toast({ variant: "destructive", title: "Ação necessária", description: `Existem ${unsavedCount} categoria(s) técnica(s) não salva(s).` });
+      const message = unsavedCount > 0 
+        ? `Existem ${unsavedCount} especialização(ões) técnica(s) não salva(s).`
+        : "Adicione e salve pelo menos uma avaliação técnica.";
+      toast({ variant: "destructive", title: "Ação necessária", description: message });
       return;
     }
 
@@ -145,8 +149,8 @@ export default function Evaluation() {
   if (loading) return <div className="p-8 space-y-4"><Skeleton className="h-24 w-full" /><Skeleton className="h-96 w-full" /></div>;
   if (!member) return null;
 
-  const activeBlock = techBlocks.find(b => b.categoria_id === activeTab);
-  const activeCategory = technicalCategories.find(c => c.id === activeTab);
+  const activeBlock = techBlocks.find(b => b.especializacao_id === activeTab);
+  const activeCategory = technicalCategories.find(c => c.id === activeBlock?.categoria_id);
   const activeSpecialization = activeCategory?.especializacoes.find(s => s.id === activeBlock?.especializacao_id);
 
   return (
@@ -202,39 +206,31 @@ export default function Evaluation() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Avaliação Técnica por Categoria</CardTitle>
-              <CardDescription>Selecione ou adicione categorias técnicas para avaliar.</CardDescription>
+              <CardTitle>Avaliação Técnica por Especialização</CardTitle>
+              <CardDescription>Adicione as especializações técnicas que deseja avaliar.</CardDescription>
             </div>
-            <Button onClick={() => setIsModalOpen(true)} disabled={availableCategories.length === 0}><Plus className="w-4 h-4 mr-2" /> Adicionar Categoria</Button>
+            <Button onClick={() => setIsModalOpen(true)} disabled={!canAddMore}><Plus className="w-4 h-4 mr-2" /> Adicionar Avaliação Técnica</Button>
           </div>
         </CardHeader>
         <CardContent>
           {techBlocks.length > 0 ? (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList>
+              <TabsList className="flex flex-wrap h-auto">
                 {techBlocks.map(block => {
                   const category = technicalCategories.find(c => c.id === block.categoria_id);
+                  const specialization = category?.especializacoes.find(s => s.id === block.especializacao_id);
                   return (
-                    <TabsTrigger key={block.categoria_id} value={block.categoria_id} className="gap-2">
-                      {category?.name}
+                    <TabsTrigger key={block.especializacao_id} value={block.especializacao_id} className="gap-2">
+                      {specialization?.name}
                       {block.completed && <Check className="w-4 h-4 text-primary" />}
                     </TabsTrigger>
                   );
                 })}
               </TabsList>
               {techBlocks.map(block => (
-                <TabsContent key={block.categoria_id} value={block.categoria_id} className="pt-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <Select onValueChange={(val) => handleEspecializacaoChange(block.categoria_id, val)} value={block.especializacao_id}>
-                      <SelectTrigger className="w-[300px]">
-                        <SelectValue placeholder="Selecione uma Especialização" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {technicalCategories.find(c => c.id === block.categoria_id)?.especializacoes.map(spec => (
-                          <SelectItem key={spec.id} value={spec.id}>{spec.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <TabsContent key={block.especializacao_id} value={block.especializacao_id} className="pt-4">
+                  <div className="flex justify-between items-center mb-4 p-3 bg-muted/30 rounded-lg">
+                    <h3 className="font-semibold">{activeCategory?.name} &gt; {activeSpecialization?.name}</h3>
                     <Badge variant={block.completed ? "default" : "secondary"}>{block.completed ? "Salvo" : "Não salvo"}</Badge>
                   </div>
                   {activeSpecialization && (
@@ -245,11 +241,11 @@ export default function Evaluation() {
                             <Label>{comp.name}</Label>
                             <Badge variant="outline">{block.scores[comp.id] || "N/A"}/4</Badge>
                           </div>
-                          <Slider min={1} max={4} step={0.5} value={[block.scores[comp.id] || 1]} onValueChange={([val]) => handleScoreChange(block.categoria_id, comp.id, val)} />
+                          <Slider min={1} max={4} step={0.5} value={[block.scores[comp.id] || 1]} onValueChange={([val]) => handleScoreChange(block.especializacao_id, comp.id, val)} />
                         </div>
                       ))}
                       <div className="flex justify-end">
-                        <Button onClick={() => handleSaveBlock(block.categoria_id)}>Salvar Bloco</Button>
+                        <Button onClick={() => handleSaveBlock(block.especializacao_id)}>Salvar Bloco</Button>
                       </div>
                     </div>
                   )}
@@ -257,7 +253,7 @@ export default function Evaluation() {
               ))}
             </Tabs>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">Adicione uma categoria técnica para começar.</div>
+            <div className="text-center py-12 text-muted-foreground">Adicione uma avaliação técnica para começar.</div>
           )}
         </CardContent>
       </Card>
@@ -268,11 +264,11 @@ export default function Evaluation() {
         </Button>
       </div>
 
-      <CategorySelectionModal 
+      <SpecializationSelectionModal 
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
-        availableCategories={availableCategories}
-        onSelectCategory={handleAddCategory}
+        alreadySelected={selectedSpecializationIds}
+        onSelectSpecialization={handleAddSpecialization}
       />
     </div>
   );
