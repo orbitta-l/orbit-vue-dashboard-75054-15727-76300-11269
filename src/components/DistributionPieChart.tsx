@@ -10,11 +10,10 @@ interface DistributionPieChartProps {
 }
 
 const CHART_COLORS = [
-  "hsl(var(--color-chart-1))",
-  "hsl(var(--color-chart-2))",
-  "hsl(var(--color-chart-3))",
-  "hsl(var(--color-chart-4))",
-  "hsl(var(--color-chart-5))",
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
 ];
 
 export default function DistributionPieChart({ teamMembers, empty = false }: DistributionPieChartProps) {
@@ -36,8 +35,8 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
         case "maturidade":
           key = member.nivel_maturidade;
           break;
-        case "especializacao":
-          key = member.especializacao_dominante || "Não definido";
+        case "categoria":
+          key = member.categoria_dominante || "Não definida";
           break;
         case "sexo":
           key = member.sexo === "NAO_INFORMADO" ? "Não informado" : member.sexo;
@@ -70,7 +69,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
         <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="maturidade">Maturidade</TabsTrigger>
-            <TabsTrigger value="especializacao">Especialização</TabsTrigger>
+            <TabsTrigger value="categoria">Categoria</TabsTrigger>
             <TabsTrigger value="sexo">Gênero</TabsTrigger>
             <TabsTrigger value="faixaEtaria">Faixa Etária</TabsTrigger>
           </TabsList>

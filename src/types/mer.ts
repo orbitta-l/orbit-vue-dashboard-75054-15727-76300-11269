@@ -301,4 +301,4 @@ export interface LideradoPerformance {
 /**
  * Tipos de filtro para o gráfico de pizza
  */
-export type PieChartFilterType = 'maturidade' | 'especializacao' | 'sexo' | 'faixaEtaria';
+export type PieChartFilterType = 'maturidade' | 'categoria' | 'sexo' | 'faixaEtaria';
