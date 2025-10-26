@@ -14,12 +14,25 @@ interface RecentEvaluation {
 interface RecentEvaluationsSectionProps {
   evaluations: RecentEvaluation[];
   onEvaluationClick?: (id: string) => void;
+  empty?: boolean;
 }
 
 export default function RecentEvaluationsSection({
   evaluations,
   onEvaluationClick,
+  empty = false,
 }: RecentEvaluationsSectionProps) {
+  if (empty) {
+    return (
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4 text-foreground">Avaliações Recentes</h3>
+        <p className="text-center text-muted-foreground">
+          Aguardando avaliações para exibir histórico.
+        </p>
+      </Card>
+    );
+  }
+
   const hasData = evaluations.length > 0;
 
   const getInitials = (name: string) => {

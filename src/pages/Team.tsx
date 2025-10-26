@@ -12,19 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { MOCK_PERFORMANCE, MOCK_CATEGORIAS, MOCK_ESPECIALIZACOES, MOCK_COMPETENCIAS } from "@/data/mockData";
-
-const teamMembers = MOCK_PERFORMANCE.map(p => ({
-  id: p.id_liderado,
-  name: p.nome_liderado,
-  role: p.cargo,
-  email: `${p.nome_liderado.toLowerCase().replace(' ', '.')}@orbitta.com`,
-  areas: [p.categoria_dominante, p.especializacao_dominante],
-  initials: p.nome_liderado.split(' ').map(n => n[0]).join(''),
-  generalScore: Math.round((p.quadrantX + p.quadrantY) / 2 * 25),
-  maturityLevel: p.nivel_maturidade,
-  categoriaDominante: p.categoria_dominante,
-  especializacaoDominante: p.especializacao_dominante,
-}));
+import { useAuth } from "@/contexts/AuthContext";
 
 const allAreas = Array.from(new Set(MOCK_CATEGORIAS.filter(c => c.tipo === 'TECNICA').map(c => c.nome_categoria)));
 const allSpecializations = MOCK_ESPECIALIZACOES.map(e => e.nome);
@@ -32,13 +20,15 @@ const allCompetencies = MOCK_COMPETENCIAS.filter(c => c.tipo === 'TECNICA').map(
 
 export default function Team() {
   const navigate = useNavigate();
+  const { liderados, addLiderado } = useAuth();
+
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [searchName, setSearchName] = useState("");
   const [filterMaturityLevel, setFilterMaturityLevel] = useState<string>("all");
   const [filterArea, setFilterArea] = useState<string>("all");
   const [filterSpecialization, setFilterSpecialization] = useState<string>("all");
   const [filterCompetency, setFilterCompetency] = useState<string>("all");
-  const [members, setMembers] = useState(teamMembers);
+  const [members, setMembers] = useState(liderados);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
   const [tempPassword, setTempPassword] = useState("");
@@ -63,6 +53,14 @@ export default function Team() {
     setTempPassword(password);
     setIsAddDialogOpen(false);
     setIsSuccessDialogOpen(true);
+    // Cria objeto Liderado simplificado
+    const novoLiderado = {
+      id: `lid-${Date.now()}`,
+      nome: newMember.name,
+      cargo_id: newMember.role, // usando role como cargo_id simplificado
+    };
+    addLiderado(novoLiderado);
+    setMembers((prev) => [...prev, novoLiderado]);
     setNewMember({ name: "", email: "", role: "" });
   };
 
@@ -100,7 +98,7 @@ export default function Team() {
       return false;
     }
 
-    if (filterArea !== "all" && !member.areas.some(area => area === filterArea)) {
+    if (filterArea !== "all" && !member.areas?.some(area => area === filterArea)) {
       return false;
     }
     
@@ -258,12 +256,11 @@ export default function Team() {
                       <SelectValue placeholder="Selecione o cargo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Estagiário">Estagiário</SelectItem>
-                      <SelectItem value="Junior">Junior</SelectItem>
-                      <SelectItem value="Pleno">Pleno</SelectItem>
-                      <SelectItem value="Senior">Senior</SelectItem>
-                      <SelectItem value="Especialista I">Especialista I</SelectItem>
-                      <SelectItem value="Especialista II">Especialista II</SelectItem>
+                      <SelectItem value="estagiario">Estagiário</SelectItem>
+                      <SelectItem value="junior">Junior</SelectItem>
+                      <SelectItem value="pleno">Pleno</SelectItem>
+                      <SelectItem value="senior">Senior</SelectItem>
+                      <SelectItem value="especialista">Especialista</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -339,10 +336,10 @@ export default function Team() {
                 <div className="flex flex-col items-center text-center mb-4">
                   <Avatar className="w-16 h-16 mb-3">
                     <AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">
-                      {member.initials}
+                      {member.nome?.split(' ').map((n) => n[0]).join('').toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <h3 className="font-semibold text-lg text-foreground mb-1">{member.name}</h3>
+                  <h3 className="font-semibold text-lg text-foreground mb-1">{member.nome}</h3>
                   <Badge variant="secondary" className="mb-2">
                     {member.role}
                   </Badge>
@@ -354,7 +351,7 @@ export default function Team() {
                 <div className="space-y-2 pt-4 border-t border-border">
                   <p className="text-xs text-muted-foreground text-center mb-2">{member.email}</p>
                   <div className="space-y-1">
-                    {member.areas.map((area) => (
+                    {member.areas?.map((area) => (
                       <div key={area} className="flex items-center gap-2 text-sm text-muted-foreground">
                         <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
                         <span className="truncate">{area}</span>

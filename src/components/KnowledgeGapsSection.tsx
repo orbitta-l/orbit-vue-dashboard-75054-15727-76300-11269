@@ -7,24 +7,25 @@ import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
 
 interface KnowledgeGapsSectionProps {
   teamMembers: LideradoPerformance[];
+  empty?: boolean;
 }
 
-interface GapItem {
-  nome_competencia: string;
-  nome_categoria: string;
-  nome_especializacao: string | null;
-  media_score: number;
-  tipo: 'TECNICA' | 'COMPORTAMENTAL';
-}
-
-export default function KnowledgeGapsSection({ teamMembers }: KnowledgeGapsSectionProps) {
+export default function KnowledgeGapsSection({ teamMembers, empty = false }: KnowledgeGapsSectionProps) {
   const [expandedTecnica, setExpandedTecnica] = useState(false);
   const [expandedComportamental, setExpandedComportamental] = useState(false);
 
+  if (empty) {
+    return (
+      <Card className="p-6 mb-8 bg-muted/20 text-center">
+        <p className="text-muted-foreground">Aguardando avaliações para exibir gaps de conhecimento.</p>
+      </Card>
+    );
+  }
+
   const hasData = teamMembers.length > 0;
 
-  // Calcular gaps de competências
-  const calcularGaps = (tipo: 'TECNICA' | 'COMPORTAMENTAL'): GapItem[] => {
+  // Calcular gaps de competências (mesma lógica original)
+  const calcularGaps = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
     if (!hasData) return [];
 
     const competenciasMap = new Map<string, { soma: number; count: number; competencia: any }>();
