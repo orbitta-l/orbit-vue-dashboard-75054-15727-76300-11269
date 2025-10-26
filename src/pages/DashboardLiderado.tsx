@@ -23,11 +23,11 @@ import {
 import { useState } from "react";
 
 export default function DashboardLiderado() {
-  const { profile, logout } = useAuth();
+  const { profile, logout, avaliacoes } = useAuth();
   const navigate = useNavigate();
   
-  // Detecta se o liderado tem dados
-  const hasData = profile?.email === 'tone.p@gmail.com';
+  const minhasAvaliacoes = avaliacoes.filter(a => a.id_liderado === profile?.id);
+  const hasData = minhasAvaliacoes.length > 0;
   
   const [radarViewMode, setRadarViewMode] = useState<"all" | "soft" | "custom">("all");
   const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>(["React", "TypeScript", "API REST"]);
@@ -157,7 +157,7 @@ export default function DashboardLiderado() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-foreground">M2</p>
+              <p className="text-3xl font-bold text-foreground">{minhasAvaliacoes[0]?.nivel || 'N/A'}</p>
               <p className="text-sm text-muted-foreground">Aprendiz</p>
             </CardContent>
           </Card>
@@ -350,7 +350,7 @@ export default function DashboardLiderado() {
                 </p>
                 <div className="mt-2 flex gap-2">
                   <span className="px-2 py-1 bg-primary/20 text-primary text-xs rounded font-medium">
-                    M2 - Aprendiz
+                    {minhasAvaliacoes[0]?.nivel || 'N/A'} - Aprendiz
                   </span>
                   <span className="px-2 py-1 bg-chart-3/40 text-foreground text-xs rounded font-medium">
                     Em Progresso
@@ -377,4 +377,3 @@ export default function DashboardLiderado() {
     </div>
   );
 }
-
