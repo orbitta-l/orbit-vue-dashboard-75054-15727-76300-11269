@@ -1,0 +1,218 @@
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { LideradoPerformance } from "@/types/mer";
+import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
+
+interface KnowledgeGapsSectionProps {
+  teamMembers: LideradoPerformance[];
+}
+
+interface GapItem {
+  nome_competencia: string;
+  nome_categoria: string;
+  nome_especializacao: string | null;
+  media_score: number;
+  tipo: 'TECNICA' | 'COMPORTAMENTAL';
+}
+
+export default function KnowledgeGapsSection({ teamMembers }: KnowledgeGapsSectionProps) {
+  const [expandedTecnica, setExpandedTecnica] = useState(false);
+  const [expandedComportamental, setExpandedComportamental] = useState(false);
+
+  const hasData = teamMembers.length > 0;
+
+  // Calcular gaps de competências
+  const calcularGaps = (tipo: 'TECNICA' | 'COMPORTAMENTAL'): GapItem[] => {
+    if (!hasData) return [];
+
+    const competenciasMap = new Map<string, { soma: number; count: number; competencia: any }>();
+
+    teamMembers.forEach((liderado) => {
+      liderado.competencias.forEach((comp) => {
+        if (comp.tipo === tipo) {
+          const existing = competenciasMap.get(comp.id_competencia);
+          if (existing) {
+            existing.soma += comp.media_pontuacao;
+            existing.count += 1;
+          } else {
+            competenciasMap.set(comp.id_competencia, {
+              soma: comp.media_pontuacao,
+              count: 1,
+              competencia: comp,
+            });
+          }
+        }
+      });
+    });
+
+    return Array.from(competenciasMap.values())
+      .map(({ soma, count, competencia }) => ({
+        nome_competencia: competencia.nome_competencia,
+        nome_categoria: competencia.nome_categoria,
+        nome_especializacao: competencia.nome_especializacao,
+        media_score: soma / count,
+        tipo,
+      }))
+      .sort((a, b) => a.media_score - b.media_score);
+  };
+
+  const gapsTecnicos = calcularGaps('TECNICA');
+  const gapsComportamentais = calcularGaps('COMPORTAMENTAL');
+
+  const renderGapCard = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
+    const gaps = tipo === 'TECNICA' ? gapsTecnicos : gapsComportamentais;
+    const isExpanded = tipo === 'TECNICA' ? expandedTecnica : expandedComportamental;
+    const setExpanded = tipo === 'TECNICA' ? setExpandedTecnica : setExpandedComportamental;
+
+    const pioresGaps = gaps.filter((g) => g.media_score < 2.5);
+    const melhoresGaps = gaps.filter((g) => g.media_score >= 2.5);
+    const top5 = gaps.slice(0, 5);
+
+    return (
+      <Card className="p-6">
+        <h4 className="text-md font-semibold mb-4 text-foreground">
+          Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}
+        </h4>
+
+        {!hasData ? (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            Aguardando avaliações
+          </p>
+        ) : !isExpanded ? (
+          <>
+            <div className="space-y-3 mb-4">
+              {top5.map((gap, idx) => (
+                <div key={gap.nome_competencia} className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex-1">
+                      <span
+                        className={`font-medium ${
+                          idx === 0
+                            ? "text-[hsl(var(--color-critical))]"
+                            : getGapColorClass(gap.media_score)
+                        }`}
+                      >
+                        {gap.nome_competencia}
+                      </span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        ({gap.nome_categoria}
+                        {gap.nome_especializacao ? ` › ${gap.nome_especializacao}` : ""})
+                      </span>
+                    </div>
+                    <span
+                      className={`font-semibold ${
+                        idx === 0
+                          ? "text-[hsl(var(--color-critical))]"
+                          : getGapColorClass(gap.media_score)
+                      }`}
+                    >
+                      {gap.media_score.toFixed(1)}/4.0
+                    </span>
+                  </div>
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${(gap.media_score / 4) * 100}%`,
+                        backgroundColor:
+                          idx === 0 ? "hsl(var(--color-critical))" : getGapColor(gap.media_score),
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setExpanded(true)}
+              className="w-full"
+            >
+              <ChevronDown className="w-4 h-4 mr-2" />
+              Ver detalhes completos
+            </Button>
+          </>
+        ) : (
+          <>
+            {/* Piores Gaps (Áreas Críticas) */}
+            {pioresGaps.length > 0 && (
+              <div className="mb-6">
+                <h5 className="text-sm font-semibold text-foreground mb-3">
+                  Piores Gaps (Áreas Críticas)
+                </h5>
+                <div className="space-y-3">
+                  {pioresGaps.map((gap) => (
+                    <div key={gap.nome_competencia} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {gap.nome_competencia}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {gap.nome_categoria}
+                          {gap.nome_especializacao ? ` › ${gap.nome_especializacao}` : ""}
+                        </p>
+                      </div>
+                      <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
+                        {gap.media_score.toFixed(1)}/4.0
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Melhores Competências (Pontos Fortes) */}
+            {melhoresGaps.length > 0 && (
+              <div className="mb-4">
+                <h5 className="text-sm font-semibold text-foreground mb-3">
+                  Melhores Competências (Pontos Fortes)
+                </h5>
+                <div className="space-y-3">
+                  {melhoresGaps.reverse().map((gap) => (
+                    <div key={gap.nome_competencia} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {gap.nome_competencia}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {gap.nome_categoria}
+                          {gap.nome_especializacao ? ` › ${gap.nome_especializacao}` : ""}
+                        </p>
+                      </div>
+                      <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
+                        {gap.media_score.toFixed(1)}/4.0
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setExpanded(false)}
+              className="w-full"
+            >
+              <ChevronUp className="w-4 h-4 mr-2" />
+              Recolher
+            </Button>
+          </>
+        )}
+      </Card>
+    );
+  };
+
+  return (
+    <div className="mb-8">
+      <h3 className="text-lg font-semibold mb-4 text-foreground">Gaps de Conhecimento</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {renderGapCard('COMPORTAMENTAL')}
+        {renderGapCard('TECNICA')}
+      </div>
+    </div>
+  );
+}

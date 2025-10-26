@@ -1,46 +1,72 @@
-import { Users as UsersIcon, TrendingUp, Award, BarChart3, UserPlus, ClipboardList } from "lucide-react";
+import { Users as UsersIcon, Award, BarChart3, ClipboardList, UserPlus } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import CompetencyMatrixChart from "@/components/CompetencyMatrixChart";
-import { MOCK_LIDER, MOCK_LIDER_NOVO, MOCK_PERFORMANCE, calcularGapsEquipe } from "@/data/mockData";
-import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
+import CompetencyQuadrantChart from "@/components/CompetencyQuadrantChart";
+import DistributionPieChart from "@/components/DistributionPieChart";
+import KnowledgeGapsSection from "@/components/KnowledgeGapsSection";
+import RecentEvaluationsSection from "@/components/RecentEvaluationsSection";
+import { MOCK_LIDER, MOCK_LIDER_NOVO } from "@/data/mockData";
+import { LideradoPerformance } from "@/types/mer";
 
-const teamMembers = MOCK_PERFORMANCE.map(p => ({
-  id: p.id_liderado,
-  name: p.nome_liderado,
-  role: p.cargo,
-  level: p.nivel_maturidade,
-  initials: p.nome_liderado.split(' ').map(n => n[0]).join(''),
-  quadrantX: p.quadrantX,
-  quadrantY: p.quadrantY,
-}));
-
-// Gaps de competências técnicas da equipe (ordenado por menor score)
-const skillGaps = calcularGapsEquipe().slice(0, 8);
-
-const leaderProfile = {
-  name: MOCK_LIDER.nome,
-  role: "Tech Lead",
-  initials: MOCK_LIDER.nome.split(' ').map(n => n[0]).join(''),
-  email: MOCK_LIDER.email,
-  team: "Engenharia de Software"
+// Mock de dados - será filtrado baseado no perfil do líder
+const getMockTeamData = (hasData: boolean): LideradoPerformance[] => {
+  if (!hasData) return [];
+  
+  return [
+    {
+      id_liderado: 'lid-001',
+      nome_liderado: 'Antonio Pereira',
+      cargo: 'Desenvolvedor Junior',
+      nivel_maturidade: 'M2',
+      eixo_x_tecnico_geral: 2.3,
+      eixo_y_comportamental: 2.7,
+      categoria_dominante: 'Desenvolvimento Web',
+      especializacao_dominante: 'Frontend',
+      sexo: 'MASCULINO',
+      idade: 24,
+      competencias: [
+        { id_competencia: 'comp-001', nome_competencia: 'Comunicação', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 2.8 },
+        { id_competencia: 'comp-005', nome_competencia: 'React', tipo: 'TECNICA', id_categoria: 'cat-002', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'esp-001', nome_especializacao: 'Frontend', media_pontuacao: 2.5 },
+        { id_competencia: 'comp-006', nome_competencia: 'TypeScript', tipo: 'TECNICA', id_categoria: 'cat-002', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'esp-001', nome_especializacao: 'Frontend', media_pontuacao: 2.2 },
+      ],
+    },
+    {
+      id_liderado: 'lid-003',
+      nome_liderado: 'Lara Mendes',
+      cargo: 'Designer Sênior',
+      nivel_maturidade: 'M3',
+      eixo_x_tecnico_geral: 3.4,
+      eixo_y_comportamental: 2.3,
+      categoria_dominante: 'Desenvolvimento Web',
+      especializacao_dominante: 'Frontend',
+      sexo: 'FEMININO',
+      idade: 31,
+      competencias: [
+        { id_competencia: 'comp-001', nome_competencia: 'Comunicação', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 2.4 },
+        { id_competencia: 'comp-005', nome_competencia: 'React', tipo: 'TECNICA', id_categoria: 'cat-002', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'esp-001', nome_especializacao: 'Frontend', media_pontuacao: 3.6 },
+        { id_competencia: 'comp-007', nome_competencia: 'CSS/Tailwind', tipo: 'TECNICA', id_categoria: 'cat-002', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'esp-001', nome_especializacao: 'Frontend', media_pontuacao: 3.8 },
+      ],
+    },
+  ];
 };
 
-const StatCard = ({ icon: Icon, title, value, trend }: any) => (
+const getMockRecentEvaluations = (hasData: boolean) => {
+  if (!hasData) return [];
+  
+  return [
+    { id: 'av-001', nome_liderado: 'Antonio Pereira', data_avaliacao: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) },
+    { id: 'av-002', nome_liderado: 'Lara Mendes', data_avaliacao: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+  ];
+};
+
+const StatCard = ({ icon: Icon, title, value }: any) => (
   <Card className="p-6 hover:shadow-lg transition-shadow duration-300">
     <div className="flex items-start justify-between">
       <div>
         <p className="text-sm text-muted-foreground mb-2">{title}</p>
         <p className="text-3xl font-bold text-foreground">{value}</p>
-        {trend && (
-          <p className="text-sm text-accent mt-2 flex items-center gap-1">
-            <TrendingUp className="w-4 h-4" />
-            {trend}
-          </p>
-        )}
       </div>
       <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
         <Icon className="w-6 h-6 text-primary" />
@@ -53,9 +79,13 @@ export default function Home() {
   const navigate = useNavigate();
   const { profile } = useAuth();
 
-  // Detecta se o líder logado tem dados
+  // Detecta se o líder logado tem dados (apenas juli.lider@gmail.com)
   const isLiderComDados = profile?.email === 'juli.lider@gmail.com';
   const hasEvaluations = isLiderComDados;
+
+  // Dados mockados baseados no perfil
+  const teamMembers = getMockTeamData(hasEvaluations);
+  const recentEvaluations = getMockRecentEvaluations(hasEvaluations);
 
   // Dados do líder baseado no perfil logado
   const currentLeaderData = isLiderComDados ? MOCK_LIDER : MOCK_LIDER_NOVO;
@@ -88,15 +118,27 @@ export default function Home() {
         </div>
       </Card>
 
-      {hasEvaluations ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <StatCard icon={UsersIcon} title="Total de Membros" value="2" />
-            <StatCard icon={Award} title="Avaliações Completas" value="6" trend="+2 este mês" />
-            <StatCard icon={BarChart3} title="Maturidade Média" value="M2.5" trend="+0.2 vs anterior" />
-          </div>
-        </>
-      ) : (
+      {/* Stats - sempre renderizado */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <StatCard 
+          icon={UsersIcon} 
+          title="Total de Membros" 
+          value={hasEvaluations ? String(teamMembers.length) : "0"} 
+        />
+        <StatCard 
+          icon={Award} 
+          title="Avaliações Completas" 
+          value={hasEvaluations ? String(recentEvaluations.length) : "0"} 
+        />
+        <StatCard 
+          icon={BarChart3} 
+          title="Maturidade Média" 
+          value={hasEvaluations ? "M2.8" : "—"} 
+        />
+      </div>
+
+      {/* Empty state apenas se não houver dados */}
+      {!hasEvaluations && (
         <Card className="p-8 mb-8 text-center bg-muted/20">
           <div className="max-w-md mx-auto">
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
@@ -122,82 +164,20 @@ export default function Home() {
         </Card>
       )}
 
-      {/* Gráfico de Quadrante */}
-      {hasEvaluations && <CompetencyMatrixChart teamMembers={teamMembers} />}
+      {/* Quadrante - sempre renderizado */}
+      <CompetencyQuadrantChart teamMembers={teamMembers} />
 
-      {/* Gaps de Competências Técnicas */}
-      {hasEvaluations && (
-        <Card className="p-6 mb-8">
-          <h3 className="text-lg font-semibold mb-4 text-foreground">Gaps de Competências Técnicas</h3>
-          <p className="text-sm text-muted-foreground mb-6">
-            Competências com desempenho mais baixo na equipe (média de score). 
-            <span className="block mt-1">
-              <span className="font-semibold text-red-600 dark:text-red-400">Vermelho intenso</span> = gap crítico | 
-              <span className="font-semibold text-blue-600 dark:text-blue-400"> Azul</span> = desempenho adequado
-            </span>
-          </p>
-          <div className="space-y-4">
-            {skillGaps.map((item) => (
-              <div key={item.nome_competencia} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex-1">
-                    <span className={`font-medium ${getGapColorClass(item.media_score)}`}>
-                      {item.nome_competencia}
-                    </span>
-                    <span className="text-xs text-muted-foreground ml-2">
-                      ({item.nome_categoria}{item.nome_especializacao ? ` › ${item.nome_especializacao}` : ''})
-                    </span>
-                  </div>
-                  <span className={`font-semibold ${getGapColorClass(item.media_score)}`}>
-                    {item.media_score.toFixed(1)}/4.0
-                  </span>
-                </div>
-                <div className="h-3 bg-secondary rounded-full overflow-hidden">
-                  <div 
-                    className="h-full rounded-full transition-all duration-500" 
-                    style={{ 
-                      width: `${(item.media_score / 4) * 100}%`,
-                      backgroundColor: getGapColor(item.media_score)
-                    }} 
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+      {/* Gráfico de Pizza - sempre renderizado */}
+      <DistributionPieChart teamMembers={teamMembers} />
 
-      {/* Acesso Rápido aos Membros */}
-      {hasEvaluations && (
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-foreground">Acesso Rápido aos Membros</h3>
-            <span className="text-sm text-muted-foreground">{teamMembers.length} membros</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {teamMembers.map((member) => (
-              <div 
-                key={member.id} 
-                onClick={() => navigate(`/team/${member.id}`)}
-                className="flex items-center gap-3 p-4 rounded-lg border border-border hover:border-primary/50 hover:shadow-md transition-all duration-200 cursor-pointer"
-              >
-                <Avatar className="w-12 h-12">
-                  <AvatarFallback className="bg-accent text-accent-foreground font-semibold">
-                    {member.initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground truncate">{member.name}</p>
-                  <p className="text-sm text-muted-foreground truncate">{member.role}</p>
-                  <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-primary text-primary-foreground rounded">
-                    {member.level}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+      {/* Gaps de Conhecimento - sempre renderizado */}
+      <KnowledgeGapsSection teamMembers={teamMembers} />
+
+      {/* Avaliações Recentes - sempre renderizado */}
+      <RecentEvaluationsSection 
+        evaluations={recentEvaluations}
+        onEvaluationClick={(id) => navigate(`/evaluation/${id}`)}
+      />
     </div>
   );
 }

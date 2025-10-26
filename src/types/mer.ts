@@ -1,4 +1,13 @@
-// MER 3.0 - Tipos TypeScript baseados no Modelo Entidade-Relacionamento
+// MER 4.0 - Tipos TypeScript baseados no Modelo Entidade-Relacionamento
+
+// ============ ENUMS ============
+
+export type UserRole = 'LIDER' | 'LIDERADO';
+export type UserStatus = 'PENDING' | 'ACTIVE' | 'DISABLED';
+export type SexoTipo = 'FEMININO' | 'MASCULINO' | 'NAO_BINARIO' | 'NAO_INFORMADO';
+export type CompetenciaTipo = 'TECNICA' | 'COMPORTAMENTAL';
+export type AvaliacaoStatus = 'RASCUNHO' | 'CONCLUIDA';
+export type NivelMaturidade = 'M1' | 'M2' | 'M3' | 'M4';
 
 // ============ ENTIDADES PRINCIPAIS ============
 
@@ -6,10 +15,12 @@ export interface Usuario {
   id_usuario: string; // UUID
   nome: string;
   email: string;
-  senha: string;
-  role: 'LIDER' | 'LIDERADO';
-  organization_id: string; // UUID
-  lider_id: string | null; // UUID - FK para USUARIO (auto-relacionamento)
+  senha_hash: string;
+  role: UserRole;
+  status: UserStatus;
+  lider_id: string | null; // FK para USUARIO (auto-relacionamento)
+  sexo: SexoTipo;
+  data_nascimento: string; // DATE format YYYY-MM-DD
   avatar_url: string | null;
   created_at: Date;
   updated_at: Date;
@@ -25,23 +36,23 @@ export interface Cargo {
 export interface Categoria {
   id_categoria: string; // UUID
   nome_categoria: string; // UNIQUE
-  tipo: 'TECNICA' | 'COMPORTAMENTAL';
+  tipo: CompetenciaTipo;
   descricao: string;
   created_at: Date;
 }
 
 export interface Especializacao {
   id_especializacao: string; // UUID
-  nome_especializacao: string;
   id_categoria: string; // FK para CATEGORIA
+  nome: string;
   descricao: string;
   created_at: Date;
 }
 
 export interface Competencia {
   id_competencia: string; // UUID
-  nome_competencia: string; // UNIQUE
-  tipo: 'TECNICA' | 'COMPORTAMENTAL';
+  nome: string;
+  tipo: CompetenciaTipo;
   descricao: string;
   created_at: Date;
 }
@@ -56,9 +67,9 @@ export interface Avaliacao {
   eixo_x_tecnico_geral: number; // DECIMAL 3,2 (1.00-4.00)
   eixo_y_comportamental: number; // DECIMAL 3,2 (1.00-4.00)
   // Campo calculado automaticamente
-  nivel_maturidade: 'M1' | 'M2' | 'M3' | 'M4';
+  nivel_maturidade: NivelMaturidade;
   observacoes: string | null;
-  status: 'RASCUNHO' | 'CONCLUIDA';
+  status: AvaliacaoStatus;
   created_at: Date;
   updated_at: Date;
 }
@@ -107,9 +118,9 @@ export interface MvUltimaAvaliacao {
   id_cargo: string;
   eixo_x_tecnico_geral: number;
   eixo_y_comportamental: number;
-  nivel_maturidade: 'M1' | 'M2' | 'M3' | 'M4';
+  nivel_maturidade: NivelMaturidade;
   observacoes: string | null;
-  status: 'RASCUNHO' | 'CONCLUIDA';
+  status: AvaliacaoStatus;
   created_at: Date;
   updated_at: Date;
   // JOINs
@@ -123,7 +134,7 @@ export interface MvLideradoCompetencias {
   nome_liderado: string;
   id_competencia: string;
   nome_competencia: string;
-  tipo: 'TECNICA' | 'COMPORTAMENTAL';
+  tipo: CompetenciaTipo;
   id_categoria: string;
   nome_categoria: string;
   id_especializacao: string | null;
@@ -146,7 +157,7 @@ export const LIMIAR_MATURIDADE = 2.5; // Ponto médio da escala 1-4
 export function calcularNivelMaturidade(
   eixo_y_comportamental: number,
   eixo_x_tecnico_geral: number
-): 'M1' | 'M2' | 'M3' | 'M4' {
+): NivelMaturidade {
   if (eixo_y_comportamental >= LIMIAR_MATURIDADE && eixo_x_tecnico_geral < LIMIAR_MATURIDADE) {
     return 'M1'; // Alto Empenho, Baixa Competência Técnica
   }
@@ -195,6 +206,32 @@ export function validarAutoavaliacao(id_lider: string, id_liderado: string): boo
   return id_lider !== id_liderado;
 }
 
+/**
+ * Calcula idade derivada a partir da data de nascimento
+ */
+export function calcularIdade(data_nascimento: string): number {
+  const hoje = new Date();
+  const nascimento = new Date(data_nascimento);
+  let idade = hoje.getFullYear() - nascimento.getFullYear();
+  const mes = hoje.getMonth() - nascimento.getMonth();
+  
+  if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+    idade--;
+  }
+  
+  return idade;
+}
+
+/**
+ * Calcula faixa etária para agrupamento
+ */
+export function calcularFaixaEtaria(idade: number): string {
+  if (idade < 21) return '<21';
+  if (idade < 30) return '21-29';
+  if (idade < 40) return '30-39';
+  return '40+';
+}
+
 // ============ TIPOS DE DADOS DO FRONT-END ============
 
 /**
@@ -219,7 +256,7 @@ export interface RadarDataPoint {
   atual: number;
   ideal: number;
   peso?: number;
-  tipo?: 'TECNICA' | 'COMPORTAMENTAL';
+  tipo?: CompetenciaTipo;
 }
 
 /**
@@ -236,21 +273,32 @@ export interface CompetenciaGap {
 }
 
 /**
- * Calcula a cor do gap (azul para score alto, vermelho para score baixo)
- * @param score - Pontuação média (1.0-4.0)
- * @returns Classe Tailwind ou valor HSL
+ * Performance de liderado para visualizações do dashboard
  */
-export function getGapColor(score: number): string {
-  // Normaliza o score de 1-4 para 0-1
-  const normalized = (score - ESCALA_MIN) / (ESCALA_MAX - ESCALA_MIN);
-  
-  // Inverte: score baixo = vermelho intenso, score alto = azul intenso
-  const intensity = 1 - normalized;
-  
-  // HSL: vermelho = 0°, azul = 240°
-  const hue = normalized * 240;
-  const saturation = 50 + (intensity * 50); // 50-100%
-  const lightness = 40 + (normalized * 20); // 40-60%
-  
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+export interface LideradoPerformance {
+  id_liderado: string;
+  nome_liderado: string;
+  cargo: string;
+  nivel_maturidade: NivelMaturidade;
+  eixo_x_tecnico_geral: number;
+  eixo_y_comportamental: number;
+  categoria_dominante: string;
+  especializacao_dominante: string;
+  sexo: SexoTipo;
+  idade: number;
+  competencias: {
+    id_competencia: string;
+    nome_competencia: string;
+    tipo: CompetenciaTipo;
+    id_categoria: string;
+    nome_categoria: string;
+    id_especializacao: string | null;
+    nome_especializacao: string | null;
+    media_pontuacao: number;
+  }[];
 }
+
+/**
+ * Tipos de filtro para o gráfico de pizza
+ */
+export type PieChartFilterType = 'maturidade' | 'especializacao' | 'sexo' | 'faixaEtaria';

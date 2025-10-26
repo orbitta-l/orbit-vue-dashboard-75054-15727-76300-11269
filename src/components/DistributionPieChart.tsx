@@ -1,0 +1,115 @@
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { LideradoPerformance, PieChartFilterType } from "@/types/mer";
+import { calcularFaixaEtaria } from "@/types/mer";
+
+interface DistributionPieChartProps {
+  teamMembers: LideradoPerformance[];
+}
+
+const CHART_COLORS = [
+  "hsl(var(--color-chart-1))",
+  "hsl(var(--color-chart-2))",
+  "hsl(var(--color-chart-3))",
+  "hsl(var(--color-chart-4))",
+  "hsl(var(--color-chart-5))",
+];
+
+export default function DistributionPieChart({ teamMembers }: DistributionPieChartProps) {
+  const [filter, setFilter] = useState<PieChartFilterType>("maturidade");
+
+  const hasData = teamMembers.length > 0;
+
+  // Processar dados baseado no filtro selecionado
+  const getChartData = () => {
+    if (!hasData) {
+      return [{ name: "Sem dados", value: 1 }];
+    }
+
+    const counts: Record<string, number> = {};
+
+    teamMembers.forEach((member) => {
+      let key: string;
+
+      switch (filter) {
+        case "maturidade":
+          key = member.nivel_maturidade;
+          break;
+        case "especializacao":
+          key = member.especializacao_dominante || "Não definido";
+          break;
+        case "sexo":
+          key = member.sexo === "NAO_INFORMADO" ? "Não informado" : member.sexo;
+          break;
+        case "faixaEtaria":
+          key = calcularFaixaEtaria(member.idade);
+          break;
+        default:
+          key = "Outros";
+      }
+
+      counts[key] = (counts[key] || 0) + 1;
+    });
+
+    return Object.entries(counts).map(([name, value]) => ({
+      name,
+      value,
+    }));
+  };
+
+  const chartData = getChartData();
+
+  return (
+    <Card className="p-6 mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-foreground">
+          Distribuição da Equipe
+        </h3>
+      </div>
+
+      <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)}>
+        <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsTrigger value="maturidade">Maturidade</TabsTrigger>
+          <TabsTrigger value="especializacao">Especialização</TabsTrigger>
+          <TabsTrigger value="sexo">Gênero</TabsTrigger>
+          <TabsTrigger value="faixaEtaria">Faixa Etária</TabsTrigger>
+        </TabsList>
+
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, percent }) =>
+                hasData ? `${name}: ${(percent * 100).toFixed(0)}%` : name
+              }
+              outerRadius={100}
+              fill={hasData ? undefined : "hsl(var(--muted))"}
+              dataKey="value"
+            >
+              {chartData.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={hasData ? CHART_COLORS[index % CHART_COLORS.length] : "hsl(var(--muted))"}
+                  opacity={hasData ? 1 : 0.3}
+                />
+              ))}
+            </Pie>
+            {hasData && <Tooltip />}
+            {hasData && <Legend />}
+          </PieChart>
+        </ResponsiveContainer>
+
+        {!hasData && (
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            Sem dados disponíveis
+          </p>
+        )}
+      </Tabs>
+    </Card>
+  );
+}

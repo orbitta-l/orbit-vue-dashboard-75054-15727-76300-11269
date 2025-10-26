@@ -27,8 +27,8 @@ const teamMembers = MOCK_PERFORMANCE.map(p => ({
 }));
 
 const allAreas = Array.from(new Set(MOCK_CATEGORIAS.filter(c => c.tipo === 'TECNICA').map(c => c.nome_categoria)));
-const allSpecializations = MOCK_ESPECIALIZACOES.map(e => e.nome_especializacao);
-const allCompetencies = MOCK_COMPETENCIAS.filter(c => c.tipo === 'TECNICA').map(c => c.nome_competencia);
+const allSpecializations = MOCK_ESPECIALIZACOES.map(e => e.nome);
+const allCompetencies = MOCK_COMPETENCIAS.filter(c => c.tipo === 'TECNICA').map(c => c.nome);
 
 export default function Team() {
   const navigate = useNavigate();

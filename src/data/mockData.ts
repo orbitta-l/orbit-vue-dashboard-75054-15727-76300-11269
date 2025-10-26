@@ -1,4 +1,4 @@
-// Mock Data centralizado e coeso - MER 3.0
+// Mock Data centralizado e coeso - MER 4.0
 import { Usuario, Cargo, Categoria, Especializacao, Competencia } from '@/types/mer';
 
 // ============ USUÁRIOS ============
@@ -7,10 +7,12 @@ export const MOCK_LIDER: Usuario = {
   id_usuario: 'lider-001',
   nome: 'Juliana Martins',
   email: 'juli.lider@gmail.com',
-  senha: 'hashed',
+  senha_hash: 'hashed',
   role: 'LIDER',
-  organization_id: 'org-001',
+  status: 'ACTIVE',
   lider_id: null,
+  sexo: 'FEMININO',
+  data_nascimento: '1985-05-15',
   avatar_url: null,
   created_at: new Date('2024-01-01'),
   updated_at: new Date('2024-01-01'),
@@ -21,10 +23,12 @@ export const MOCK_LIDER_NOVO: Usuario = {
   id_usuario: 'lider-002',
   nome: 'Thais Costa',
   email: 'thais.lider@gmail.com',
-  senha: 'hashed',
+  senha_hash: 'hashed',
   role: 'LIDER',
-  organization_id: 'org-001',
+  status: 'ACTIVE',
   lider_id: null,
+  sexo: 'FEMININO',
+  data_nascimento: '1990-03-20',
   avatar_url: null,
   created_at: new Date('2024-01-01'),
   updated_at: new Date('2024-01-01'),
@@ -36,10 +40,12 @@ export const MOCK_LIDERADOS: Usuario[] = [
     id_usuario: 'lid-001',
     nome: 'Antonio Pereira',
     email: 'tone.p@gmail.com',
-    senha: 'hashed',
+    senha_hash: 'hashed',
     role: 'LIDERADO',
-    organization_id: 'org-001',
+    status: 'ACTIVE',
     lider_id: 'lider-001',
+    sexo: 'MASCULINO',
+    data_nascimento: '2000-08-12',
     avatar_url: null,
     created_at: new Date('2024-01-01'),
     updated_at: new Date('2024-01-01'),
@@ -48,10 +54,12 @@ export const MOCK_LIDERADOS: Usuario[] = [
     id_usuario: 'lid-003',
     nome: 'Lara Mendes',
     email: 'lara.mendes@orbitta.com',
-    senha: 'hashed',
+    senha_hash: 'hashed',
     role: 'LIDERADO',
-    organization_id: 'org-001',
+    status: 'ACTIVE',
     lider_id: 'lider-001',
+    sexo: 'FEMININO',
+    data_nascimento: '1993-11-25',
     avatar_url: null,
     created_at: new Date('2024-01-01'),
     updated_at: new Date('2024-01-01'),
@@ -63,10 +71,12 @@ export const MOCK_LIDERADO_NOVO: Usuario = {
   id_usuario: 'lid-002',
   nome: 'Ramon Silva',
   email: 'ramon.p@gmail.com',
-  senha: 'hashed',
+  senha_hash: 'hashed',
   role: 'LIDERADO',
-  organization_id: 'org-001',
+  status: 'ACTIVE',
   lider_id: 'lider-002',
+  sexo: 'MASCULINO',
+  data_nascimento: '1998-07-30',
   avatar_url: null,
   created_at: new Date('2024-01-01'),
   updated_at: new Date('2024-01-01'),
@@ -136,35 +146,35 @@ export const MOCK_CATEGORIAS: Categoria[] = [
 export const MOCK_ESPECIALIZACOES: Especializacao[] = [
   {
     id_especializacao: 'esp-001',
-    nome_especializacao: 'Frontend',
+    nome: 'Frontend',
     id_categoria: 'cat-002',
     descricao: 'Desenvolvimento de interfaces',
     created_at: new Date('2024-01-01'),
   },
   {
     id_especializacao: 'esp-002',
-    nome_especializacao: 'Backend',
+    nome: 'Backend',
     id_categoria: 'cat-002',
     descricao: 'Desenvolvimento de APIs e servidores',
     created_at: new Date('2024-01-01'),
   },
   {
     id_especializacao: 'esp-003',
-    nome_especializacao: 'Machine Learning',
+    nome: 'Machine Learning',
     id_categoria: 'cat-003',
     descricao: 'Modelos de aprendizado de máquina',
     created_at: new Date('2024-01-01'),
   },
   {
     id_especializacao: 'esp-004',
-    nome_especializacao: 'Data Engineering',
+    nome: 'Data Engineering',
     id_categoria: 'cat-003',
     descricao: 'Engenharia de dados',
     created_at: new Date('2024-01-01'),
   },
   {
     id_especializacao: 'esp-005',
-    nome_especializacao: 'Cloud & Infrastructure',
+    nome: 'Cloud & Infrastructure',
     id_categoria: 'cat-004',
     descricao: 'Infraestrutura em nuvem',
     created_at: new Date('2024-01-01'),
@@ -174,34 +184,34 @@ export const MOCK_ESPECIALIZACOES: Especializacao[] = [
 // ============ COMPETÊNCIAS ============
 export const MOCK_COMPETENCIAS: Competencia[] = [
   // Soft Skills
-  { id_competencia: 'comp-001', nome_competencia: 'Comunicação', tipo: 'COMPORTAMENTAL', descricao: 'Habilidade de comunicação', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-002', nome_competencia: 'Trabalho em Equipe', tipo: 'COMPORTAMENTAL', descricao: 'Colaboração em equipe', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-003', nome_competencia: 'Liderança', tipo: 'COMPORTAMENTAL', descricao: 'Capacidade de liderança', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-004', nome_competencia: 'Resolução de Problemas', tipo: 'COMPORTAMENTAL', descricao: 'Solução de problemas', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-001', nome: 'Comunicação', tipo: 'COMPORTAMENTAL', descricao: 'Habilidade de comunicação', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-002', nome: 'Trabalho em Equipe', tipo: 'COMPORTAMENTAL', descricao: 'Colaboração em equipe', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-003', nome: 'Liderança', tipo: 'COMPORTAMENTAL', descricao: 'Capacidade de liderança', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-004', nome: 'Resolução de Problemas', tipo: 'COMPORTAMENTAL', descricao: 'Solução de problemas', created_at: new Date('2024-01-01') },
   
   // Frontend (cat-002, esp-001)
-  { id_competencia: 'comp-005', nome_competencia: 'React', tipo: 'TECNICA', descricao: 'Framework React', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-006', nome_competencia: 'TypeScript', tipo: 'TECNICA', descricao: 'Linguagem TypeScript', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-007', nome_competencia: 'CSS/Tailwind', tipo: 'TECNICA', descricao: 'Estilização', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-005', nome: 'React', tipo: 'TECNICA', descricao: 'Framework React', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-006', nome: 'TypeScript', tipo: 'TECNICA', descricao: 'Linguagem TypeScript', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-007', nome: 'CSS/Tailwind', tipo: 'TECNICA', descricao: 'Estilização', created_at: new Date('2024-01-01') },
   
   // Backend (cat-002, esp-002)
-  { id_competencia: 'comp-008', nome_competencia: 'Node.js', tipo: 'TECNICA', descricao: 'Runtime Node.js', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-009', nome_competencia: 'Desenvolvimento de API REST', tipo: 'TECNICA', descricao: 'APIs RESTful', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-010', nome_competencia: 'SQL', tipo: 'TECNICA', descricao: 'Banco de dados SQL', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-008', nome: 'Node.js', tipo: 'TECNICA', descricao: 'Runtime Node.js', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-009', nome: 'Desenvolvimento de API REST', tipo: 'TECNICA', descricao: 'APIs RESTful', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-010', nome: 'SQL', tipo: 'TECNICA', descricao: 'Banco de dados SQL', created_at: new Date('2024-01-01') },
   
   // Machine Learning (cat-003, esp-003)
-  { id_competencia: 'comp-011', nome_competencia: 'Python', tipo: 'TECNICA', descricao: 'Linguagem Python', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-012', nome_competencia: 'TensorFlow', tipo: 'TECNICA', descricao: 'Framework TensorFlow', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-013', nome_competencia: 'Algoritmos ML', tipo: 'TECNICA', descricao: 'Algoritmos de ML', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-011', nome: 'Python', tipo: 'TECNICA', descricao: 'Linguagem Python', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-012', nome: 'TensorFlow', tipo: 'TECNICA', descricao: 'Framework TensorFlow', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-013', nome: 'Algoritmos ML', tipo: 'TECNICA', descricao: 'Algoritmos de ML', created_at: new Date('2024-01-01') },
   
   // Data Engineering (cat-003, esp-004)
-  { id_competencia: 'comp-014', nome_competencia: 'Apache Spark', tipo: 'TECNICA', descricao: 'Framework Spark', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-015', nome_competencia: 'ETL Pipelines', tipo: 'TECNICA', descricao: 'Pipelines ETL', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-014', nome: 'Apache Spark', tipo: 'TECNICA', descricao: 'Framework Spark', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-015', nome: 'ETL Pipelines', tipo: 'TECNICA', descricao: 'Pipelines ETL', created_at: new Date('2024-01-01') },
   
   // Cloud & Infrastructure (cat-004, esp-005)
-  { id_competencia: 'comp-016', nome_competencia: 'Docker', tipo: 'TECNICA', descricao: 'Containerização', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-017', nome_competencia: 'Kubernetes', tipo: 'TECNICA', descricao: 'Orquestração', created_at: new Date('2024-01-01') },
-  { id_competencia: 'comp-018', nome_competencia: 'AWS/GCP', tipo: 'TECNICA', descricao: 'Cloud providers', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-016', nome: 'Docker', tipo: 'TECNICA', descricao: 'Containerização', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-017', nome: 'Kubernetes', tipo: 'TECNICA', descricao: 'Orquestração', created_at: new Date('2024-01-01') },
+  { id_competencia: 'comp-018', nome: 'AWS/GCP', tipo: 'TECNICA', descricao: 'Cloud providers', created_at: new Date('2024-01-01') },
 ];
 
 // ============ MAPEAMENTO ESPECIALIZAÇÃO -> COMPETÊNCIAS ============
