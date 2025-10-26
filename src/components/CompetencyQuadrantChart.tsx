@@ -21,10 +21,10 @@ interface CompetencyQuadrantChartProps {
 }
 
 const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
-  M1: "hsl(var(--destructive))", // Baixo T, Baixo C (Vermelho)
-  M2: "hsl(var(--color-mid))",    // Baixo T, Alto C (Amarelo)
-  M3: "hsl(var(--accent))",       // Alto T, Baixo C (Laranja)
-  M4: "hsl(var(--color-good))",   // Alto T, Alto C (Verde)
+  M1: "hsl(var(--destructive))", // Baixo C, Baixo T (Vermelho)
+  M2: "hsl(var(--accent))",       // Alto C, Baixo T (Laranja)
+  M3: "hsl(var(--color-mid))",    // Baixo C, Alto T (Amarelo)
+  M4: "hsl(var(--primary))",      // Alto C, Alto T (Azul Primário)
 };
 
 const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -85,7 +85,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
           <p className="text-xs mt-2 pt-2 border-t">
             Maturidade: <span className="font-semibold" style={{ color: QUADRANT_COLORS[data.nivel_maturidade] }}>{data.nivel_maturidade}</span>
           </p>
-          <p className="text-xs">Técnico: {data.eixo_x_tecnico_geral.toFixed(1)} | Comportamental: {data.eixo_y_comportamental.toFixed(1)}</p>
+          <p className="text-xs">Comportamental: {data.eixo_y_comportamental.toFixed(1)} | Técnico: {data.eixo_x_tecnico_geral.toFixed(1)}</p>
         </div>
       );
     }
@@ -112,27 +112,27 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   type="number" 
-                  dataKey="eixo_x_tecnico_geral" 
-                  name="Técnico" 
-                  domain={[1, 4]} 
-                  ticks={[1, 2, 2.5, 3, 4]} 
-                  label={{ value: "Média Técnica (HARD)", position: 'insideBottom', offset: -15 }}
-                />
-                <YAxis 
-                  type="number" 
                   dataKey="eixo_y_comportamental" 
                   name="Comportamental" 
                   domain={[1, 4]} 
+                  ticks={[1, 2, 2.5, 3, 4]} 
+                  label={{ value: "Média Comportamental (SOFT)", position: 'insideBottom', offset: -15 }}
+                />
+                <YAxis 
+                  type="number" 
+                  dataKey="eixo_x_tecnico_geral" 
+                  name="Técnico" 
+                  domain={[1, 4]} 
                   ticks={[1, 2, 2.5, 3, 4]}
-                  label={{ value: "Média Comportamental (SOFT)", angle: -90, position: 'insideLeft', offset: -15 }}
+                  label={{ value: "Média Técnica (HARD)", angle: -90, position: 'insideLeft', offset: -15 }}
                 />
                 
                 <ReferenceLine x={2.5} stroke="hsl(var(--border))" strokeDasharray="4 4" />
                 <ReferenceLine y={2.5} stroke="hsl(var(--border))" strokeDasharray="4 4" />
 
                 <ReferenceArea x1={1} x2={2.5} y1={1} y2={2.5} fill={QUADRANT_COLORS.M1} fillOpacity={0.1} />
-                <ReferenceArea x1={1} x2={2.5} y1={2.5} y2={4} fill={QUADRANT_COLORS.M2} fillOpacity={0.1} />
-                <ReferenceArea x1={2.5} x2={4} y1={1} y2={2.5} fill={QUADRANT_COLORS.M3} fillOpacity={0.1} />
+                <ReferenceArea x1={2.5} x2={4} y1={1} y2={2.5} fill={QUADRANT_COLORS.M2} fillOpacity={0.1} />
+                <ReferenceArea x1={1} x2={2.5} y1={2.5} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.1} />
                 <ReferenceArea x1={2.5} x2={4} y1={2.5} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.1} />
 
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
@@ -153,17 +153,17 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
               </ScatterChart>
             </ResponsiveContainer>
             {/* Quadrant Badges */}
-            <div className="absolute top-2 left-1/4 text-center">
-              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M2 }}>M2 ({quadrantCounts.M2 || 0})</div>
+            <div className="absolute top-2 left-2 text-center">
+              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M3 }}>M3 ({quadrantCounts.M3 || 0})</div>
             </div>
-            <div className="absolute top-2 right-1/4 text-center">
+            <div className="absolute top-2 right-2 text-center">
               <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M4 }}>M4 ({quadrantCounts.M4 || 0})</div>
             </div>
             <div className="absolute bottom-2 left-2 text-center">
               <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M1 }}>M1 ({quadrantCounts.M1 || 0})</div>
             </div>
-            <div className="absolute bottom-2 right-1/2 transform translate-x-1/2 text-center">
-              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M3 }}>M3 ({quadrantCounts.M3 || 0})</div>
+            <div className="absolute bottom-2 right-2 text-center">
+              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M2 }}>M2 ({quadrantCounts.M2 || 0})</div>
             </div>
           </div>
         </div>
