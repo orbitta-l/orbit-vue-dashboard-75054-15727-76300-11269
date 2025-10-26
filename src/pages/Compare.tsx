@@ -1,4 +1,4 @@
-import { ArrowLeft, Filter, X } from "lucide-react";
+import { ArrowLeft, Filter, ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,6 @@ import { useState, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, Liderado } from "@/contexts/AuthContext";
-import { technicalCategories, softSkillTemplates } from "@/data/evaluationTemplates";
 import { CompetenciaTipo } from "@/types/mer";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -21,7 +20,7 @@ export default function Compare() {
   const memberIds = searchParams.get("members")?.split(",") || [];
   const { liderados } = useAuth();
 
-  const [comparisonLevel, setComparisonLevel] = useState<ComparisonLevel>("category");
+  const [comparisonLevel, setComparisonLevel] = useState<ComparisonLevel>("specialization");
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
   const [selectedSpecializationFilter, setSelectedSpecializationFilter] = useState<string>("all");
   const [customSelectedCompetencies, setCustomSelectedCompetencies] = useState<string[]>([]);
@@ -81,15 +80,16 @@ export default function Compare() {
         let subjectKey: string | null = null;
         let score = comp.media_pontuacao;
 
+        // Lógica de filtragem e agrupamento
         if (comparisonLevel === "category") {
           if (selectedCategoryFilter === "all") {
             if (comp.tipo === 'TECNICA' && comp.nome_categoria) {
               subjectKey = comp.nome_categoria;
             } else if (comp.tipo === 'COMPORTAMENTAL') {
-              subjectKey = 'Soft Skills'; // Agrupar todas as soft skills em uma categoria
+              subjectKey = 'Soft Skills';
             }
           } else if (comp.nome_categoria === selectedCategoryFilter) {
-            subjectKey = comp.nome_especializacao || comp.nome_competencia; // Se categoria específica, mostrar especializações ou competências
+            subjectKey = comp.nome_especializacao || comp.nome_competencia;
           } else if (selectedCategoryFilter === 'Soft Skills' && comp.tipo === 'COMPORTAMENTAL') {
             subjectKey = comp.nome_competencia;
           }
@@ -112,7 +112,6 @@ export default function Compare() {
       });
     });
 
-    // Calculate averages for subjects that were aggregated
     const finalData = Array.from(subjects).map(subject => {
       const item: any = { subject };
       selectedMembers.forEach(member => {
@@ -120,7 +119,8 @@ export default function Compare() {
         const count = data[subject]?.[`${member.nome_liderado}_count`] || 0;
         item[member.nome_liderado] = count > 0 ? parseFloat((totalScore / count).toFixed(1)) : 0;
       });
-      item.fullMark = 4; // Max score for radar chart
+      item.PerfilIdeal = 4.0; // Adiciona o Perfil Ideal como referência
+      item.fullMark = 4;
       return item;
     });
 
@@ -129,7 +129,8 @@ export default function Compare() {
 
   const radarData = getRadarChartData();
 
-  const colors = ["hsl(var(--primary))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
+  // Cores: Azul Primário, Laranja, Cinza, Roxo
+  const colors = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
 
   if (selectedMembers.length < 2) {
     return (
@@ -151,87 +152,6 @@ export default function Compare() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const getDominantInfo = (member: Liderado) => {
-    if (member.categoria_dominante && member.especializacao_dominante) {
-      return `${member.categoria_dominante} > ${member.especializacao_dominante}`;
-    }
-    return member.categoria_dominante || 'N/A';
-  };
-
-  const getComparisonAnalysis = () => {
-    if (radarData.length === 0) return "Não há dados suficientes para uma análise com os filtros atuais.";
-
-    let analysisText = "";
-    const memberScores: Record<string, number> = {};
-    const memberStrengths: Record<string, string[]> = {};
-    const memberWeaknesses: Record<string, string[]> = {};
-
-    selectedMembers.forEach(member => {
-      memberScores[member.nome_liderado] = 0;
-      memberStrengths[member.nome_liderado] = [];
-      memberWeaknesses[member.nome_liderado] = [];
-    });
-
-    radarData.forEach(item => {
-      selectedMembers.forEach(member => {
-        const score = item[member.nome_liderado] || 0;
-        memberScores[member.nome_liderado] += score;
-        if (score >= 3.5) {
-          memberStrengths[member.nome_liderado].push(item.subject);
-        } else if (score <= 2.0 && score > 0) { // Score > 0 para ignorar competências não avaliadas
-          memberWeaknesses[member.nome_liderado].push(item.subject);
-        }
-      });
-    });
-
-    const avgScores: Record<string, number> = {};
-    selectedMembers.forEach(member => {
-      avgScores[member.nome_liderado] = memberScores[member.nome_liderado] / radarData.length;
-    });
-
-    const sortedMembersByAvg = Object.entries(avgScores).sort(([, avgA], [, avgB]) => avgB - avgA);
-    const bestMember = sortedMembersByAvg[0]?.[0];
-    const bestAvg = sortedMembersByAvg[0]?.[1];
-
-    analysisText += `Com base nos filtros atuais, `;
-    if (bestMember) {
-      analysisText += `<strong class="text-primary">${bestMember}</strong> apresenta o melhor desempenho geral com média de <strong class="text-primary">${bestAvg.toFixed(1)}/4.0</strong>. `;
-    }
-
-    if (selectedMembers.length > 1) {
-      const firstMember = selectedMembers[0];
-      const secondMember = selectedMembers[1];
-
-      const firstMemberStrengths = memberStrengths[firstMember.nome_liderado];
-      const secondMemberStrengths = memberStrengths[secondMember.nome_liderado];
-
-      if (firstMemberStrengths.length > 0 || secondMemberStrengths.length > 0) {
-        analysisText += `Em termos de pontos fortes, `;
-        if (firstMemberStrengths.length > 0) {
-          analysisText += `<strong class="text-primary">${firstMember.nome_liderado}</strong> se destaca em <strong class="text-primary">${firstMemberStrengths.join(", ")}</strong>. `;
-        }
-        if (secondMemberStrengths.length > 0) {
-          analysisText += `Já <strong class="text-chart-2">${secondMember.nome_liderado}</strong> demonstra força em <strong class="text-chart-2">${secondMemberStrengths.join(", ")}</strong>. `;
-        }
-      }
-
-      const firstMemberWeaknesses = memberWeaknesses[firstMember.nome_liderado];
-      const secondMemberWeaknesses = memberWeaknesses[secondMember.nome_liderado];
-
-      if (firstMemberWeaknesses.length > 0 || secondMemberWeaknesses.length > 0) {
-        analysisText += `Para oportunidades de desenvolvimento, `;
-        if (firstMemberWeaknesses.length > 0) {
-          analysisText += `<strong class="text-primary">${firstMember.nome_liderado}</strong> pode focar em <strong class="text-destructive">${firstMemberWeaknesses.join(", ")}</strong>. `;
-        }
-        if (secondMemberWeaknesses.length > 0) {
-          analysisText += `<strong class="text-chart-2">${secondMember.nome_liderado}</strong> pode aprimorar <strong class="text-destructive">${secondMemberWeaknesses.join(", ")}</strong>.`;
-        }
-      }
-    }
-
-    return analysisText || "Selecione filtros para uma análise mais detalhada.";
-  };
-
   return (
     <div className="p-8">
       <Button 
@@ -250,50 +170,39 @@ export default function Compare() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {selectedMembers.map((member) => (
-          <Card key={member.id_liderado} className="p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-lg font-bold text-primary">{getInitials(member.nome_liderado)}</span>
+      {/* Cards de Informação dos Membros */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+        {selectedMembers.map((member, index) => (
+          <Card key={member.id_liderado} className="p-4 border-l-4" style={{ borderColor: colors[index % colors.length] }}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                <span className="text-md font-bold text-foreground">{getInitials(member.nome_liderado)}</span>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground">{member.nome_liderado}</h3>
-                <Badge variant="secondary">{member.cargo}</Badge>
+                <h3 className="text-md font-semibold text-foreground">{member.nome_liderado}</h3>
+                <Badge variant="secondary" className="text-xs">{member.cargo}</Badge>
               </div>
             </div>
-            
-            <div className="space-y-3">
-              {member.competencias.map((comp) => (
-                <div key={comp.id_competencia}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-muted-foreground">{comp.nome_competencia}</span>
-                    <span className="text-sm font-semibold text-foreground">{comp.media_pontuacao.toFixed(1)}/4</span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary rounded-full transition-all duration-500" 
-                      style={{ width: `${(comp.media_pontuacao / 4) * 100}%` }} 
-                    />
-                  </div>
-                </div>
-              ))}
+            <div className="mt-3 text-xs text-muted-foreground">
+              <p>Maturidade: <Badge className="bg-primary/10 text-primary hover:bg-primary/20">{member.nivel_maturidade}</Badge></p>
+              <p>Dominante: {member.categoria_dominante}</p>
             </div>
           </Card>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <Card className="p-6 bg-gradient-to-br from-card to-card/50 lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                Comparação Visual - Competências
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Análise comparativa de desempenho entre liderados selecionados
-              </p>
-            </div>
+      {/* Gráfico de Radar e Filtros */}
+      <Card className="p-6 bg-gradient-to-br from-card to-card/50">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground mb-2">
+              Análise de Gaps - VERSUS Ideal
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              O polígono externo (Ideal) representa a nota máxima (4.0) esperada em cada competência.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
             <Select value={comparisonLevel} onValueChange={(v: ComparisonLevel) => {
               setComparisonLevel(v);
               setSelectedCategoryFilter("all");
@@ -309,32 +218,26 @@ export default function Compare() {
                 <SelectItem value="competency">Competências Personalizadas</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          {comparisonLevel === "category" && (
-            <div className="mb-4 p-3 border border-border rounded-lg bg-muted/20">
-              <p className="text-sm font-medium text-foreground mb-2">Filtrar Categoria:</p>
+            
+            {comparisonLevel === "category" && (
               <Select value={selectedCategoryFilter} onValueChange={setSelectedCategoryFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas as Categorias" />
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar Categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as Categorias (incl. Soft Skills)</SelectItem>
+                  <SelectItem value="all">Todas as Categorias</SelectItem>
                   <SelectItem value="Soft Skills">Soft Skills</SelectItem>
                   {allAvailableCategories.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          )}
+            )}
 
-          {comparisonLevel === "specialization" && (
-            <div className="mb-4 p-3 border border-border rounded-lg bg-muted/20">
-              <p className="text-sm font-medium text-foreground mb-2">Filtrar Especialização:</p>
+            {comparisonLevel === "specialization" && (
               <Select value={selectedSpecializationFilter} onValueChange={setSelectedSpecializationFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas as Especializações" />
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filtrar Especialização" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as Especializações</SelectItem>
@@ -343,16 +246,13 @@ export default function Compare() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-          )}
+            )}
 
-          {comparisonLevel === "competency" && (
-            <div className="mb-4 p-3 border border-border rounded-lg bg-muted/20">
-              <p className="text-sm font-medium text-foreground mb-2">Competências Personalizadas:</p>
+            {comparisonLevel === "competency" && (
               <Popover open={isCompetencySelectOpen} onOpenChange={setIsCompetencySelectOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
-                    {customSelectedCompetencies.length > 0 ? customSelectedCompetencies.join(", ") : "Selecione competências..."}
+                    {customSelectedCompetencies.length > 0 ? `${customSelectedCompetencies.length} selecionadas` : "Selecione competências..."}
                     <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -388,10 +288,11 @@ export default function Compare() {
                   </Command>
                 </PopoverContent>
               </Popover>
-            </div>
-          )}
+            )}
+          </div>
+        </div>
         
-          <ResponsiveContainer width="100%" height={450}>
+        <ResponsiveContainer width="100%" height={500}>
           <RadarChart data={radarData}>
             <PolarGrid 
               stroke="hsl(var(--muted-foreground) / 0.3)" 
@@ -407,6 +308,19 @@ export default function Compare() {
               tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
               stroke="hsl(var(--muted-foreground) / 0.3)"
             />
+            
+            {/* Perfil Ideal (4.0) - Linha de Referência */}
+            <Radar
+              name="Perfil Ideal"
+              dataKey="PerfilIdeal"
+              stroke="hsl(var(--primary-dark))"
+              fill="hsl(var(--primary-dark))"
+              fillOpacity={0.1}
+              strokeWidth={3}
+              strokeDasharray="5 5"
+            />
+
+            {/* Liderados Selecionados */}
             {selectedMembers.map((member, index) => (
               <Radar
                 key={member.id_liderado}
@@ -425,36 +339,14 @@ export default function Compare() {
             />
           </RadarChart>
         </ResponsiveContainer>
-        </Card>
-
-        {/* Interpretação Textual */}
-        <Card className="p-6 bg-gradient-to-br from-primary/5 to-accent/5">
-          <h3 className="text-lg font-bold text-foreground mb-4">Análise Comparativa</h3>
-          
-          <div className="space-y-4">
-            <div className="p-3 bg-card rounded-lg border border-border">
-              <p className="text-sm font-semibold text-foreground mb-1">Visão Geral:</p>
-              <p className="text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: getComparisonAnalysis() }} />
-            </div>
-
-            <div className="p-3 bg-card rounded-lg border border-border">
-              <p className="text-sm font-semibold text-foreground mb-1">Filtros Ativos:</p>
-              <p className="text-sm text-muted-foreground">
-                Nível: <Badge variant="secondary">{comparisonLevel === 'category' ? 'Por Categoria' : comparisonLevel === 'specialization' ? 'Por Especialização' : 'Competências Personalizadas'}</Badge>
-                {selectedCategoryFilter !== 'all' && <Badge variant="secondary" className="ml-2">Categoria: {selectedCategoryFilter}</Badge>}
-                {selectedSpecializationFilter !== 'all' && <Badge variant="secondary" className="ml-2">Especialização: {selectedSpecializationFilter}</Badge>}
-                {customSelectedCompetencies.length > 0 && <Badge variant="secondary" className="ml-2">Competências: {customSelectedCompetencies.join(', ')}</Badge>}
-              </p>
-            </div>
-
-            <div className="mt-4 p-4 bg-accent/10 rounded-lg border-l-4 border-accent">
-              <p className="text-xs text-muted-foreground">
-                💡 <strong>Dica:</strong> Use os filtros para refinar a comparação e obter insights mais específicos.
-              </p>
-            </div>
-          </div>
-        </Card>
-      </div>
+        
+        <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+          <h4 className="font-semibold text-foreground mb-2">Interpretação de Gaps:</h4>
+          <p className="text-sm text-muted-foreground">
+            O espaço entre o polígono de cada liderado e o polígono tracejado (Perfil Ideal 4.0) representa o <strong>Gap de Conhecimento</strong>. Quanto maior o espaço, maior a necessidade de desenvolvimento naquela competência.
+          </p>
+        </div>
+      </Card>
     </div>
   );
 }
