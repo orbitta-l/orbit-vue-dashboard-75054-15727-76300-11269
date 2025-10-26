@@ -1,4 +1,5 @@
-import { Users as UsersIcon, Award, BarChart3, ClipboardList, UserPlus } from "lucide-react";
+import { useMemo } from "react";
+import { Users as UsersIcon, UserPlus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -7,61 +8,59 @@ import CompetencyQuadrantChart from "@/components/CompetencyQuadrantChart";
 import DistributionPieChart from "@/components/DistributionPieChart";
 import KnowledgeGapsSection from "@/components/KnowledgeGapsSection";
 import RecentEvaluationsSection from "@/components/RecentEvaluationsSection";
-import { LideradoPerformance } from "@/types/mer";
+import { MOCK_PERFORMANCE } from "@/data/mockData";
 
 export default function Home() {
   const navigate = useNavigate();
   const {
-    profile,
     isPrimeiroAcesso,
     liderados,
     avaliacoes,
   } = useAuth();
 
-  // Transformar os dados do contexto nos formatos esperados pelos componentes
-  const quadranteData: Array<{ id: string; nome: string; x: number; y: number; nivel: string }> = isPrimeiroAcesso
-    ? []
-    : liderados.map((l) => {
-        // Busca avaliação correspondente (se houver)
-        const av = avaliacoes.find((a) => a.id_liderado === l.id);
-        return {
-          id: l.id,
-          nome: l.nome,
-          x: av?.eixo_x ?? 0,
-          y: av?.eixo_y ?? 0,
-          nivel: av?.nivel ?? "M1",
-        };
-      });
+  // Combine data from different sources into a single, consistent structure for the charts.
+  const teamDataForCharts = useMemo(() => {
+    if (isPrimeiroAcesso) return [];
+    
+    return liderados.map(liderado => {
+      const avaliacao = avaliacoes.find(av => av.id_liderado === liderado.id);
+      // Fallback to mock data for fields not present in a new evaluation (e.g., competencias)
+      const mockData = MOCK_PERFORMANCE.find(p => p.id_liderado === liderado.id);
 
-  const pizzaData = isPrimeiroAcesso
-    ? []
-    : liderados.reduce<Record<string, number>>((acc, l) => {
-        const av = avaliacoes.find((a) => a.id_liderado === l.id);
-        const nivel = av?.nivel ?? "M1";
-        acc[nivel] = (acc[nivel] ?? 0) + 1;
-        return acc;
-      }, {});
+      const eixo_x = avaliacao?.eixo_x ?? mockData?.quadrantX ?? 0;
+      const eixo_y = avaliacao?.eixo_y ?? mockData?.quadrantY ?? 0;
 
-  const pizzaArray = Object.entries(pizzaData).map(([label, value]) => ({
-    label,
-    value,
-  }));
+      return {
+        id_liderado: liderado.id,
+        nome_liderado: liderado.nome,
+        cargo: liderado.cargo_id || '',
+        nivel_maturidade: avaliacao?.nivel || mockData?.nivel_maturidade || 'M1',
+        
+        // Provide both property name variants for component compatibility
+        quadrantX: eixo_x,
+        quadrantY: eixo_y,
+        eixo_x_tecnico_geral: eixo_x,
+        eixo_y_comportamental: eixo_y,
 
-  const gapsData = isPrimeiroAcesso
-    ? undefined
-    : {
-        tecnicas: [], // aqui você pode agregar a partir das avaliações se desejar
-        comportamentais: [], // idem
+        // Add other fields required by the components
+        categoria_dominante: mockData?.categoria_dominante || '',
+        especializacao_dominante: mockData?.especializacao_dominante || '',
+        competencias: mockData?.competencias || [],
+        sexo: mockData?.sexo || 'NAO_INFORMADO',
+        idade: mockData?.idade || 0,
       };
+    });
+  }, [isPrimeiroAcesso, liderados, avaliacoes]);
 
+  // Format data for the recent evaluations section
   const recentesData = isPrimeiroAcesso
     ? []
     : avaliacoes
         .slice(-3)
         .map((av) => ({
-          avaliacaoId: av.id,
-          nome: liderados.find((l) => l.id === av.id_liderado)?.nome ?? "Desconhecido",
-          data: av.data,
+          id: av.id,
+          nome_liderado: liderados.find((l) => l.id === av.id_liderado)?.nome ?? "Desconhecido",
+          data_avaliacao: new Date(av.data),
         }));
 
   return (
@@ -71,7 +70,6 @@ export default function Home() {
         <p className="text-muted-foreground">Visão geral do desempenho e métricas da sua equipe</p>
       </div>
 
-      {/* Mensagens orientativas quando for primeiro acesso */}
       {isPrimeiroAcesso && (
         <Card className="p-6 mb-8 bg-muted/20 text-center">
           <p className="text-muted-foreground mb-4">
@@ -84,25 +82,21 @@ export default function Home() {
         </Card>
       )}
 
-      {/* Quadrante */}
       <CompetencyQuadrantChart
         empty={isPrimeiroAcesso}
-        teamMembers={isPrimeiroAcesso ? [] : (liderados as unknown as LideradoPerformance[])}
+        teamMembers={teamDataForCharts}
       />
 
-      {/* Pizza */}
       <DistributionPieChart
         empty={isPrimeiroAcesso}
-        teamMembers={isPrimeiroAcesso ? [] : (liderados as unknown as LideradoPerformance[])}
+        teamMembers={teamDataForCharts as any}
       />
 
-      {/* Gaps */}
       <KnowledgeGapsSection
         empty={isPrimeiroAcesso}
-        teamMembers={isPrimeiroAcesso ? [] : (liderados as unknown as LideradoPerformance[])}
+        teamMembers={teamDataForCharts as any}
       />
 
-      {/* Avaliações recentes */}
       <RecentEvaluationsSection
         empty={isPrimeiroAcesso}
         evaluations={recentesData}
