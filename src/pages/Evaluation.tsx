@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Edit, Save, PlusCircle } from "lucide-react";
+import { ArrowLeft, Save, PlusCircle, AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,15 +12,13 @@ import {
   cargoToCategoryMapping,
   SoftSkillTemplate,
   TechnicalCategory,
-  TechnicalSpecialization,
-  TechnicalCompetency
 } from "@/data/evaluationTemplates";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { calcularNivelMaturidade } from "@/types/mer";
 
 export default function Evaluation() {
@@ -32,16 +30,18 @@ export default function Evaluation() {
   const [softTemplate, setSoftTemplate] = useState<SoftSkillTemplate | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Scores
   const [softScores, setSoftScores] = useState<Record<string, number>>({});
   const [technicalScores, setTechnicalScores] = useState<Record<string, number>>({});
-  const [selectedTechCompetencies, setSelectedTechCompetencies] = useState<TechnicalCompetency[]>([]);
 
-  // State for the "Add Technical Competency" modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Hard Skills Evaluation State
   const [availableCategories, setAvailableCategories] = useState<TechnicalCategory[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<TechnicalCategory | null>(null);
-  const [selectedSpecialization, setSelectedSpecialization] = useState<TechnicalSpecialization | null>(null);
-  const [competenciesToAdd, setCompetenciesToAdd] = useState<Record<string, boolean>>({});
+  const [selectedTechCategory, setSelectedTechCategory] = useState<TechnicalCategory | null>(null);
+  const [isCategoryLocked, setIsCategoryLocked] = useState(false);
+  
+  // State for category change confirmation
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
     const currentMember = liderados.find((l) => l.id === memberId);
@@ -74,39 +74,53 @@ export default function Evaluation() {
     setLoading(false);
   }, [memberId, liderados, navigate]);
 
-  const handleAddCompetencies = () => {
-    if (!selectedSpecialization) return;
-    
-    const newCompetencies = selectedSpecialization.competencias.filter(
-      c => competenciesToAdd[c.id] && !selectedTechCompetencies.some(stc => stc.id === c.id)
-    );
+  const handleCategorySelect = (categoryId: string) => {
+    if (Object.keys(technicalScores).length > 0) {
+      setPendingCategoryId(categoryId);
+      setIsConfirmModalOpen(true);
+    } else {
+      applyCategoryChange(categoryId);
+    }
+  };
 
-    setSelectedTechCompetencies(prev => [...prev, ...newCompetencies]);
-    
-    const initialScores = newCompetencies.reduce((acc, skill) => {
-      acc[skill.id] = 1;
-      return acc;
-    }, {} as Record<string, number>);
-    setTechnicalScores(prev => ({ ...prev, ...initialScores }));
+  const applyCategoryChange = (categoryId: string) => {
+    const newCategory = availableCategories.find(c => c.id === categoryId);
+    if (newCategory) {
+      setSelectedTechCategory(newCategory);
+      setTechnicalScores({}); // Clear previous scores
+      setIsCategoryLocked(true);
+    }
+    setIsConfirmModalOpen(false);
+    setPendingCategoryId(null);
+  };
 
-    // Reset modal state
-    setIsModalOpen(false);
-    setSelectedCategory(null);
-    setSelectedSpecialization(null);
-    setCompetenciesToAdd({});
+  const handleConfirmCategoryChange = () => {
+    if (pendingCategoryId) {
+      applyCategoryChange(pendingCategoryId);
+    }
+  };
+
+  const handleUnlockCategory = () => {
+    if (Object.keys(technicalScores).length > 0) {
+      setPendingCategoryId(null); // Indicate we want to clear, not change
+      setIsConfirmModalOpen(true);
+    } else {
+      setIsCategoryLocked(false);
+      setSelectedTechCategory(null);
+    }
   };
 
   const handleSaveEvaluation = () => {
     const allSoftScores = Object.values(softScores);
     const allTechScores = Object.values(technicalScores);
 
-    if (allSoftScores.length === 0 || allTechScores.length === 0) {
-      toast({ variant: "destructive", title: "Erro", description: "Avalie todas as competências." });
+    if (allSoftScores.length === 0 && allTechScores.length === 0) {
+      toast({ variant: "destructive", title: "Erro", description: "Nenhuma competência foi avaliada." });
       return;
     }
 
-    const eixoY = allSoftScores.reduce((a, b) => a + b, 0) / allSoftScores.length;
-    const eixoX = allTechScores.reduce((a, b) => a + b, 0) / allTechScores.length;
+    const eixoY = allSoftScores.length > 0 ? allSoftScores.reduce((a, b) => a + b, 0) / allSoftScores.length : 0;
+    const eixoX = allTechScores.length > 0 ? allTechScores.reduce((a, b) => a + b, 0) / allTechScores.length : 0;
     const nivel_maturidade = calcularNivelMaturidade(eixoY, eixoX);
 
     const novaAvaliacao = {
@@ -130,21 +144,23 @@ export default function Evaluation() {
 
   if (!member) return null;
 
-  if (!member.cargo_id) {
-    return (
-      <div className="p-8">
-        <Button variant="ghost" className="mb-4 gap-2" onClick={() => navigate(-1)}><ArrowLeft className="w-4 h-4" /> Voltar</Button>
-        <Card className="p-6 text-center">
-          <h2 className="text-xl font-semibold mb-4">Defina o cargo do liderado</h2>
-          <p className="text-muted-foreground mb-4">Antes de iniciar a avaliação, é necessário informar o cargo do colaborador.</p>
-          <Button onClick={() => navigate(`/team`)} className="gap-2"><Edit className="w-4 h-4" /> Ir para a tela de equipe</Button>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="p-8">
+      <AlertDialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Ação</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação descartará todas as notas técnicas atuais. Deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingCategoryId(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmCategoryChange}>Continuar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Button variant="ghost" className="mb-4 gap-2" onClick={() => navigate(-1)}><ArrowLeft className="w-4 h-4" /> Voltar</Button>
       <Card className="p-6 mb-6">
         <h1 className="text-2xl font-bold">Avaliação de {member.nome}</h1>
@@ -172,58 +188,60 @@ export default function Evaluation() {
         <Card>
           <CardHeader>
             <CardTitle>Competências Técnicas</CardTitle>
-            <CardDescription>Adicione categorias e avalie as competências técnicas.</CardDescription>
+            <CardDescription>Selecione uma categoria e avalie as especializações.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {selectedTechCompetencies.map(skill => (
-              <div key={skill.id}>
-                <div className="flex justify-between items-center mb-2">
-                  <Label htmlFor={skill.id}>{skill.name}</Label>
-                  <Badge variant="outline">{technicalScores[skill.id]}</Badge>
-                </div>
-                <Slider id={skill.id} min={1} max={4} step={0.5} value={[technicalScores[skill.id] || 1]} onValueChange={([val]) => setTechnicalScores(prev => ({ ...prev, [skill.id]: val }))} />
+            <div className="space-y-2">
+              <Label>Categoria Técnica (única por avaliação)</Label>
+              <div className="flex gap-2">
+                <Select onValueChange={handleCategorySelect} disabled={isCategoryLocked}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma Categoria" />
+                  </SelectTrigger>
+                  <SelectContent>{availableCategories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}</SelectContent>
+                </Select>
+                {isCategoryLocked && (
+                  <Button variant="outline" size="sm" onClick={handleUnlockCategory}>Trocar</Button>
+                )}
               </div>
-            ))}
-             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full gap-2"><PlusCircle className="w-4 h-4" /> Adicionar Categoria Técnica</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Adicionar Competências Técnicas</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <Select onValueChange={(val) => setSelectedCategory(availableCategories.find(c => c.id === val) || null)}>
-                    <SelectTrigger><SelectValue placeholder="1. Selecione uma Categoria" /></SelectTrigger>
-                    <SelectContent>{availableCategories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}</SelectContent>
-                  </Select>
-                  {selectedCategory && (
-                    <Select onValueChange={(val) => setSelectedSpecialization(selectedCategory.especializacoes.find(s => s.id === val) || null)}>
-                      <SelectTrigger><SelectValue placeholder="2. Selecione uma Especialização" /></SelectTrigger>
-                      <SelectContent>{selectedCategory.especializacoes.map(spec => <SelectItem key={spec.id} value={spec.id}>{spec.name}</SelectItem>)}</SelectContent>
-                    </Select>
-                  )}
-                  {selectedSpecialization && (
-                    <div className="space-y-2 p-2 border rounded-md">
-                      <h4 className="font-semibold text-sm">3. Selecione as Competências</h4>
-                      {selectedSpecialization.competencias.map(comp => (
-                        <div key={comp.id} className="flex items-center space-x-2">
-                          <Checkbox id={comp.id} checked={!!competenciesToAdd[comp.id]} onCheckedChange={(checked) => setCompetenciesToAdd(prev => ({ ...prev, [comp.id]: !!checked }))} />
-                          <label htmlFor={comp.id} className="text-sm font-medium">{comp.name}</label>
+            </div>
+
+            {!selectedTechCategory ? (
+              <div className="text-center text-muted-foreground p-4 border-dashed border-2 rounded-lg">
+                <p>Selecione uma categoria para iniciar a avaliação técnica.</p>
+              </div>
+            ) : (
+              <Accordion type="multiple" className="w-full">
+                {selectedTechCategory.especializacoes.map(spec => (
+                  <AccordionItem value={spec.id} key={spec.id}>
+                    <AccordionTrigger>{spec.name}</AccordionTrigger>
+                    <AccordionContent className="space-y-4 pt-4">
+                      {spec.competencias.map(comp => (
+                        <div key={comp.id}>
+                          <div className="flex justify-between items-center mb-2">
+                            <Label htmlFor={comp.id}>{comp.name}</Label>
+                            <Badge variant="outline">{technicalScores[comp.id] || "N/A"}</Badge>
+                          </div>
+                          <Slider id={comp.id} min={1} max={4} step={0.5} value={[technicalScores[comp.id] || 1]} onValueChange={([val]) => setTechnicalScores(prev => ({ ...prev, [comp.id]: val }))} />
                         </div>
                       ))}
-                    </div>
-                  )}
-                </div>
-                <Button onClick={handleAddCompetencies} disabled={!selectedSpecialization}>Adicionar</Button>
-              </DialogContent>
-            </Dialog>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
           </CardContent>
         </Card>
       </div>
 
       <div className="mt-6 flex justify-end">
-        <Button onClick={handleSaveEvaluation} className="gap-2"><Save className="w-4 h-4" /> Salvar Avaliação</Button>
+        <Button 
+          onClick={handleSaveEvaluation} 
+          className="gap-2"
+          disabled={Object.keys(softScores).length === 0 && Object.keys(technicalScores).length === 0}
+        >
+          <Save className="w-4 h-4" /> Salvar Avaliação Completa
+        </Button>
       </div>
     </div>
   );
