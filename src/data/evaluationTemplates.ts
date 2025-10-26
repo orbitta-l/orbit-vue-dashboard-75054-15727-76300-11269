@@ -43,26 +43,35 @@ export interface TechnicalCategory {
 
 export const softSkillTemplates: SoftSkillTemplate[] = [
   {
-    cargo_id: "estagiario",
-    cargo_nome: "Estagiário",
+    cargo_id: "junior",
+    cargo_nome: "Desenvolvedor Junior",
     competencias: [
-      { id: "comunicacao", name: "Comunicação", description: "Capacidade de expressar ideias de forma clara e ouvir atentamente.", peso: 2, nivel_ideal: 3.5 },
-      { id: "trabalho-equipe", name: "Trabalho em Equipe", description: "Colaborar efetivamente com outros para alcançar objetivos comuns.", peso: 3, nivel_ideal: 4.0 },
+      { id: "comunicacao", name: "Comunicação", description: "Capacidade de expressar ideias de forma clara e ouvir atentamente.", peso: 2, nivel_ideal: 3.0 },
+      { id: "trabalho-equipe", name: "Trabalho em Equipe", description: "Colaborar efetivamente com outros para alcançar objetivos comuns.", peso: 3, nivel_ideal: 3.5 },
       { id: "adaptabilidade", name: "Adaptabilidade", description: "Ajustar-se a novas condições e desafios com flexibilidade.", peso: 2, nivel_ideal: 3.5 },
       { id: "aprendizado", name: "Vontade de Aprender", description: "Demonstrar curiosidade e iniciativa para adquirir novos conhecimentos.", peso: 3, nivel_ideal: 4.0 },
     ],
   },
   {
-    cargo_id: "especialista",
-    cargo_nome: "Especialista I",
+    cargo_id: "pleno",
+    cargo_nome: "Desenvolvedor Pleno",
     competencias: [
-      { id: "lideranca-tecnica", name: "Liderança Técnica", description: "Orientar e influenciar tecnicamente outros membros da equipe.", peso: 3, nivel_ideal: 4.0 },
-      { id: "pensamento-critico", name: "Pensamento Crítico", description: "Analisar informações de forma objetiva e tomar decisões fundamentadas.", peso: 3, nivel_ideal: 4.0 },
-      { id: "inteligencia-emocional", name: "Inteligência Emocional", description: "Gerenciar as próprias emoções e compreender as dos outros.", peso: 2, nivel_ideal: 3.5 },
-      { id: "resolucao-problemas-complexos", name: "Resolução de Problemas Complexos", description: "Identificar e solucionar problemas multifacetados de forma eficaz.", peso: 3, nivel_ideal: 4.0 },
+      { id: "comunicacao", name: "Comunicação", description: "Expressar ideias complexas de forma clara e objetiva, mediando discussões.", peso: 3, nivel_ideal: 3.5 },
+      { id: "trabalho-equipe", name: "Trabalho em Equipe", description: "Colaborar e influenciar positivamente a equipe, propondo soluções.", peso: 3, nivel_ideal: 4.0 },
+      { id: "resolucao-problemas", name: "Resolução de Problemas", description: "Identificar, analisar e resolver problemas de forma autônoma.", peso: 3, nivel_ideal: 4.0 },
+      { id: "iniciativa", name: "Iniciativa e Proatividade", description: "Agir antecipadamente, identificando oportunidades e riscos.", peso: 2, nivel_ideal: 3.5 },
     ],
   },
-  // Adicionar outros cargos aqui (junior, pleno, senior)
+  {
+    cargo_id: "senior",
+    cargo_nome: "Designer Sênior",
+    competencias: [
+      { id: "lideranca-tecnica", name: "Liderança Técnica", description: "Orientar e influenciar tecnicamente outros membros da equipe.", peso: 3, nivel_ideal: 4.0 },
+      { id: "pensamento-critico", name: "Pensamento Crítico", description: "Analisar informações de forma objetiva e tomar decisões estratégicas.", peso: 3, nivel_ideal: 4.0 },
+      { id: "mentoria", name: "Mentoria", description: "Capacidade de ensinar e desenvolver outros membros da equipe.", peso: 2, nivel_ideal: 3.5 },
+      { id: "visao-negocio", name: "Visão de Negócio", description: "Compreender e alinhar as entregas técnicas com os objetivos do negócio.", peso: 2, nivel_ideal: 3.0 },
+    ],
+  },
 ];
 
 // ==================================
@@ -79,48 +88,38 @@ export const technicalCategories: TechnicalCategory[] = [
         id: "frontend",
         name: "Frontend Web",
         competencias: [
-          { id: "design-responsivo", name: "Design Responsivo (HTML/CSS)", description: "..." },
-          { id: "interatividade-js", name: "Interatividade (JavaScript/DOM)", description: "..." },
-          { id: "performance-web", name: "Otimização de Performance Web", description: "..." },
-          { id: "acessibilidade-web", name: "Desenvolvimento Acessível", description: "..." },
+          { id: "react", name: "React", description: "Construção de interfaces reativas e componentizadas." },
+          { id: "typescript", name: "TypeScript", description: "Desenvolvimento com tipagem estática para maior robustez." },
+          { id: "css-tailwind", name: "CSS/Tailwind", description: "Estilização e design de interfaces responsivas." },
         ],
       },
       {
         id: "backend",
         name: "Backend Web",
         competencias: [
-          { id: "api-rest", name: "Criação e Gestão de APIs (REST)", description: "..." },
-          { id: "modelagem-dados", name: "Modelagem e Consultas SQL/NoSQL", description: "..." },
-          { id: "regras-negocio", name: "Implementação de Regras de Negócio", description: "..." },
-          { id: "autenticacao", name: "Autenticação e Controle de Acesso", description: "..." },
+          { id: "nodejs", name: "Node.js", description: "Desenvolvimento de servidores e APIs com JavaScript." },
+          { id: "api-rest", name: "Desenvolvimento de API REST", description: "Criação e gestão de APIs seguindo o padrão RESTful." },
+          { id: "sql", name: "SQL", description: "Modelagem e consulta a bancos de dados relacionais." },
         ],
       },
     ],
   },
   {
-    id: "dev-mobile",
-    name: "Desenvolvimento Mobile",
+    id: "devops",
+    name: "DevOps",
     tipo: "TECNICA",
     especializacoes: [
       {
-        id: "nativo",
-        name: "Desenvolvimento Nativo",
+        id: "cloud-infra",
+        name: "Cloud & Infrastructure",
         competencias: [
-            { id: "prog-especifica", name: "Programação Específica (iOS/Android)", description: "..." },
-            { id: "recursos-nativos", name: "Uso de Recursos Nativos (Câmera, GPS)", description: "..." },
-        ],
-      },
-      {
-        id: "cross-platform",
-        name: "Cross-Platform",
-        competencias: [
-            { id: "reutilizacao-codigo", name: "Reutilização de Código", description: "..." },
-            { id: "gerenciamento-estado", name: "Gerenciamento de Estado", description: "..." },
+            { id: "docker", name: "Docker", description: "Criação e gerenciamento de contêineres." },
+            { id: "kubernetes", name: "Kubernetes", description: "Orquestração de contêineres em larga escala." },
+            { id: "aws-gcp", name: "AWS/GCP", description: "Gerenciamento de recursos em provedores de nuvem." },
         ],
       },
     ],
   },
-  // Adicionar outras categorias (Ciência de Dados, DevOps, etc.)
 ];
 
 // ==================================
@@ -128,9 +127,7 @@ export const technicalCategories: TechnicalCategory[] = [
 // ==================================
 
 export const cargoToCategoryMapping: Record<string, string[]> = {
-  "estagiario": ["dev-web", "dev-mobile"],
-  "junior": ["dev-web", "dev-mobile"],
-  "pleno": ["dev-web", "dev-mobile", "devops"],
-  "senior": ["dev-web", "dev-mobile", "devops", "data-science"],
-  "especialista": ["dev-web", "dev-mobile", "devops", "data-science", "security", "ux-ui"],
+  "junior": ["dev-web"],
+  "pleno": ["dev-web", "devops"],
+  "senior": ["dev-web", "devops"],
 };

@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const lideradosIniciais = MOCK_PERFORMANCE.map((p) => ({
       id: p.id_liderado,
       nome: p.nome_liderado,
-      cargo_id: p.cargo,
+      cargo_id: p.cargo_id,
       email: `${p.nome_liderado.split(' ')[0].toLowerCase()}@orbitta.com`,
       maturityLevel: p.nivel_maturidade,
       areas: [p.categoria_dominante, p.especializacao_dominante],

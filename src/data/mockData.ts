@@ -228,6 +228,7 @@ export interface LideradoPerformance {
   id_liderado: string;
   nome_liderado: string;
   cargo: string;
+  cargo_id: string;
   nivel_maturidade: 'M1' | 'M2' | 'M3' | 'M4';
   quadrantX: number; // eixo_x_tecnico_geral
   quadrantY: number; // eixo_y_comportamental
@@ -250,6 +251,7 @@ export const MOCK_PERFORMANCE: LideradoPerformance[] = [
     id_liderado: 'lid-001',
     nome_liderado: 'Antonio Pereira',
     cargo: 'Desenvolvedor Junior',
+    cargo_id: 'junior',
     nivel_maturidade: 'M2',
     quadrantX: 2.3,
     quadrantY: 2.7,
@@ -270,6 +272,7 @@ export const MOCK_PERFORMANCE: LideradoPerformance[] = [
     id_liderado: 'lid-003',
     nome_liderado: 'Lara Mendes',
     cargo: 'Designer Sênior',
+    cargo_id: 'senior',
     nivel_maturidade: 'M3',
     quadrantX: 3.4,
     quadrantY: 2.3,
@@ -289,6 +292,7 @@ export const MOCK_PERFORMANCE: LideradoPerformance[] = [
     id_liderado: 'lid-003',
     nome_liderado: 'Mariana Costa',
     cargo: 'Product Manager',
+    cargo_id: 'pleno',
     nivel_maturidade: 'M4',
     quadrantX: 3.2,
     quadrantY: 3.8,
@@ -298,16 +302,17 @@ export const MOCK_PERFORMANCE: LideradoPerformance[] = [
       { id_competencia: 'comp-001', nome_competencia: 'Comunicação', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 3.9 },
       { id_competencia: 'comp-002', nome_competencia: 'Trabalho em Equipe', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 3.7 },
       { id_competencia: 'comp-003', nome_competencia: 'Liderança', tipo: 'COMPORTAMENTAL', id_categoria: 'cat-001', nome_categoria: 'Soft Skills', id_especializacao: null, nome_especializacao: null, media_pontuacao: 3.8 },
-      { id_competencia: 'comp-011', nome_competencia: 'Python', tipo: 'TECNICA', id_categoria: 'cat-003', nome_categoria: 'Big Data / IA', id_especializacao: 'esp-003', nome_especializacao: 'Machine Learning', media_pontuacao: 3.4 },
-      { id_competencia: 'comp-012', nome_competencia: 'TensorFlow', tipo: 'TECNICA', id_categoria: 'cat-003', nome_categoria: 'Big Data / IA', id_especializacao: 'esp-003', nome_especializacao: 'Machine Learning', media_pontuacao: 3.2 },
-      { id_competencia: 'comp-013', nome_competencia: 'Algoritmos ML', tipo: 'TECNICA', id_categoria: 'cat-003', nome_categoria: 'Big Data / IA', id_especializacao: 'esp-003', nome_especializacao: 'Machine Learning', media_pontuacao: 3.0 },
-      { id_competencia: 'comp-010', nome_competencia: 'SQL', tipo: 'TECNICA', id_categoria: 'cat-002', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'esp-002', nome_especializacao: 'Backend', media_pontuacao: 3.1 },
+      { id_competencia: 'comp-011', nome: 'Python', tipo: 'TECNICA', id_categoria: 'cat-003', nome_categoria: 'Big Data / IA', id_especializacao: 'esp-003', nome_especializacao: 'Machine Learning', media_pontuacao: 3.4 },
+      { id_competencia: 'comp-012', nome: 'TensorFlow', tipo: 'TECNICA', id_categoria: 'cat-003', nome_categoria: 'Big Data / IA', id_especializacao: 'esp-003', nome_especializacao: 'Machine Learning', media_pontuacao: 3.2 },
+      { id_competencia: 'comp-013', nome: 'Algoritmos ML', tipo: 'TECNICA', id_categoria: 'cat-003', nome_categoria: 'Big Data / IA', id_especializacao: 'esp-003', nome_especializacao: 'Machine Learning', media_pontuacao: 3.0 },
+      { id_competencia: 'comp-010', nome: 'SQL', tipo: 'TECNICA', id_categoria: 'cat-002', nome_categoria: 'Desenvolvimento Web', id_especializacao: 'esp-002', nome_especializacao: 'Backend', media_pontuacao: 3.1 },
     ],
   },
   {
     id_liderado: 'lid-004',
     nome_liderado: 'Roberto Lima',
     cargo: 'Desenvolvedor Pleno',
+    cargo_id: 'pleno',
     nivel_maturidade: 'M3',
     quadrantX: 3.2,
     quadrantY: 2.4,
