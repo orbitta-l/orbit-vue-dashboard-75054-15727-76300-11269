@@ -93,17 +93,11 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
         ) : !isExpanded ? (
           <>
             <div className="space-y-3 mb-4">
-              {top5.map((gap, idx) => (
+              {top5.map((gap) => (
                 <div key={gap.nome_competencia} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex-1">
-                      <span
-                        className={`font-medium ${
-                          idx === 0
-                            ? "text-[hsl(var(--color-accent))]"
-                            : getGapColorClass(gap.media_score)
-                        }`}
-                      >
+                      <span className={`font-medium ${getGapColorClass(gap.media_score)}`}>
                         {gap.nome_competencia}
                       </span>
                       <span className="text-xs text-muted-foreground ml-2">
@@ -111,13 +105,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                         {gap.nome_especializacao ? ` › ${gap.nome_especializacao}` : ""})
                       </span>
                     </div>
-                    <span
-                      className={`font-semibold ${
-                        idx === 0
-                          ? "text-[hsl(var(--color-accent))]"
-                          : getGapColorClass(gap.media_score)
-                      }`}
-                    >
+                    <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
                       {gap.media_score.toFixed(1)}/4.0
                     </span>
                   </div>
@@ -126,8 +114,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                       className="h-full rounded-full transition-all duration-500"
                       style={{
                         width: `${(gap.media_score / 4) * 100}%`,
-                        backgroundColor:
-                          idx === 0 ? "hsl(var(--color-accent))" : getGapColor(gap.media_score),
+                        backgroundColor: getGapColor(gap.media_score),
                       }}
                     />
                   </div>

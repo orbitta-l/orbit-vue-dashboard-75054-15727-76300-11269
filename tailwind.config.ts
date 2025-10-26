@@ -64,6 +64,8 @@ export default {
           "3": "hsl(var(--chart-3))",
           "4": "hsl(var(--chart-4))",
         },
+        good: "hsl(var(--color-good))",
+        mid: "hsl(var(--color-mid))",
       },
       borderRadius: {
         lg: "var(--radius)",

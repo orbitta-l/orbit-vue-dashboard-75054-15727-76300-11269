@@ -378,7 +378,7 @@ export default function MemberDetail() {
                     className="text-xs"
                     style={{ 
                       backgroundColor: getGapColor(comp.media_pontuacao),
-                      color: comp.media_pontuacao < 2.5 ? '#fff' : '#000'
+                      color: comp.media_pontuacao >= 3.5 ? '#fff' : '#000'
                     }}
                   >
                     {comp.nome_competencia} ({comp.media_pontuacao.toFixed(1)})
