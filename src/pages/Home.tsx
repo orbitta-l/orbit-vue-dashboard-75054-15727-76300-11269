@@ -14,6 +14,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { softSkillTemplates, technicalCategories } from "@/data/evaluationTemplates";
+import { calcularNivelMaturidade } from "@/types/mer";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -69,11 +70,12 @@ export default function Home() {
       const mockData = MOCK_PERFORMANCE.find(p => p.id_liderado === liderado.id);
       const eixo_x = avaliacao?.eixo_x ?? mockData?.quadrantX ?? 0;
       const eixo_y = avaliacao?.eixo_y ?? mockData?.quadrantY ?? 0;
+      
       return {
         id_liderado: liderado.id,
         nome_liderado: liderado.nome,
-        cargo: liderado.cargo_id || '',
-        nivel_maturidade: avaliacao?.nivel || mockData?.nivel_maturidade || 'M1',
+        cargo: liderado.cargo_id || 'Não definido',
+        nivel_maturidade: calcularNivelMaturidade(eixo_y, eixo_x),
         eixo_x_tecnico_geral: eixo_x,
         eixo_y_comportamental: eixo_y,
         categoria_dominante: mockData?.categoria_dominante || 'N/A',
@@ -84,12 +86,8 @@ export default function Home() {
       };
     });
 
-    // 1. Obter médias das competências que foram avaliadas
     const allEvaluatedCompetencies = teamPerformance.flatMap(p => p.competencias);
-    const competencyMap = new Map<string, { 
-        soma: number; 
-        count: number; 
-    }>();
+    const competencyMap = new Map<string, { soma: number; count: number; }>();
     
     allEvaluatedCompetencies.forEach(c => {
       const existing = competencyMap.get(c.nome_competencia);
@@ -97,14 +95,10 @@ export default function Home() {
         existing.soma += c.media_pontuacao;
         existing.count++;
       } else {
-        competencyMap.set(c.nome_competencia, { 
-            soma: c.media_pontuacao, 
-            count: 1,
-        });
+        competencyMap.set(c.nome_competencia, { soma: c.media_pontuacao, count: 1 });
       }
     });
 
-    // 2. Criar uma lista mestre de todas as competências a partir dos templates
     const allTemplateCompetencies = [
       ...softSkillTemplates.flatMap(t => t.competencias.map(c => ({
         competencia: c.name,
@@ -124,18 +118,13 @@ export default function Home() {
       )
     ];
     
-    // Remove duplicatas caso existam nos templates
     const uniqueTemplateCompetencies = Array.from(new Map(allTemplateCompetencies.map(item => [item.competencia, item])).values());
 
-    // 3. Mesclar a lista mestre com as médias calculadas
     const barras = uniqueTemplateCompetencies.map(templateComp => {
       const evaluatedData = competencyMap.get(templateComp.competencia);
       const media = evaluatedData ? evaluatedData.soma / evaluatedData.count : 0;
       
-      return {
-        ...templateComp,
-        media,
-      };
+      return { ...templateComp, media };
     });
 
     const recentes = avaliacoes.slice(-3).map(av => ({
@@ -169,26 +158,10 @@ export default function Home() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <MetricCard
-          title="Membros da Equipe"
-          value={metrics.teamMembers}
-          icon={<Users className="w-5 h-5" />}
-        />
-        <MetricCard
-          title="Maturidade Média"
-          value={metrics.avgMaturity}
-          icon={<TrendingUp className="w-5 h-5" />}
-        />
-        <MetricCard
-          title="Avaliações no Mês"
-          value={metrics.evalsThisMonth}
-          icon={<ClipboardCheck className="w-5 h-5" />}
-        />
-        <MetricCard
-          title="Última Avaliação"
-          value={metrics.lastEval}
-          icon={<Calendar className="w-5 h-5" />}
-        />
+        <MetricCard title="Membros da Equipe" value={metrics.teamMembers} icon={<Users className="w-5 h-5" />} />
+        <MetricCard title="Maturidade Média" value={metrics.avgMaturity} icon={<TrendingUp className="w-5 h-5" />} />
+        <MetricCard title="Avaliações no Mês" value={metrics.evalsThisMonth} icon={<ClipboardCheck className="w-5 h-5" />} />
+        <MetricCard title="Última Avaliação" value={metrics.lastEval} icon={<Calendar className="w-5 h-5" />} />
       </div>
 
       {isPrimeiroAcesso && (
