@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Users, TrendingUp, ClipboardCheck, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -10,10 +10,55 @@ import KnowledgeGapsSection from "@/components/KnowledgeGapsSection";
 import RecentEvaluationsSection from "@/components/RecentEvaluationsSection";
 import CompetencyBarsChart from "@/components/CompetencyBarsChart";
 import { MOCK_PERFORMANCE } from "@/data/mockData";
+import { MetricCard } from "@/components/MetricCard";
+import { format, formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { isPrimeiroAcesso, liderados, avaliacoes } = useAuth();
+  const { profile, isPrimeiroAcesso, liderados, avaliacoes } = useAuth();
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Bom dia";
+    if (hour < 18) return "Boa tarde";
+    return "Boa noite";
+  };
+
+  const currentDate = format(new Date(), "d 'de' MMMM 'de' yyyy", { locale: ptBR });
+
+  const metrics = useMemo(() => {
+    if (isPrimeiroAcesso) {
+      return {
+        teamMembers: 0,
+        avgMaturity: "N/A",
+        evalsThisMonth: 0,
+        lastEval: "Nenhuma",
+      };
+    }
+
+    const evalsThisMonth = avaliacoes.filter(av => {
+      const evalDate = new Date(av.data);
+      const today = new Date();
+      return evalDate.getMonth() === today.getMonth() && evalDate.getFullYear() === today.getFullYear();
+    }).length;
+
+    const sortedEvals = [...avaliacoes].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    const lastEval = sortedEvals.length > 0
+      ? formatDistanceToNow(new Date(sortedEvals[0].data), { addSuffix: true, locale: ptBR })
+      : "Nenhuma";
+
+    const maturityMap: { [key: string]: number } = { M1: 1, M2: 2, M3: 3, M4: 4 };
+    const totalMaturity = avaliacoes.reduce((sum, av) => sum + (maturityMap[av.nivel] || 0), 0);
+    const avgMaturity = avaliacoes.length > 0 ? `M${(totalMaturity / avaliacoes.length).toFixed(1)}` : "N/A";
+
+    return {
+      teamMembers: liderados.length,
+      avgMaturity,
+      evalsThisMonth,
+      lastEval,
+    };
+  }, [isPrimeiroAcesso, liderados, avaliacoes]);
 
   const dashboardData = useMemo(() => {
     if (isPrimeiroAcesso) return { quadrante: [], barras: [], pizza: [], gaps: undefined, recentes: [] };
@@ -65,17 +110,48 @@ export default function Home() {
     return {
       quadrante: teamPerformance,
       barras,
-      pizza: teamPerformance, // Pizza component will process this
-      gaps: teamPerformance, // Gaps component will process this
+      pizza: teamPerformance,
+      gaps: teamPerformance,
       recentes,
     };
   }, [isPrimeiroAcesso, liderados, avaliacoes]);
 
   return (
     <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard da Equipe</h1>
-        <p className="text-muted-foreground">Visão geral do desempenho e métricas da sua equipe</p>
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            {getGreeting()}, {profile?.name || "Usuário"}!
+          </h1>
+          <p className="text-muted-foreground">Acompanhe a evolução das competências da sua equipe.</p>
+        </div>
+        <div className="text-right">
+          <p className="font-semibold text-foreground">Projeto Orbitta</p>
+          <p className="text-sm text-muted-foreground">{currentDate}</p>
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <MetricCard
+          title="Membros da Equipe"
+          value={metrics.teamMembers}
+          icon={<Users className="w-5 h-5" />}
+        />
+        <MetricCard
+          title="Maturidade Média"
+          value={metrics.avgMaturity}
+          icon={<TrendingUp className="w-5 h-5" />}
+        />
+        <MetricCard
+          title="Avaliações no Mês"
+          value={metrics.evalsThisMonth}
+          icon={<ClipboardCheck className="w-5 h-5" />}
+        />
+        <MetricCard
+          title="Última Avaliação"
+          value={metrics.lastEval}
+          icon={<Calendar className="w-5 h-5" />}
+        />
       </div>
 
       {isPrimeiroAcesso && (
