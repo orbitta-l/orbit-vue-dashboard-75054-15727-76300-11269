@@ -16,15 +16,24 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
 
   if (empty) {
     return (
-      <Card className="p-6 mb-8 bg-muted/20 text-center">
-        <p className="text-muted-foreground">Aguardando avaliações para exibir gaps de conhecimento.</p>
-      </Card>
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold mb-4 text-foreground">Gaps de Conhecimento</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="p-6 bg-muted/20 text-center">
+            <h4 className="text-md font-semibold mb-4 text-muted-foreground">Competências Comportamentais</h4>
+            <p className="text-muted-foreground text-sm">Aguardando avaliações.</p>
+          </Card>
+          <Card className="p-6 bg-muted/20 text-center">
+            <h4 className="text-md font-semibold mb-4 text-muted-foreground">Competências Técnicas</h4>
+            <p className="text-muted-foreground text-sm">Aguardando avaliações.</p>
+          </Card>
+        </div>
+      </div>
     );
   }
 
   const hasData = teamMembers.length > 0;
 
-  // Calcular gaps de competências (mesma lógica original)
   const calcularGaps = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
     if (!hasData) return [];
 
@@ -77,9 +86,9 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
           Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}
         </h4>
 
-        {!hasData ? (
+        {!hasData || top5.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
-            Aguardando avaliações
+            Sem dados para exibir
           </p>
         ) : !isExpanded ? (
           <>
@@ -91,7 +100,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                       <span
                         className={`font-medium ${
                           idx === 0
-                            ? "text-[hsl(var(--color-critical))]"
+                            ? "text-[hsl(var(--color-accent))]"
                             : getGapColorClass(gap.media_score)
                         }`}
                       >
@@ -105,7 +114,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                     <span
                       className={`font-semibold ${
                         idx === 0
-                          ? "text-[hsl(var(--color-critical))]"
+                          ? "text-[hsl(var(--color-accent))]"
                           : getGapColorClass(gap.media_score)
                       }`}
                     >
@@ -118,7 +127,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                       style={{
                         width: `${(gap.media_score / 4) * 100}%`,
                         backgroundColor:
-                          idx === 0 ? "hsl(var(--color-critical))" : getGapColor(gap.media_score),
+                          idx === 0 ? "hsl(var(--color-accent))" : getGapColor(gap.media_score),
                       }}
                     />
                   </div>
@@ -138,7 +147,6 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
           </>
         ) : (
           <>
-            {/* Piores Gaps (Áreas Críticas) */}
             {pioresGaps.length > 0 && (
               <div className="mb-6">
                 <h5 className="text-sm font-semibold text-foreground mb-3">
@@ -165,7 +173,6 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
               </div>
             )}
 
-            {/* Melhores Competências (Pontos Fortes) */}
             {melhoresGaps.length > 0 && (
               <div className="mb-4">
                 <h5 className="text-sm font-semibold text-foreground mb-3">

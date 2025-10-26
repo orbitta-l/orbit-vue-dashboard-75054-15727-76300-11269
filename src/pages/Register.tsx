@@ -8,24 +8,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
+import { SexoTipo } from "@/types/mer";
 
 const schema = z.object({
   nome: z.string().min(2, "Nome muito curto"),
   email: z.string().email("E‑mail inválido"),
   cargo_id: z.string().min(1, "Selecione um cargo"),
   sexo: z.enum(["FEMININO", "MASCULINO", "NAO_BINARIO", "NAO_INFORMADO"]),
-  data_nascimento: z
-    .string()
-    .refine((val) => {
-      const date = new Date(val);
-      const today = new Date();
-      const age = today.getFullYear() - date.getFullYear();
-      const m = today.getMonth() - date.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < date.getDate())) {
-        return age - 1 >= 14;
-      }
-      return age >= 14;
-    }, "A idade mínima é 14 anos e a data não pode ser futura"),
+  data_nascimento: z.string().min(1, "Data de nascimento é obrigatória").refine((val) => {
+    const birthDate = new Date(val);
+    const today = new Date();
+    // Adjust for timezone offset to prevent future date errors
+    birthDate.setMinutes(birthDate.getMinutes() + birthDate.getTimezoneOffset());
+    if (birthDate > today) return false;
+    
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 14;
+  }, "A data não pode ser futura e a idade mínima é 14 anos."),
 });
 
 export default function Register() {
@@ -36,7 +39,7 @@ export default function Register() {
     nome: "",
     email: "",
     cargo_id: "",
-    sexo: "FEMININO" as const,
+    sexo: "NAO_INFORMADO" as SexoTipo,
     data_nascimento: "",
   });
 
@@ -66,10 +69,10 @@ export default function Register() {
       return;
     }
 
-    // Cria objeto Liderado simplificado
     const novoLiderado = {
       id: `lid-${Date.now()}`,
       nome: form.nome,
+      email: form.email,
       cargo_id: form.cargo_id,
     };
 

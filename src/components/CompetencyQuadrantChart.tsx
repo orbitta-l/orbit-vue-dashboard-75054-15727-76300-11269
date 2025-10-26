@@ -3,117 +3,127 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { LideradoPerformance, NivelMaturidade } from "@/types/mer";
+import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, ReferenceLine } from 'recharts';
+import { Avatar, AvatarFallback } from "./ui/avatar";
 
 interface CompetencyQuadrantChartProps {
   teamMembers: LideradoPerformance[];
   empty?: boolean;
 }
 
-const QUADRANT_COLORS = {
-  M1: "hsl(var(--color-maturidade-m1))",
-  M2: "hsl(var(--color-maturidade-m2))",
-  M3: "hsl(var(--color-maturidade-m3))",
-  M4: "hsl(var(--color-maturidade-m4))",
+const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
+  M1: "hsl(var(--color-accent))",
+  M2: "hsl(var(--color-critical))",
+  M3: "hsl(var(--color-mid))",
+  M4: "hsl(var(--color-brand))",
 };
 
-const MEMBER_COLORS = [
-  "hsl(var(--color-chart-1))",
-  "hsl(var(--color-chart-2))",
-  "hsl(var(--color-chart-3))",
-  "hsl(var(--color-chart-4))",
-  "hsl(var(--color-chart-5))",
-];
+const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
 export default function CompetencyQuadrantChart({ teamMembers, empty = false }: CompetencyQuadrantChartProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [hoveredMember, setHoveredMember] = useState<string | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
 
   const filteredMembers = teamMembers.filter((member) =>
     member.nome_liderado.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const quadrantCounts: Record<NivelMaturidade, number> = {
-    M1: 0,
-    M2: 0,
-    M3: 0,
-    M4: 0,
+  const quadrantCounts = teamMembers.reduce((acc, member) => {
+    acc[member.nivel_maturidade] = (acc[member.nivel_maturidade] || 0) + 1;
+    return acc;
+  }, {} as Record<NivelMaturidade, number>);
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="p-2 bg-card border rounded-md shadow-lg">
+          <p className="font-bold">{data.nome_liderado}</p>
+          <p className="text-sm text-muted-foreground">{data.cargo}</p>
+          <p className="text-xs mt-1">Maturidade: <span className="font-semibold">{data.nivel_maturidade}</span></p>
+        </div>
+      );
+    }
+    return null;
   };
 
-  teamMembers.forEach((member) => {
-    quadrantCounts[member.nivel_maturidade]++;
-  });
-
-  const getMemberColor = (index: number) => MEMBER_COLORS[index % MEMBER_COLORS.length];
-
-  // Cores de placeholder quando empty
-  const placeholderColor = "var(--color-muted)";
-
   return (
-    <Card className="p-6 mb-8">
-      <h3 className="text-lg font-semibold mb-4 text-foreground">
-        Matriz de Competências
-      </h3>
+    <Card className="p-6 mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="md:col-span-2">
+        <h3 className="text-lg font-semibold text-foreground">Matriz de Competências</h3>
+        <p className="text-sm text-muted-foreground mb-4">Distribuição da equipe por eixos técnico e comportamental</p>
+        <ResponsiveContainer width="100%" height={400}>
+          <ScatterChart margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={empty ? "hsl(var(--muted) / 0.2)" : "hsl(var(--border))"} />
+            
+            <XAxis type="number" dataKey="eixo_x_tecnico_geral" name="Técnico" domain={[1, 4]} ticks={[1, 2, 2.5, 3, 4]} stroke={empty ? "hsl(var(--muted) / 0.5)" : "hsl(var(--foreground))"}>
+              <Label value="Competências Técnicas" offset={-25} position="insideBottom" />
+            </XAxis>
+            <YAxis type="number" dataKey="eixo_y_comportamental" name="Comportamental" domain={[1, 4]} ticks={[1, 2, 2.5, 3, 4]} stroke={empty ? "hsl(var(--muted) / 0.5)" : "hsl(var(--foreground))"}>
+              <Label value="Competências Comportamentais" angle={-90} offset={-10} position="insideLeft" style={{ textAnchor: 'middle' }} />
+            </YAxis>
+            
+            <ReferenceLine x={2.5} stroke="hsl(var(--border))" strokeDasharray="3 3" />
+            <ReferenceLine y={2.5} stroke="hsl(var(--border))" strokeDasharray="3 3" />
 
-      {/* Busca */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar liderado..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-          disabled={empty}
-        />
+            <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
+            <ZAxis type="number" dataKey="z" range={[100, 400]} name="size" />
+            
+            <Scatter data={filteredMembers} fill="hsl(var(--color-brand))">
+              {filteredMembers.map((entry) => (
+                <Cell 
+                  key={`cell-${entry.id_liderado}`} 
+                  fill={empty ? "hsl(var(--color-muted))" : QUADRANT_COLORS[entry.nivel_maturidade]}
+                  opacity={selectedMemberId === null || selectedMemberId === entry.id_liderado ? 1 : 0.3}
+                  className="transition-opacity"
+                />
+              ))}
+            </Scatter>
+          </ScatterChart>
+        </ResponsiveContainer>
       </div>
-
-      {/* Gráfico */}
-      <div className="relative w-full h-[550px]">
-        <svg className="w-full h-full" viewBox="0 0 700 550">
-          {/* Fundo e grid - cores cinza quando empty */}
-          <rect width="700" height="550" fill={empty ? placeholderColor : "url(#bg-gradient)"} />
-          {empty ? null : (
-            <defs>
-              <pattern id="fine-grid" width="35" height="27.5" patternUnits="userSpaceOnUse">
-                <path d="M 35 0 L 0 0 0 27.5" fill="none" stroke="#E0E0E0" strokeWidth="0.5" />
-              </pattern>
-            </defs>
-          )}
-
-          {/* Quadrantes - usar cor muted quando empty */}
-          {["M2", "M4", "M1", "M3"].map((q) => (
-            <rect
-              key={q}
-              x={q === "M2" || q === "M1" ? 0 : 216}
-              y={q === "M2" || q === "M4" ? 0 : 306}
-              width={216}
-              height={306}
-              fill={empty ? placeholderColor : QUADRANT_COLORS[q as keyof typeof QUADRANT_COLORS]}
-              opacity={empty ? 0.1 : 0.03}
+      
+      <div className="space-y-4">
+        <div>
+          <h4 className="font-semibold text-foreground mb-2">Quadrantes</h4>
+          <div className="grid grid-cols-2 gap-2 text-center">
+            {(['M1', 'M2', 'M3', 'M4'] as NivelMaturidade[]).map(q => (
+              <div key={q} className="p-2 rounded-md" style={{ backgroundColor: empty ? 'hsl(var(--muted) / 0.2)' : `${QUADRANT_COLORS[q]}20` }}>
+                <p className="font-bold text-lg" style={{ color: empty ? 'hsl(var(--muted-foreground))' : QUADRANT_COLORS[q] }}>{quadrantCounts[q] || 0}</p>
+                <p className="text-xs font-semibold" style={{ color: empty ? 'hsl(var(--muted-foreground))' : QUADRANT_COLORS[q] }}>{q}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar liderado..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+              disabled={empty}
             />
-          ))}
-
-          {/* Eixos */}
-          {!empty && (
-            <>
-              <line x1="216" y1="0" x2="216" y2="490" stroke="#B0B0B0" strokeWidth="1.5" strokeDasharray="5,3" opacity="0.5" />
-              <line x1="0" y1="306" x2="540" y2="306" stroke="#B0B0B0" strokeWidth="1.5" strokeDasharray="5,3" opacity="0.5" />
-            </>
-          )}
-
-          {/* Pontos */}
-          {empty
-            ? null
-            : filteredMembers.map((member, idx) => {
-                const x = (member.quadrantX / 4) * 540;
-                const y = 490 - (member.quadrantY / 4) * 490;
-                const color = getMemberColor(idx);
-                return (
-                  <g key={member.id_liderado}>
-                    <circle cx={x} cy={y} r="11" fill={color} stroke="#4A4A4A" strokeWidth="2.5" />
-                  </g>
-                );
-              })}
-        </svg>
+          </div>
+          <div className="mt-2 max-h-60 overflow-y-auto space-y-1 pr-2">
+            {filteredMembers.map(member => (
+              <div 
+                key={member.id_liderado}
+                className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`}
+                onMouseEnter={() => setSelectedMemberId(member.id_liderado)}
+                onMouseLeave={() => setSelectedMemberId(null)}
+              >
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback style={{ backgroundColor: empty ? 'hsl(var(--muted))' : `${QUADRANT_COLORS[member.nivel_maturidade]}40`, color: empty ? 'hsl(var(--muted-foreground))' : QUADRANT_COLORS[member.nivel_maturidade] }}>
+                    {getInitials(member.nome_liderado)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium text-foreground truncate">{member.nome_liderado}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </Card>
   );
