@@ -49,18 +49,78 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
     setSelectedSpecialization("all");
   }, [mode]);
 
-  const filteredData = useMemo(() => {
+  const chartData = useMemo(() => {
     if (empty) {
-      return [{ competencia: 'Placeholder 1', media: 1.5 }, { competencia: 'Placeholder 2', media: 2.8 }, { competencia: 'Placeholder 3', media: 3.5 }];
+      return {
+        data: [{ name: 'Categoria A', media: 1.5 }, { name: 'Categoria B', media: 2.8 }, { name: 'Categoria C', media: 3.5 }],
+        dataKey: 'name'
+      };
     }
-    return data.filter(item => {
-      if (item.tipo !== mode) return false;
-      if (mode === 'TECNICA') {
-        if (selectedCategory !== 'all' && item.categoria !== selectedCategory) return false;
-        if (selectedSpecialization !== 'all' && item.especializacao !== selectedSpecialization) return false;
-      }
-      return true;
-    });
+
+    const relevantData = data.filter(item => item.tipo === mode);
+
+    // Level 3: Competency view
+    if (selectedSpecialization !== 'all') {
+      return {
+        data: relevantData
+          .filter(item => item.especializacao === selectedSpecialization)
+          .map(item => ({ name: item.competencia, media: item.media })),
+        dataKey: 'name'
+      };
+    }
+
+    // Level 2: Specialization view
+    if (selectedCategory !== 'all') {
+      const groupedBySpec = relevantData
+        .filter(item => item.categoria === selectedCategory && item.especializacao)
+        .reduce((acc, item) => {
+          const key = item.especializacao!;
+          if (!acc[key]) {
+            acc[key] = { soma: 0, count: 0 };
+          }
+          acc[key].soma += item.media;
+          acc[key].count++;
+          return acc;
+        }, {} as Record<string, { soma: number, count: number }>);
+
+      return {
+        data: Object.entries(groupedBySpec).map(([name, { soma, count }]) => ({
+          name,
+          media: soma / count
+        })),
+        dataKey: 'name'
+      };
+    }
+
+    // Level 1: Category view (for Technical)
+    if (mode === 'TECNICA') {
+      const groupedByCat = relevantData
+        .filter(item => item.categoria)
+        .reduce((acc, item) => {
+          const key = item.categoria!;
+          if (!acc[key]) {
+            acc[key] = { soma: 0, count: 0 };
+          }
+          acc[key].soma += item.media;
+          acc[key].count++;
+          return acc;
+        }, {} as Record<string, { soma: number, count: number }>);
+
+      return {
+        data: Object.entries(groupedByCat).map(([name, { soma, count }]) => ({
+          name,
+          media: soma / count
+        })),
+        dataKey: 'name'
+      };
+    }
+
+    // Default for Comportamental (no hierarchy, just show competencies)
+    return {
+      data: relevantData.map(item => ({ name: item.competencia, media: item.media })),
+      dataKey: 'name'
+    };
+
   }, [data, empty, mode, selectedCategory, selectedSpecialization]);
 
   return (
@@ -95,7 +155,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
           </div>
           <div>
             <Label className="text-sm font-medium mb-2 block">Filtrar por Especialização</Label>
-            <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization} disabled={availableSpecializations.length <= 1}>
+            <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization} disabled={availableSpecializations.length <= 1 || selectedCategory === 'all'}>
               <SelectTrigger>
                 <SelectValue placeholder="Todas as Especializações" />
               </SelectTrigger>
@@ -109,25 +169,33 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
         </div>
       )}
 
-      <div className="w-full overflow-x-auto">
-        <div style={{ width: `${Math.max(filteredData.length * 80, 500)}px`, height: '350px' }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={filteredData} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke={empty ? "hsl(var(--muted) / 0.2)" : "hsl(var(--border))"} />
-              <XAxis type="number" dataKey="media" domain={[0, 4]} ticks={[0, 1, 2, 2.5, 3, 4]} stroke={empty ? "hsl(var(--muted) / 0.5)" : "hsl(var(--foreground))"} />
-              <YAxis type="category" dataKey="competencia" width={150} tick={{ fontSize: 12 }} stroke={empty ? "hsl(var(--muted) / 0.5)" : "hsl(var(--foreground))"} />
-              <Tooltip
-                cursor={{ fill: 'hsl(var(--muted) / 0.2)' }}
-                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-              />
-              <ReferenceLine x={2.5} stroke="hsl(var(--color-accent))" strokeDasharray="4 4" />
-              <Bar dataKey="media" fill={empty ? "hsl(var(--color-muted))" : "hsl(var(--color-brand))"} barSize={30}>
-                <LabelList dataKey="media" position="right" formatter={(value: number) => value.toFixed(1)} fill={empty ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))"} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      <ResponsiveContainer width="100%" height={350}>
+        <BarChart data={chartData.data} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke={empty ? "hsl(var(--muted) / 0.2)" : "hsl(var(--border))"} />
+          <XAxis 
+            dataKey={chartData.dataKey} 
+            tick={{ fontSize: 12 }} 
+            stroke={empty ? "hsl(var(--muted) / 0.5)" : "hsl(var(--foreground))"}
+            angle={-45}
+            textAnchor="end"
+            interval={0}
+          />
+          <YAxis 
+            type="number" 
+            domain={[0, 4]} 
+            ticks={[0, 1, 2, 2.5, 3, 4]} 
+            stroke={empty ? "hsl(var(--muted) / 0.5)" : "hsl(var(--foreground))"} 
+          />
+          <Tooltip
+            cursor={{ fill: 'hsl(var(--muted) / 0.2)' }}
+            contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+          />
+          <ReferenceLine y={2.5} stroke="hsl(var(--color-accent))" strokeDasharray="4 4" />
+          <Bar dataKey="media" fill={empty ? "hsl(var(--color-muted))" : "hsl(var(--color-brand))"} barSize={40}>
+            <LabelList dataKey="media" position="top" formatter={(value: number) => value.toFixed(1)} fill={empty ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))"} />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </Card>
   );
 }
