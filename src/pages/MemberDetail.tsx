@@ -7,19 +7,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useParams, useNavigate } from "react-router-dom";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MOCK_PERFORMANCE, MOCK_CATEGORIAS, MOCK_ESPECIALIZACOES } from "@/data/mockData";
+import { useAuth } from "@/contexts/AuthContext";
 import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
 
 export default function MemberDetail() {
   const { memberId } = useParams();
   const navigate = useNavigate();
+  const { liderados } = useAuth();
   
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedEspecializacao, setSelectedEspecializacao] = useState<string>("all");
   const [radarViewMode, setRadarViewMode] = useState<"all" | "soft" | "custom">("all");
   const [selectedHardCategories, setSelectedHardCategories] = useState<string[]>([]);
   
-  const liderado = MOCK_PERFORMANCE.find(m => m.id_liderado === memberId);
+  const liderado = liderados.find(m => m.id_liderado === memberId);
 
   if (!liderado) {
     return (
