@@ -97,7 +97,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
         <div className="md:col-span-7">
           <h3 className="text-lg font-semibold text-foreground">Matriz de Competências</h3>
-          <p className="text-sm text-muted-foreground mb-4">Perfil técnico vs. comportamental da equipe</p>
+          <p className="text-sm text-muted-foreground mb-4">Perfil técnico vs. comportamental do time</p>
           
           <div className="relative w-full h-[480px]">
             {empty && (
