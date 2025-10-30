@@ -322,7 +322,12 @@ export default function Team() {
                 <div className="space-y-2 pt-4 border-t border-border">
                   <p className="text-xs text-muted-foreground text-center mb-2">{member.email}</p>
                   <div className="space-y-1">
-                    {member.competencias?.filter(c => c.tipo === 'TECNICA' && c.nome_categoria).map((comp) => (<div key={comp.id_categoria} className="flex items-center gap-2 text-sm text-muted-foreground"><div className="w-2 h-2 bg-muted-foreground rounded-full"></div><span className="truncate">{comp.nome_categoria}</span></div>))}
+                    {Array.from(new Set(member.competencias?.filter(c => c.tipo === 'TECNICA' && c.nome_categoria).map(c => c.nome_categoria))).map((category) => (
+                      <div key={category} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                        <span className="truncate">{category}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
