@@ -9,7 +9,6 @@ const navItems = [
   { to: "/dashboard-lider", icon: Home, label: "Home" },
   { to: "/team", icon: Users, label: "Liderados" },
   { to: "/evaluation", icon: ClipboardCheck, label: "Avaliação" },
-  { to: "/settings", icon: Settings, label: "Configurações" },
 ];
 
 export const Sidebar = () => {
@@ -83,6 +82,24 @@ export const Sidebar = () => {
       </div>
 
       <div className="p-4 border-t border-sidebar-border">
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            cn(
+              "flex items-center gap-3 px-4 py-3 w-full rounded-lg transition-all duration-200 mb-1",
+              isActive
+                ? "bg-primary text-primary-foreground font-medium"
+                : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            )
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <Settings className={cn("w-5 h-5", !isActive && "dark:text-accent")} />
+              <span>Configurações</span>
+            </>
+          )}
+        </NavLink>
         <button 
           onClick={handleLogout}
           className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-200"
