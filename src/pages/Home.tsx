@@ -148,7 +148,6 @@ export default function Home() {
           <p className="text-muted-foreground">Acompanhe a evolução das competências da sua equipe.</p>
         </div>
         <div className="text-right">
-          <p className="font-semibold text-foreground">Projeto Orbitta</p>
           <p className="text-sm text-muted-foreground">{currentDate}</p>
         </div>
       </div>
