@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { useAuth, Liderado } from "@/context/AuthContext";
-import { softSkillTemplates, technicalCategories, SoftSkillTemplate } from "@/data/evaluationTemplates";
+import { useAuth } from "@/context/AuthContext";
+import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates";
+import { MOCK_COMPETENCIAS, MOCK_CARGOS } from "@/data/mockData";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { calcularNivelMaturidade, LideradoPerformance, CompetenciaTipo } from "@/types/mer";
+import { calcularNivelMaturidade, PontuacaoAvaliacao, Avaliacao, Usuario } from "@/types/mer";
 import EvaluationRadarChart from "@/charts/EvaluationRadarChart";
 import SpecializationSelectionModal from "@/components/SpecializationSelectionModal";
 
@@ -25,10 +26,10 @@ interface TechBlock {
 export default function Evaluation() {
   const { memberId } = useParams<{ memberId: string }>();
   const navigate = useNavigate();
-  const { profile, liderados, addAvaliacao, avaliacoes, updateLideradoPerformance } = useAuth();
+  const { profile, liderados, addAvaliacao, avaliacoes } = useAuth();
 
-  const [member, setMember] = useState<Liderado | undefined>(undefined);
-  const [softTemplate, setSoftTemplate] = useState<SoftSkillTemplate | null>(null);
+  const [member, setMember] = useState<Usuario | undefined>(undefined);
+  const [softTemplate, setSoftTemplate] = useState<(typeof softSkillTemplates)[0] | null>(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -38,12 +39,12 @@ export default function Evaluation() {
 
   const lastEvaluation = useMemo(() => {
     return avaliacoes
-      .filter(a => a.id_liderado === memberId)
-      .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())[0];
+      .filter(a => a.liderado_id === memberId)
+      .sort((a, b) => new Date(b.data_avaliacao).getTime() - new Date(a.data_avaliacao).getTime())[0];
   }, [avaliacoes, memberId]);
 
   useEffect(() => {
-    const currentMember = liderados.find((l) => l.id_liderado === memberId); // Usar id_liderado
+    const currentMember = liderados.find((l) => l.id_usuario === memberId);
     if (!currentMember) {
       toast({ variant: "destructive", title: "Liderado não encontrado" });
       navigate("/evaluation", { replace: true });
@@ -51,10 +52,10 @@ export default function Evaluation() {
     }
     setMember(currentMember);
 
-    const template = softSkillTemplates.find(t => t.cargo_id === currentMember.cargo_id);
+    const template = softSkillTemplates.find(t => t.id_cargo === currentMember.id_cargo);
     setSoftTemplate(template || null);
     if (template) {
-      const initialScores = template.competencias.reduce((acc, skill) => ({ ...acc, [skill.id]: 1 }), {});
+      const initialScores = template.competencias.reduce((acc, skill) => ({ ...acc, [skill.id_competencia]: 1 }), {});
       setSoftScores(initialScores);
     }
     setLoading(false);
@@ -62,19 +63,19 @@ export default function Evaluation() {
 
   const radarData = useMemo(() => {
     const softData = softTemplate?.competencias.map(skill => ({
-      competency: skill.name,
-      atual: softScores[skill.id] || 0,
-      ideal: skill.nivel_ideal,
+      competency: MOCK_COMPETENCIAS.find(c => c.id_competencia === skill.id_competencia)?.nome_competencia || 'N/A',
+      atual: softScores[skill.id_competencia] || 0,
+      ideal: skill.nota_ideal,
     })) || [];
 
     const techData = techBlocks.flatMap(block => {
-      const category = technicalCategories.find(c => c.id === block.categoria_id);
+      const category = technicalTemplate.find(c => c.id_categoria === block.categoria_id);
       if (!category) return [];
       
-      const specialization = category.especializacoes.find(s => s.id === block.especializacao_id);
+      const specialization = category.especializacoes.find(s => s.id_especializacao === block.especializacao_id);
       return specialization?.competencias.map(comp => ({
-        competency: comp.name,
-        atual: block.scores[comp.id] || 0,
+        competency: comp.nome_competencia,
+        atual: block.scores[comp.id_competencia] || 0,
         ideal: 4.0,
       })) || [];
     });
@@ -83,13 +84,13 @@ export default function Evaluation() {
   }, [softScores, techBlocks, softTemplate]);
 
   const selectedSpecializationIds = useMemo(() => techBlocks.map(b => b.especializacao_id), [techBlocks]);
-  const allSpecializationIds = useMemo(() => technicalCategories.flatMap(c => c.especializacoes.map(s => s.id)), []);
+  const allSpecializationIds = useMemo(() => technicalTemplate.flatMap(c => c.especializacoes.map(s => s.id_especializacao)), []);
   const canAddMore = selectedSpecializationIds.length < allSpecializationIds.length;
 
   const handleAddSpecialization = (categoryId: string, specializationId: string) => {
-    const category = technicalCategories.find(c => c.id === categoryId);
-    const specialization = category?.especializacoes.find(s => s.id === specializationId);
-    const initialScores = specialization?.competencias.reduce((acc, comp) => ({ ...acc, [comp.id]: 1 }), {}) || {};
+    const category = technicalTemplate.find(c => c.id_categoria === categoryId);
+    const specialization = category?.especializacoes.find(s => s.id_especializacao === specializationId);
+    const initialScores = specialization?.competencias.reduce((acc, comp) => ({ ...acc, [comp.id_competencia]: 1 }), {}) || {};
 
     setTechBlocks(prev => [...prev, { 
       categoria_id: categoryId, 
@@ -116,115 +117,54 @@ export default function Evaluation() {
   const isFinalSaveEnabled = techBlocks.length > 0 && techBlocks.every(b => b.completed);
 
   const handleSaveEvaluation = () => {
-    if (!isFinalSaveEnabled) {
-      const unsavedCount = techBlocks.filter(b => !b.completed).length;
-      const message = unsavedCount > 0 
-        ? `Existem ${unsavedCount} especialização(ões) técnica(s) não salva(s).`
-        : "Adicione e salve pelo menos uma avaliação técnica.";
-      toast({ variant: "destructive", title: "Ação necessária", description: message });
+    if (!isFinalSaveEnabled || !member) {
+      toast({ variant: "destructive", title: "Ação necessária", description: "Adicione e salve pelo menos uma avaliação técnica." });
       return;
     }
 
     const allSoftScores = Object.values(softScores);
     const allTechScores = techBlocks.flatMap(b => Object.values(b.scores));
 
-    const eixoY = allSoftScores.length > 0 ? allSoftScores.reduce((a, b) => a + b, 0) / allSoftScores.length : 0;
-    const eixoX = allTechScores.length > 0 ? allTechScores.reduce((a, b) => a + b, 0) / allTechScores.length : 0;
-    const nivel_maturidade = calcularNivelMaturidade(eixoY, eixoX);
+    const media_comportamental_1a4 = allSoftScores.length > 0 ? allSoftScores.reduce((a, b) => a + b, 0) / allSoftScores.length : 0;
+    const media_tecnica_1a4 = allTechScores.length > 0 ? allTechScores.reduce((a, b) => a + b, 0) / allTechScores.length : 0;
+    const maturidade_quadrante = calcularNivelMaturidade(media_tecnica_1a4, media_comportamental_1a4);
 
-    const newEvaluation = {
-      id: `av-${Date.now()}`,
-      id_lider: profile!.id,
-      id_liderado: memberId!,
-      eixo_x: parseFloat(eixoX.toFixed(2)),
-      eixo_y: parseFloat(eixoY.toFixed(2)),
-      nivel: nivel_maturidade,
-      data: new Date().toISOString(),
+    const newEvaluation: Avaliacao = {
+      id_avaliacao: `av-${Date.now()}`,
+      lider_id: profile!.id_usuario,
+      liderado_id: memberId!,
+      id_cargo: member.id_cargo,
+      media_tecnica_1a4: parseFloat(media_tecnica_1a4.toFixed(2)),
+      media_comportamental_1a4: parseFloat(media_comportamental_1a4.toFixed(2)),
+      maturidade_quadrante,
+      data_avaliacao: new Date().toISOString(),
+      status: 'CONCLUIDA',
+      observacoes: ''
     };
-    addAvaliacao(newEvaluation);
 
-    // Atualizar o objeto liderado no AuthContext com os novos dados de performance
-    const updatedCompetencias = [
+    const newPontuacoes: PontuacaoAvaliacao[] = [
       ...(softTemplate?.competencias.map(skill => ({
-        id_competencia: skill.id,
-        nome_competencia: skill.name,
-        tipo: 'COMPORTAMENTAL' as CompetenciaTipo,
-        id_categoria: 'soft-skills-geral', // ID genérico para soft skills
-        nome_categoria: 'Soft Skills',
-        id_especializacao: null,
-        nome_especializacao: null,
-        media_pontuacao: softScores[skill.id] || 0,
+        id_avaliacao: newEvaluation.id_avaliacao,
+        id_competencia: skill.id_competencia,
+        pontuacao_1a4: softScores[skill.id_competencia] || 0,
+        peso_aplicado: skill.peso,
       })) || []),
       ...techBlocks.flatMap(block => {
-        const category = technicalCategories.find(c => c.id === block.categoria_id);
-        const specialization = category?.especializacoes.find(s => s.id === block.especializacao_id);
+        const specialization = technicalTemplate
+          .flatMap(c => c.especializacoes)
+          .find(s => s.id_especializacao === block.especializacao_id);
         return specialization?.competencias.map(comp => ({
-          id_competencia: comp.id,
-          nome_competencia: comp.name,
-          tipo: 'TECNICA' as CompetenciaTipo,
-          id_categoria: block.categoria_id,
-          nome_categoria: category?.name || 'N/A',
-          id_especializacao: block.especializacao_id,
-          nome_especializacao: specialization?.name || 'N/A',
-          media_pontuacao: block.scores[comp.id] || 0,
+          id_avaliacao: newEvaluation.id_avaliacao,
+          id_competencia: comp.id_competencia,
+          pontuacao_1a4: block.scores[comp.id_competencia] || 0,
+          peso_aplicado: null,
         })) || [];
       }),
     ];
 
-    // Determinar categoria e especialização dominante
-    let categoriaDominante = 'Não Avaliado';
-    let especializacaoDominante = 'Não Avaliado';
+    addAvaliacao(newEvaluation, newPontuacoes);
 
-    if (updatedCompetencias.length > 0) {
-      const techCompetencias = updatedCompetencias.filter(c => c.tipo === 'TECNICA');
-      if (techCompetencias.length > 0) {
-        const categoriaMedias: Record<string, { soma: number, count: number }> = {};
-        techCompetencias.forEach(comp => {
-          if (!categoriaMedias[comp.id_categoria]) {
-            categoriaMedias[comp.id_categoria] = { soma: 0, count: 0 };
-          }
-          categoriaMedias[comp.id_categoria].soma += comp.media_pontuacao;
-          categoriaMedias[comp.id_categoria].count++;
-        });
-
-        const mediasCalculadas = Object.entries(categoriaMedias).map(([id, { soma, count }]) => ({
-          id_categoria: id,
-          media: soma / count,
-        }));
-
-        const melhorCategoria = mediasCalculadas.sort((a, b) => b.media - a.media)[0];
-        categoriaDominante = technicalCategories.find(c => c.id === melhorCategoria.id_categoria)?.name || 'N/A';
-
-        const especializacaoMedias: Record<string, { soma: number, count: number }> = {};
-        techCompetencias.filter(c => c.id_categoria === melhorCategoria.id_categoria && c.id_especializacao).forEach(comp => {
-          if (!especializacaoMedias[comp.id_especializacao!]) {
-            especializacaoMedias[comp.id_especializacao!] = { soma: 0, count: 0 };
-          }
-          especializacaoMedias[comp.id_especializacao!].soma += comp.media_pontuacao;
-          especializacaoMedias[comp.id_especializacao!].count++;
-        });
-
-        const mediasEspecializacaoCalculadas = Object.entries(especializacaoMedias).map(([id, { soma, count }]) => ({
-          id_especializacao: id,
-          media: soma / count,
-        }));
-
-        const melhorEspecializacao = mediasEspecializacaoCalculadas.sort((a, b) => b.media - a.media)[0];
-        const cat = technicalCategories.find(c => c.id === melhorCategoria.id_categoria);
-        especializacaoDominante = cat?.especializacoes.find(s => s.id === melhorEspecializacao.id_especializacao)?.name || 'N/A';
-      }
-    }
-
-    updateLideradoPerformance(memberId!, {
-      eixo_x_tecnico_geral: newEvaluation.eixo_x,
-      eixo_y_comportamental: newEvaluation.eixo_y,
-      nivel_maturidade: newEvaluation.nivel,
-      competencias: updatedCompetencias,
-      categoria_dominante: categoriaDominante,
-      especializacao_dominante: especializacaoDominante,
-    });
-
-    toast({ title: "Avaliação completa salva!", description: `A avaliação de ${member?.nome_liderado} foi concluída com sucesso.` });
+    toast({ title: "Avaliação completa salva!", description: `A avaliação de ${member?.nome} foi concluída com sucesso.` });
     navigate("/evaluation");
   };
 
@@ -232,8 +172,8 @@ export default function Evaluation() {
   if (!member) return null;
 
   const activeBlock = techBlocks.find(b => b.especializacao_id === activeTab);
-  const activeCategory = technicalCategories.find(c => c.id === activeBlock?.categoria_id);
-  const activeSpecialization = activeCategory?.especializacoes.find(s => s.id === activeBlock?.especializacao_id);
+  const activeCategory = technicalTemplate.find(c => c.id_categoria === activeBlock?.categoria_id);
+  const activeSpecialization = activeCategory?.especializacoes.find(s => s.id_especializacao === activeBlock?.especializacao_id);
 
   return (
     <div className="p-8">
@@ -245,9 +185,9 @@ export default function Evaluation() {
           <h1 className="text-3xl font-bold text-foreground">Avaliação de Competências</h1>
         </div>
         <div className="flex items-center gap-2">
-          <p className="text-xl font-semibold text-foreground">{member.nome_liderado}</p>
-          <Badge variant="secondary" className="capitalize">{member.cargo || "Não definido"}</Badge>
-          {lastEvaluation && <Badge className="bg-primary/10 text-primary">{lastEvaluation.nivel}</Badge>}
+          <p className="text-xl font-semibold text-foreground">{member.nome}</p>
+          <Badge variant="secondary" className="capitalize">{MOCK_CARGOS.find(c => c.id_cargo === member.id_cargo)?.nome_cargo || "Não definido"}</Badge>
+          {lastEvaluation && <Badge className="bg-primary/10 text-primary">{lastEvaluation.maturidade_quadrante}</Badge>}
         </div>
       </Card>
 
@@ -256,18 +196,21 @@ export default function Evaluation() {
           <Card>
             <CardHeader>
               <CardTitle>Competências Comportamentais</CardTitle>
-              <CardDescription>Avalie as habilidades de {member.nome_liderado}</CardDescription>
+              <CardDescription>Avalie as habilidades de {member.nome}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {softTemplate?.competencias.map(skill => (
-                <div key={skill.id}>
-                  <div className="flex justify-between items-center mb-2">
-                    <Label htmlFor={skill.id}>{skill.name} (Peso {skill.peso})</Label>
-                    <Badge variant="outline">{softScores[skill.id]}/4</Badge>
+              {softTemplate?.competencias.map(skill => {
+                const competencyDetails = MOCK_COMPETENCIAS.find(c => c.id_competencia === skill.id_competencia);
+                return (
+                  <div key={skill.id_competencia}>
+                    <div className="flex justify-between items-center mb-2">
+                      <Label htmlFor={skill.id_competencia}>{competencyDetails?.nome_competencia} (Peso {skill.peso})</Label>
+                      <Badge variant="outline">{softScores[skill.id_competencia]}/4</Badge>
+                    </div>
+                    <Slider id={skill.id_competencia} min={1} max={4} step={0.5} value={[softScores[skill.id_competencia] || 1]} onValueChange={([val]) => setSoftScores(prev => ({ ...prev, [skill.id_competencia]: val }))} />
                   </div>
-                  <Slider id={skill.id} min={1} max={4} step={0.5} value={[softScores[skill.id] || 1]} onValueChange={([val]) => setSoftScores(prev => ({ ...prev, [skill.id]: val }))} />
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         </div>
@@ -299,11 +242,11 @@ export default function Evaluation() {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="flex flex-wrap h-auto">
                 {techBlocks.map(block => {
-                  const category = technicalCategories.find(c => c.id === block.categoria_id);
-                  const specialization = category?.especializacoes.find(s => s.id === block.especializacao_id);
+                  const category = technicalTemplate.find(c => c.id_categoria === block.categoria_id);
+                  const specialization = category?.especializacoes.find(s => s.id_especializacao === block.especializacao_id);
                   return (
                     <TabsTrigger key={block.especializacao_id} value={block.especializacao_id} className="gap-2">
-                      {specialization?.name}
+                      {specialization?.nome_especializacao}
                       {block.completed && <Check className="w-4 h-4 text-primary" />}
                     </TabsTrigger>
                   );
@@ -312,18 +255,18 @@ export default function Evaluation() {
               {techBlocks.map(block => (
                 <TabsContent key={block.especializacao_id} value={block.especializacao_id} className="pt-4">
                   <div className="flex justify-between items-center mb-4 p-3 bg-muted/30 rounded-lg">
-                    <h3 className="font-semibold">{activeCategory?.name} &gt; {activeSpecialization?.name}</h3>
+                    <h3 className="font-semibold">{activeCategory?.nome_categoria} &gt; {activeSpecialization?.nome_especializacao}</h3>
                     <Badge variant={block.completed ? "default" : "secondary"}>{block.completed ? "Salvo" : "Não salvo"}</Badge>
                   </div>
                   {activeSpecialization && (
                     <div className="space-y-4">
                       {activeSpecialization.competencias.map(comp => (
-                        <div key={comp.id}>
+                        <div key={comp.id_competencia}>
                           <div className="flex justify-between items-center mb-2">
-                            <Label>{comp.name}</Label>
-                            <Badge variant="outline">{block.scores[comp.id] || "N/A"}/4</Badge>
+                            <Label>{comp.nome_competencia}</Label>
+                            <Badge variant="outline">{block.scores[comp.id_competencia] || "N/A"}/4</Badge>
                           </div>
-                          <Slider min={1} max={4} step={0.5} value={[block.scores[comp.id] || 1]} onValueChange={([val]) => handleScoreChange(block.especializacao_id, comp.id, val)} />
+                          <Slider min={1} max={4} step={0.5} value={[block.scores[comp.id_competencia] || 1]} onValueChange={([val]) => handleScoreChange(block.especializacao_id, comp.id_competencia, val)} />
                         </div>
                       ))}
                       <div className="flex justify-end">

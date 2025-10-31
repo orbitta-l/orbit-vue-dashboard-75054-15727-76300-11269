@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
-import { MOCK_USERS, MOCK_AVALIACAO, MOCK_PONTUACOES, MOCK_CARGOS } from '@/data/mockData';
+import { MOCK_USERS, MOCK_AVALIACAO, MOCK_PONTUACOES, MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
 import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade } from '@/types/mer';
 
 interface AuthContextType {
@@ -21,7 +21,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Usuários que sempre iniciarão em um estado de "primeiro acesso"
 const ALWAYS_FIRST_ACCESS_EMAILS = ['thais.lider@gmail.com', 'ramon.p@gmail.com'];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -54,11 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       setProfile(user);
       localStorage.setItem('orbitta_profile', JSON.stringify(user));
-
       if (user.role === 'LIDER' && !ALWAYS_FIRST_ACCESS_EMAILS.includes(user.email)) {
         loadMockData(user.id_usuario);
       } else {
-        // Carrega apenas os dados do próprio liderado se for um
         if (user.role === 'LIDERADO') {
             setAvaliacoes(MOCK_AVALIACAO.filter(a => a.liderado_id === user.id_usuario));
             setPontuacoes(MOCK_PONTUACOES.filter(p => MOCK_AVALIACAO.some(a => a.id_avaliacao === p.id_avaliacao && a.liderado_id === user.id_usuario)));
@@ -87,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ...novo,
       id_usuario: `lid-${Date.now()}`,
       ativo: true,
-      senha_hash: Math.random().toString(36).slice(-8), // Senha temporária
+      senha_hash: Math.random().toString(36).slice(-8),
       role: 'LIDERADO',
       lider_id: profile.id_usuario,
     };
@@ -116,6 +113,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .sort((a, b) => new Date(b.data_avaliacao).getTime() - new Date(a.data_avaliacao).getTime());
       
       const ultimaAvaliacao = lideradoAvaliacoes[0];
+
+      const competenciasDaUltimaAvaliacao = ultimaAvaliacao 
+        ? pontuacoes
+            .filter(p => p.id_avaliacao === ultimaAvaliacao.id_avaliacao)
+            .map(p => {
+                const compDetails = MOCK_COMPETENCIAS.find(c => c.id_competencia === p.id_competencia);
+                const especializacao = MOCK_ESPECIALIZACOES.find(e => e.id_especializacao === compDetails?.id_especializacao);
+                const categoria = MOCK_CATEGORIAS.find(cat => cat.id_categoria === especializacao?.id_categoria);
+                return {
+                    ...p,
+                    nome_competencia: compDetails?.nome_competencia || 'N/A',
+                    tipo: compDetails?.tipo || 'HARD',
+                    categoria_nome: categoria?.nome_categoria || (compDetails?.tipo === 'SOFT' ? 'Soft Skills' : 'N/A'),
+                    especializacao_nome: especializacao?.nome_especializacao || null,
+                };
+            })
+        : [];
       
       return {
         ...liderado,
@@ -127,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           maturidade_quadrante: ultimaAvaliacao.maturidade_quadrante,
           data_avaliacao: ultimaAvaliacao.data_avaliacao,
         } : undefined,
-        competencias: [], // Esta parte precisaria de uma lógica mais complexa para preencher
+        competencias: competenciasDaUltimaAvaliacao,
       };
     });
   }, [profile, liderados, avaliacoes, pontuacoes]);
