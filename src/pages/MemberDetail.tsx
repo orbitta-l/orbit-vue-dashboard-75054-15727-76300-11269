@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, User, Mail, Briefcase, Target, Award, Filter, X } from "lucide-react";
+import { ArrowLeft, User, Mail, Briefcase, Target, Award, Filter, X, Trash2, ClipboardCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, 
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
+import { toast } from "@/hooks/use-toast";
 
 export default function MemberDetail() {
   const { memberId } = useParams();
@@ -128,14 +129,39 @@ export default function MemberDetail() {
         }))
     : [];
 
+  const handleDeleteMember = () => {
+    // TODO: Implementar lógica real de exclusão de liderado no AuthContext
+    toast({
+      title: "Funcionalidade em desenvolvimento",
+      description: `A remoção de ${liderado.nome_liderado} ainda não está implementada.`,
+      variant: "destructive",
+    });
+    // Após a exclusão, navegar de volta para a lista de liderados
+    // navigate("/team");
+  };
+
+  const handleEvaluateMember = () => {
+    navigate(`/evaluation/${liderado.id_liderado}`);
+  };
+
   return (
     <div className="p-8">
-      {/* Header */}
-      <div className="mb-6">
-        <Button onClick={() => navigate(-1)} variant="ghost" className="mb-4">
-          <ArrowLeft className="w-4 h-4 mr-2" />
+      {/* Header com botões de ação */}
+      <div className="mb-6 flex items-center justify-between">
+        <Button onClick={() => navigate(-1)} variant="ghost" className="gap-2">
+          <ArrowLeft className="w-4 h-4" />
           Voltar
         </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={handleEvaluateMember} className="gap-2">
+            <ClipboardCheck className="w-4 h-4" />
+            Avaliar Competências
+          </Button>
+          <Button variant="destructive" onClick={handleDeleteMember} className="gap-2">
+            <Trash2 className="w-4 h-4" />
+            Excluir Liderado
+          </Button>
+        </div>
       </div>
 
       {/* Informações Básicas + Categoria/Especialização Dominante */}
@@ -156,7 +182,7 @@ export default function MemberDetail() {
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
                 <span>
-                  {liderado.nome_liderado.toLowerCase().replace(' ', '.')}@orbitta.com
+                  {liderado.email}
                 </span>
               </div>
             </div>
