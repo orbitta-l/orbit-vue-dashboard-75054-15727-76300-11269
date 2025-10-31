@@ -400,8 +400,9 @@ export default function Team() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sortedAndLimitedMembers.map((member) => {
-            // Encontrar as 3 melhores competências (técnicas e comportamentais)
-            const topCompetencies = member.competencias
+            // Encontrar as 3 melhores competências TÉCNICAS
+            const topTechnicalCompetencies = member.competencias
+              .filter(comp => comp.tipo === 'TECNICA') // Filtra apenas competências técnicas
               .sort((a, b) => b.media_pontuacao - a.media_pontuacao)
               .slice(0, 3);
 
@@ -437,12 +438,12 @@ export default function Team() {
                   )}
                 </div>
                 <div className="space-y-2 pt-4 border-t border-border">
-                  {topCompetencies.length > 0 ? (
-                    topCompetencies.map((comp, index) => (
-                      <div key={index} className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
-                          <Star className="w-4 h-4 text-gray-400 fill-gray-400 flex-shrink-0" /> {/* Estrela cinza com tamanho fixo */}
-                          <span className="truncate">{comp.nome_competencia}</span> {/* Texto truncado */}
+                  {topTechnicalCompetencies.length > 0 ? (
+                    topTechnicalCompetencies.map((comp, index) => (
+                      <div key={index} className="flex items-start justify-between text-sm text-muted-foreground">
+                        <div className="flex items-start gap-2 flex-1">
+                          <Star className="w-4 h-4 text-gray-400 fill-gray-400 flex-shrink-0 mt-1" />
+                          <span className="flex-1">{comp.nome_competencia}</span> {/* Remove truncate, allow wrapping */}
                         </div>
                         <span className="font-semibold text-foreground text-right flex-shrink-0">
                           ({comp.media_pontuacao.toFixed(1)})
