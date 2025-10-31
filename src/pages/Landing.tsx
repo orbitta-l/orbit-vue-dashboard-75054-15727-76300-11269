@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo.png';
+import Features from "@/components/Features";
+import Solution from "@/components/Solution";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -182,132 +184,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Solution Section */}
-      <section id="solucao" className="solution">
-        <div className="container">
-          <h2 className="section-title">
-            A <span className="highlight">Solução</span>
-          </h2>
-          <p className="section-subtitle">
-            Uma plataforma completa que atende todas as necessidades
-          </p>
-
-          <div className="card-grid">
-            <div className="solution-card">
-              <div className="solution-icon blue">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              </div>
-              <h3>Para o Líder</h3>
-              <p>Oferece visibilidade total das competências da equipe, transformando gestão em liderança estratégica.</p>
-              <div className="solution-corner blue"></div>
-            </div>
-
-            <div className="solution-card">
-              <div className="solution-icon orange">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </div>
-              <h3>Para o Liderado</h3>
-              <p>Cria um caminho claro de evolução profissional, conectando carreira e projetos.</p>
-              <div className="solution-corner orange"></div>
-            </div>
-
-            <div className="solution-card">
-              <div className="solution-icon mixed">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-              </div>
-              <h3>Para a Empresa</h3>
-              <p>Garante retenção de talentos e acelera resultados, cultivando uma cultura de crescimento.</p>
-              <div className="solution-corner mixed"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="funcionalidades" className="features">
-        <div className="container">
-          <h2 className="section-title">Funcionalidades</h2>
-          <p className="section-subtitle">
-            Ferramentas poderosas para líderes e liderados
-          </p>
-
-          {/* Leader Features */}
-          <div className="feature-category">
-            <div className="feature-header">
-              <div className="feature-header-icon blue">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              </div>
-              <h3>Líder Técnico</h3>
-            </div>
-
-            <div className="carousel-wrapper">
-              <div className="carousel-card">
-                <div className="carousel-icon blue">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: leaderFeatures[currentLeaderIndex].icon }}></svg>
-                </div>
-                <h4>{leaderFeatures[currentLeaderIndex].title}</h4>
-                <p>{leaderFeatures[currentLeaderIndex].description}</p>
-              </div>
-
-              <button className="carousel-arrow left blue" onClick={prevLeader} aria-label="Anterior">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-              </button>
-              <button className="carousel-arrow right blue" onClick={nextLeader} aria-label="Próximo">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-              </button>
-
-              <div className="carousel-dots">
-                {leaderFeatures.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`carousel-dot${index === currentLeaderIndex ? ' active blue' : ''}`}
-                    onClick={() => setCurrentLeaderIndex(index)}
-                    aria-label={`Slide ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Employee Features */}
-          <div className="feature-category">
-            <div className="feature-header">
-              <div className="feature-header-icon orange">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              </div>
-              <h3>Liderado</h3>
-            </div>
-
-            <div className="carousel-wrapper">
-              <div className="carousel-card">
-                <div className="carousel-icon orange">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: employeeFeatures[currentEmployeeIndex].icon }}></svg>
-                </div>
-                <h4>{employeeFeatures[currentEmployeeIndex].title}</h4>
-                <p>{employeeFeatures[currentEmployeeIndex].description}</p>
-              </div>
-
-              <button className="carousel-arrow left orange" onClick={prevEmployee} aria-label="Anterior">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-              </button>
-              <button className="carousel-arrow right orange" onClick={nextEmployee} aria-label="Próximo">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-              </button>
-
-              <div className="carousel-dots">
-                {employeeFeatures.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`carousel-dot${index === currentEmployeeIndex ? ' active orange' : ''}`}
-                    onClick={() => setCurrentEmployeeIndex(index)}
-                    aria-label={`Slide ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Solution />
+      <Features />
 
       {/* Orbit Laws Section */}
       <section id="leis" className="orbit-laws">
@@ -909,7 +787,7 @@ export default function Landing() {
         }
 
         .features {
-          background: linear-gradient(to bottom, #f5f5f5, #ffffff);
+          background: linear-gradient(to bottom, #ffffff, #f5f5f5);
           padding: 6rem 1.5rem;
         }
 
