@@ -6,12 +6,49 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer } from "recharts";
 import { useState, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, Liderado } from "@/contexts/AuthContext";
 import { Command, CommandEmpty, CommandGroup, CommandList, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CommandInputWithClear } from "@/components/CommandInputWithClear";
 import { toast } from "@/hooks/use-toast";
 import { softSkillTemplates, technicalCategories } from "@/data/evaluationTemplates";
+
+// Helper component for the member score indicators
+interface MemberScoreIndicatorsProps {
+  competencyName: string;
+  selectedMembers: Liderado[];
+  colors: string[];
+}
+
+const MemberScoreIndicators: React.FC<MemberScoreIndicatorsProps> = ({
+  competencyName,
+  selectedMembers,
+  colors,
+}) => {
+  return (
+    <div className="flex items-center gap-1 ml-auto">
+      {selectedMembers.map((member, index) => {
+        const memberCompetency = member.competencias.find(
+          (c) => c.nome_competencia === competencyName
+        );
+        const hasScore = memberCompetency && memberCompetency.media_pontuacao > 0;
+        const dotColor = colors[index % colors.length];
+
+        return (
+          <span
+            key={member.id_liderado}
+            className="w-2.5 h-2.5 rounded-full"
+            style={{
+              backgroundColor: hasScore ? dotColor : 'hsl(var(--muted-foreground) / 0.3)',
+              border: `1px solid ${dotColor}`,
+            }}
+            title={`${member.nome_liderado}: ${hasScore ? memberCompetency?.media_pontuacao.toFixed(1) : 'N/A'}`}
+          />
+        );
+      })}
+    </div>
+  );
+};
 
 export default function Compare() {
   const navigate = useNavigate();
@@ -36,25 +73,58 @@ export default function Compare() {
     [liderados, selectedMembersForComparison]
   );
 
-  // All available soft skill competencies
-  const allSoftSkillCompetencies = useMemo(() => {
+  // All unique Soft Skill competencies from templates
+  const allUniqueSoftSkillNames = useMemo(() => {
     const competencies = new Set<string>();
     softSkillTemplates.forEach(template => {
       template.competencias.forEach(comp => competencies.add(comp.name));
     });
-    return Array.from(competencies).sort();
+    return Array.from(competencies);
   }, []);
 
-  // All available hard skill competencies
-  const allHardSkillCompetencies = useMemo(() => {
+  // All unique Hard Skill competencies from templates
+  const allUniqueHardSkillNames = useMemo(() => {
     const competencies = new Set<string>();
     technicalCategories.forEach(category => {
       category.especializacoes.forEach(spec => {
         spec.competencias.forEach(comp => competencies.add(comp.name));
       });
     });
-    return Array.from(competencies).sort();
+    return Array.from(competencies);
   }, []);
+
+  // Function to sort competencies based on selected members' scores
+  const getSortedCompetencies = (
+    competencyNames: string[],
+    members: Liderado[],
+    isSoftSkill: boolean
+  ) => {
+    const competenciesWithRelevance = competencyNames.map(compName => {
+      const hasRelevantScore = members.some(member =>
+        member.competencias.some(c =>
+          c.nome_competencia === compName && c.media_pontuacao > 0 &&
+          (isSoftSkill ? c.tipo === 'COMPORTAMENTAL' : c.tipo === 'TECNICA')
+        )
+      );
+      return { name: compName, hasRelevantScore };
+    });
+
+    return competenciesWithRelevance.sort((a, b) => {
+      // Prioritize competencies with relevant scores
+      if (a.hasRelevantScore && !b.hasRelevantScore) return -1;
+      if (!a.hasRelevantScore && b.hasRelevantScore) return 1;
+      // Then sort alphabetically
+      return a.name.localeCompare(b.name);
+    }).map(item => item.name);
+  };
+
+  const sortedAllSoftSkillCompetencies = useMemo(() => {
+    return getSortedCompetencies(allUniqueSoftSkillNames, selectedMembers, true);
+  }, [allUniqueSoftSkillNames, selectedMembers]);
+
+  const sortedAllHardSkillCompetencies = useMemo(() => {
+    return getSortedCompetencies(allUniqueHardSkillNames, selectedMembers, false);
+  }, [allUniqueHardSkillNames, selectedMembers]);
 
   const handleToggleMemberForComparison = (memberId: string) => {
     setSelectedMembersForComparison(prev => {
@@ -203,19 +273,27 @@ export default function Compare() {
                   <CommandList>
                     <CommandEmpty>Nenhuma Soft Skill encontrada.</CommandEmpty>
                     <CommandGroup>
-                      {allSoftSkillCompetencies
+                      {sortedAllSoftSkillCompetencies
                         .filter(skill => skill.toLowerCase().includes(softSkillSearch.toLowerCase()))
                         .map(skill => (
                           <CommandItem
                             key={skill}
                             onSelect={() => handleToggleSoftSkill(skill)}
+                            className="flex items-center justify-between"
                           >
-                            <Checkbox
-                              checked={selectedSoftSkills.includes(skill)}
-                              onCheckedChange={() => handleToggleSoftSkill(skill)}
-                              className="mr-2"
+                            <div className="flex items-center">
+                              <Checkbox
+                                checked={selectedSoftSkills.includes(skill)}
+                                onCheckedChange={() => handleToggleSoftSkill(skill)}
+                                className="mr-2"
+                              />
+                              {skill}
+                            </div>
+                            <MemberScoreIndicators
+                              competencyName={skill}
+                              selectedMembers={selectedMembers}
+                              colors={colors}
                             />
-                            {skill}
                           </CommandItem>
                         ))}
                     </CommandGroup>
@@ -242,19 +320,27 @@ export default function Compare() {
                   <CommandList>
                     <CommandEmpty>Nenhuma Hard Skill encontrada.</CommandEmpty>
                     <CommandGroup>
-                      {allHardSkillCompetencies
+                      {sortedAllHardSkillCompetencies
                         .filter(skill => skill.toLowerCase().includes(hardSkillSearch.toLowerCase()))
                         .map(skill => (
                           <CommandItem
                             key={skill}
                             onSelect={() => handleToggleHardSkill(skill)}
+                            className="flex items-center justify-between"
                           >
-                            <Checkbox
-                              checked={selectedHardSkills.includes(skill)}
-                              onCheckedChange={() => handleToggleHardSkill(skill)}
-                              className="mr-2"
+                            <div className="flex items-center">
+                              <Checkbox
+                                checked={selectedHardSkills.includes(skill)}
+                                onCheckedChange={() => handleToggleHardSkill(skill)}
+                                className="mr-2"
+                              />
+                              {skill}
+                            </div>
+                            <MemberScoreIndicators
+                              competencyName={skill}
+                              selectedMembers={selectedMembers}
+                              colors={colors}
                             />
-                            {skill}
                           </CommandItem>
                         ))}
                     </CommandGroup>
