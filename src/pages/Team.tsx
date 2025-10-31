@@ -20,6 +20,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { technicalCategories } from "@/data/evaluationTemplates";
 import { cargoMap } from "@/utils/cargoUtils";
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
+import { cn } from "@/lib/utils"; // Import cn
 
 // Mapeamento de categorias técnicas para ícones Lucide
 const categoryIcons: Record<string, React.ElementType> = {

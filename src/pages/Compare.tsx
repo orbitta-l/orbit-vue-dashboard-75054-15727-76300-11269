@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, Liderado } from "@/contexts/AuthContext";
 import { CompetenciaTipo } from "@/types/mer";
-import { Command, CommandEmpty, CommandGroup, CommandList } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandList, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CommandInputWithClear } from "@/components/CommandInputWithClear"; // Importa o novo componente
 

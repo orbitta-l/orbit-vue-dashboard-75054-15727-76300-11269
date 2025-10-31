@@ -400,6 +400,7 @@ export const technicalCategories: TechnicalCategory[] = [
           },
           {
             id: "resposta-incidentes",
+            name: "Resposta a Incidentes", // Adicionado 'name'
             descricao: "Detecção, contenção e lições aprendidas.",
           },
         ],
@@ -458,6 +459,7 @@ export const technicalCategories: TechnicalCategory[] = [
           },
           {
             id: "justificativas-visuais",
+            name: "Justificativas Visuais", // Adicionado 'name'
             descricao: "Racional de escolhas e documentação de decisão.",
           },
         ],

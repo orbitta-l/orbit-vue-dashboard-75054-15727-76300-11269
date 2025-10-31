@@ -61,7 +61,7 @@ export function isPrimeiroAcesso(user: Profile | null, liderados: Liderado[], av
   return (liderados?.length ?? 0) === 0 || (avaliacoes?.length ?? 0) === 0;
 }
 
-export function AuthProvider({ children }: { ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [liderados, setLiderados] = useState<Liderado[]>([]);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
