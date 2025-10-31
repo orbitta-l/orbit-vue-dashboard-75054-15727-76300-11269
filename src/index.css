@@ -63,6 +63,7 @@ All colors MUST be HSL.
     --color-critical: 21 58% 71%; /* Using accent for critical gaps */
     --color-good: 142 71% 45%;
     --color-mid: 45 93% 47%;
+    --color-talent-glow: 45 93% 60%; /* Cor para o brilho do talento */
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -107,5 +108,11 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .talent-glow {
+    box-shadow: 0 0 20px 5px hsl(var(--color-talent-glow) / 0.5);
   }
 }

@@ -342,7 +342,7 @@ export default function Team() {
             return (
               <Card 
                 key={member.id_liderado} 
-                className="relative overflow-hidden w-full max-w-[280px] mx-auto p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1" 
+                className={`relative overflow-hidden w-full max-w-[280px] mx-auto p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 ${talentMemberId === member.id_liderado ? 'talent-glow' : ''}`} 
                 onClick={() => navigate(`/team/${member.id_liderado}`)}
               >
                 {talentMemberId === member.id_liderado && (
