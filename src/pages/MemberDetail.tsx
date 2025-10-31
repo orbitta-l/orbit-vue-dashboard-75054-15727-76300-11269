@@ -175,16 +175,16 @@ export default function MemberDetail() {
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-foreground mb-2">{liderado.nome_liderado}</h1>
             
-            {/* Cargo */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-              <Briefcase className="w-4 h-4" />
-              <span>{liderado.cargo}</span>
-            </div>
-            
             {/* Email */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
               <Mail className="w-4 h-4" />
               <span>{liderado.email}</span>
+            </div>
+
+            {/* Cargo */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+              <Briefcase className="w-4 h-4" />
+              <span>{liderado.cargo}</span>
             </div>
             
             {/* Divider and then Categoria e Especialização Dominante */}

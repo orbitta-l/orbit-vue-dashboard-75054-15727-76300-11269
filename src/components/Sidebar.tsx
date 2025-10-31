@@ -1,4 +1,4 @@
-import { Home, Users, ClipboardCheck, LogOut, Settings } from "lucide-react";
+import { Home, Users, ClipboardCheck, LogOut, Settings, Mail, Briefcase } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -51,8 +51,13 @@ export const Sidebar = () => {
             <p className="text-base font-medium text-sidebar-foreground truncate">
               {profile?.name || 'Usuário'}
             </p>
-            <p className="text-sm text-sidebar-foreground/70 truncate">
+            <p className="text-sm text-sidebar-foreground/70 truncate flex items-center justify-center gap-1">
+              <Briefcase className="w-3 h-3" />
               {profile?.role === 'lider' ? 'Tech Lead' : 'Desenvolvedor'}
+            </p>
+            <p className="text-sm text-sidebar-foreground/70 truncate flex items-center justify-center gap-1">
+              <Mail className="w-3 h-3" />
+              {profile?.email || 'email@exemplo.com'}
             </p>
           </div>
         </div>
