@@ -47,7 +47,7 @@ export const Sidebar = () => {
         <Button
           variant="ghost"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute top-2 left-2 p-1 rounded-full bg-transparent text-sidebar-foreground/80 hover:bg-sidebar-accent/20 hover:text-sidebar-foreground transition-colors border border-transparent opacity-50 hover:opacity-100"
+          className="absolute top-1/2 -translate-y-1/2 right-2 p-1 rounded-full bg-transparent text-sidebar-foreground/80 hover:bg-sidebar-accent/20 hover:text-sidebar-foreground transition-colors border border-transparent"
           aria-label={isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
