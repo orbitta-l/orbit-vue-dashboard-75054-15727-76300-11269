@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Plus, Search, ChevronDown, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, CalendarDays, HeartHandshake, PersonStanding, CircleUserRound, Star } from "lucide-react";
+import { Plus, Search, ChevronDown, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -16,7 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SexoTipo, NivelMaturidade } from "@/types/mer";
+import { SexoTipo, NivelMaturidade, LideradoPerformance } from "@/types/mer";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { technicalCategories } from "@/data/evaluationTemplates";
 import { cargoMap } from "@/utils/cargoUtils"; // Importando o cargoMap do utilitário
@@ -83,7 +83,6 @@ export default function Team() {
   const [filterSpecialization, setFilterSpecialization] = useState<string>("all");
   const [filterCompetency, setFilterCompetency] = useState<string>("all");
 
-  // Declaração de AgeRanges movida para antes do useMemo de filteredMembers
   const AgeRanges: { [key: string]: { label: string; min?: number; max?: number } } = {
     all: { label: "Todas as idades" },
     "<21": { label: "<21", max: 20 },
@@ -171,15 +170,34 @@ export default function Team() {
     return specialization ? specialization.competencias.map(comp => ({ id: comp.id, name: comp.name })) : [];
   }, [filterArea, filterSpecialization]);
 
-  const filteredMembers = useMemo(() => {
+  const calculateMemberScoreInFilterContext = (member: LideradoPerformance) => {
+    if (filterCompetency !== "all") {
+      return member.competencias.find(c => c.id_competencia === filterCompetency)?.media_pontuacao || 0;
+    }
+    if (filterSpecialization !== "all") {
+      const relevantCompetencies = member.competencias.filter(c => c.id_especializacao === filterSpecialization);
+      if (relevantCompetencies.length === 0) return 0;
+      const sum = relevantCompetencies.reduce((acc, c) => acc + c.media_pontuacao, 0);
+      return sum / relevantCompetencies.length;
+    }
+    if (filterArea !== "all") {
+      const relevantCompetencies = member.competencias.filter(c => c.id_categoria === filterArea);
+      if (relevantCompetencies.length === 0) return 0;
+      const sum = relevantCompetencies.reduce((acc, c) => acc + c.media_pontuacao, 0);
+      return sum / relevantCompetencies.length;
+    }
+    return 0; // No specific filter, no talent score for this context
+  };
+
+  const sortedAndLimitedMembers = useMemo(() => {
     let members = liderados.filter(member =>
       member.nome_liderado.toLowerCase().includes(searchName.toLowerCase())
     );
 
+    // Apply other filters first
     if (filterMaturityLevel !== "all") {
       members = members.filter(member => member.nivel_maturidade === filterMaturityLevel);
     }
-
     if (AgeRanges[filterAgeRange]) {
       members = members.filter(member => {
         const age = member.idade;
@@ -189,40 +207,41 @@ export default function Team() {
         return true;
       });
     }
-
     if (filterGender !== "all") {
       members = members.filter(member => member.sexo === filterGender);
     }
 
+    // Apply area/specialization/competency filters
     if (filterArea !== "all") {
       members = members.filter(member => member.competencias?.some(comp => comp.id_categoria === filterArea));
     }
-
     if (filterSpecialization !== "all") {
       members = members.filter(member => member.competencias?.some(comp => comp.id_especializacao === filterSpecialization));
     }
-
     if (filterCompetency !== "all") {
       members = members.filter(member => member.competencias?.some(c => c.id_competencia === filterCompetency));
     }
-    return members;
+
+    // Determine if a specific talent filter is active
+    const isTalentFilterActive = filterArea !== "all" || filterSpecialization !== "all" || filterCompetency !== "all";
+
+    if (isTalentFilterActive) {
+      // Sort by talent score in the active filter context
+      members.sort((a, b) => calculateMemberScoreInFilterContext(b) - calculateMemberScoreInFilterContext(a));
+      // Limit to top 3 only if a talent filter is active
+      return members.slice(0, 3);
+    }
+
+    return members; // If no talent filter, return all filtered members without special sorting/limiting
   }, [liderados, searchName, filterMaturityLevel, filterAgeRange, filterGender, filterArea, filterSpecialization, filterCompetency]);
 
   const talentMemberId = useMemo(() => {
-    if (filterCompetency === "all" || filteredMembers.length === 0) return null;
-
-    let bestScore = -1;
-    let talentId: string | null = null;
-
-    filteredMembers.forEach(member => {
-      const competencyScore = member.competencias.find(c => c.id_competencia === filterCompetency)?.media_pontuacao || 0;
-      if (competencyScore > bestScore) {
-        bestScore = competencyScore;
-        talentId = member.id_liderado;
-      }
-    });
-    return talentId;
-  }, [filteredMembers, filterCompetency]);
+    const isTalentFilterActive = filterArea !== "all" || filterSpecialization !== "all" || filterCompetency !== "all";
+    if (isTalentFilterActive && sortedAndLimitedMembers.length > 0) {
+      return sortedAndLimitedMembers[0].id_liderado;
+    }
+    return null;
+  }, [sortedAndLimitedMembers, filterArea, filterSpecialization, filterCompetency]);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -233,7 +252,7 @@ export default function Team() {
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="w-6 h-6 text-primary" /></div>
               <h1 className="text-3xl font-bold text-foreground">Liderados</h1>
             </div>
-            <p className="text-muted-foreground">{filteredMembers.length} {filteredMembers.length === 1 ? 'liderado encontrado' : 'liderados encontrados'}</p>
+            <p className="text-muted-foreground">{sortedAndLimitedMembers.length} {sortedAndLimitedMembers.length === 1 ? 'liderado encontrado' : 'liderados encontrados'}</p>
           </div>
           <div className="flex gap-3 w-full md:w-auto">
             <div className="relative flex-1 md:flex-none">
@@ -338,7 +357,7 @@ export default function Team() {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredMembers.map((member) => {
+          {sortedAndLimitedMembers.map((member) => {
             // Encontrar a melhor competência técnica
             const topTechnicalCompetency = member.competencias
               .filter(c => c.tipo === 'TECNICA')
@@ -366,7 +385,8 @@ export default function Team() {
                       {getInitials(member.nome_liderado)}
                     </AvatarFallback>
                   </Avatar>
-                  <h3 className="font-semibold text-lg text-foreground mb-1">{member.nome_liderado}</h3>
+                  <h3 className="font-semibold text-lg text-foreground">{member.nome_liderado}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">{member.email}</p>
                   {member.cargo_id && (
                     <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2`}>
                       {cargoMap[member.cargo_id]?.name || member.cargo}
@@ -376,17 +396,10 @@ export default function Team() {
                 <div className="space-y-2 pt-4 border-t border-border">
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-primary" />
-                      <span>Maturidade</span>
-                    </div>
-                    <span className="font-semibold text-foreground">{member.nivel_maturidade || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       <span>Melhor Comp. Técnica</span>
                     </div>
-                    <span className="font-semibold text-foreground truncate max-w-[120px]">
+                    <span className="font-semibold text-foreground text-right">
                       {topTechnicalCompetency ? `${topTechnicalCompetency.nome_competencia} (${topTechnicalCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
                     </span>
                   </div>
@@ -395,7 +408,7 @@ export default function Team() {
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       <span>Melhor Comp. Comportamental</span>
                     </div>
-                    <span className="font-semibold text-foreground truncate max-w-[120px]">
+                    <span className="font-semibold text-foreground text-right">
                       {topBehavioralCompetency ? `${topBehavioralCompetency.nome_competencia} (${topBehavioralCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
                     </span>
                   </div>
@@ -404,7 +417,7 @@ export default function Team() {
             );
           })}
         </div>
-        {filteredMembers.length === 0 && (<div className="text-center py-12"><p className="text-muted-foreground">Nenhum liderado encontrado com os filtros selecionados.</p></div>)}
+        {sortedAndLimitedMembers.length === 0 && (<div className="text-center py-12"><p className="text-muted-foreground">Nenhum liderado encontrado com os filtros selecionados.</p></div>)}
       </main>
 
       {/* Filter Sidebar */}
@@ -417,12 +430,9 @@ export default function Team() {
             </SheetTitle>
           </SheetHeader>
           <div className="flex-1 space-y-6 mt-6">
-            <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <h3 className="font-semibold text-foreground uppercase text-sm">Maturidade Geral</h3>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3 flex flex-wrap gap-2">
+            <div>
+              <h3 className="font-semibold text-foreground text-sm mb-3">MATURIDADE GERAL</h3>
+              <div className="flex flex-wrap gap-2">
                 {["all", "M1", "M2", "M3", "M4"].map((level) => (
                   <Badge
                     key={level}
@@ -433,15 +443,12 @@ export default function Team() {
                     {level === "all" ? "Todos" : level}
                   </Badge>
                 ))}
-              </CollapsibleContent>
-            </Collapsible>
+              </div>
+            </div>
 
-            <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <h3 className="font-semibold text-foreground uppercase text-sm">Área Específica</h3>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3 space-y-3">
+            <div>
+              <h3 className="font-semibold text-foreground text-sm mb-3">ÁREA ESPECÍFICA</h3>
+              <div className="mt-3 space-y-3">
                 <Select value={filterArea} onValueChange={(value) => {
                   setFilterArea(value);
                   setFilterSpecialization("all"); // Reset specialization when area changes
@@ -466,16 +473,13 @@ export default function Team() {
                     })}
                   </SelectContent>
                 </Select>
-              </CollapsibleContent>
-            </Collapsible>
+              </div>
+            </div>
 
             {filterArea !== "all" && (
-              <Collapsible defaultOpen>
-                <CollapsibleTrigger className="flex items-center justify-between w-full pl-4"> {/* Added pl-4 for 'subfolder' effect */}
-                  <h3 className="font-semibold text-foreground uppercase text-sm">Especialização</h3>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-3 space-y-3 pl-4"> {/* Added pl-4 for 'subfolder' effect */}
+              <div className="pl-4"> {/* Added pl-4 for 'subfolder' effect */}
+                <h3 className="font-semibold text-foreground text-sm mb-3">ESPECIALIZAÇÃO</h3>
+                <div className="mt-3 space-y-3">
                   <Select value={filterSpecialization} onValueChange={(value) => {
                     setFilterSpecialization(value);
                     setFilterCompetency("all"); // Reset competency when specialization changes
@@ -486,17 +490,14 @@ export default function Team() {
                       {availableSpecializations.map((spec) => (<SelectItem key={spec.id} value={spec.id}>{spec.name}</SelectItem>))}
                     </SelectContent>
                   </Select>
-                </CollapsibleContent>
-              </Collapsible>
+                </div>
+              </div>
             )}
 
             {filterSpecialization !== "all" && (
-              <Collapsible defaultOpen>
-                <CollapsibleTrigger className="flex items-center justify-between w-full pl-8"> {/* Added pl-8 for 'subfolder' effect */}
-                  <h3 className="font-semibold text-foreground uppercase text-sm">Competência</h3>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-3 space-y-3 pl-8"> {/* Added pl-8 for 'subfolder' effect */}
+              <div className="pl-8"> {/* Added pl-8 for 'subfolder' effect */}
+                <h3 className="font-semibold text-foreground text-sm mb-3">COMPETÊNCIA</h3>
+                <div className="mt-3 space-y-3">
                   <Select value={filterCompetency} onValueChange={setFilterCompetency} disabled={availableCompetencies.length === 0}>
                     <SelectTrigger><SelectValue placeholder="Selecione uma competência" /></SelectTrigger>
                     <SelectContent>
@@ -504,16 +505,13 @@ export default function Team() {
                       {availableCompetencies.map((comp) => (<SelectItem key={comp.id} value={comp.id}>{comp.name}</SelectItem>))}
                     </SelectContent>
                   </Select>
-                </CollapsibleContent>
-              </Collapsible>
+                </div>
+              </div>
             )}
 
-            <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <h3 className="font-semibold text-foreground uppercase text-sm">Idade</h3>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3 flex flex-wrap gap-2">
+            <div>
+              <h3 className="font-semibold text-foreground text-sm mb-3">IDADE</h3>
+              <div className="mt-3 flex flex-wrap gap-2">
                 {Object.keys(AgeRanges).map((rangeKey) => (
                   <Badge
                     key={rangeKey}
@@ -524,15 +522,12 @@ export default function Team() {
                     {AgeRanges[rangeKey].label}
                   </Badge>
                 ))}
-              </CollapsibleContent>
-            </Collapsible>
+              </div>
+            </div>
 
-            <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <h3 className="font-semibold text-foreground uppercase text-sm">Gênero</h3>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3 flex flex-wrap gap-2">
+            <div>
+              <h3 className="font-semibold text-foreground text-sm mb-3">GÊNERO</h3>
+              <div className="mt-3 flex flex-wrap gap-2">
                 {[
                   { key: "all", label: "Todos", icon: Users },
                   { key: "FEMININO", label: "Feminino", icon: PersonStanding },
