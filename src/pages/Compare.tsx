@@ -7,48 +7,9 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, 
 import { useState, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, Liderado } from "@/contexts/AuthContext";
-import { Command, CommandEmpty, CommandGroup, CommandList, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CommandInputWithClear } from "@/components/CommandInputWithClear";
 import { toast } from "@/hooks/use-toast";
 import { softSkillTemplates, technicalCategories } from "@/data/evaluationTemplates";
-
-// Helper component for the member score indicators
-interface MemberScoreIndicatorsProps {
-  competencyName: string;
-  selectedMembers: Liderado[];
-  colors: string[];
-}
-
-const MemberScoreIndicators: React.FC<MemberScoreIndicatorsProps> = ({
-  competencyName,
-  selectedMembers,
-  colors,
-}) => {
-  return (
-    <div className="flex items-center gap-1 ml-auto">
-      {selectedMembers.map((member, index) => {
-        const memberCompetency = member.competencias.find(
-          (c) => c.nome_competencia === competencyName
-        );
-        const hasScore = memberCompetency && memberCompetency.media_pontuacao > 0;
-        const dotColor = colors[index % colors.length];
-
-        return (
-          <span
-            key={member.id_liderado}
-            className="w-2.5 h-2.5 rounded-full"
-            style={{
-              backgroundColor: hasScore ? dotColor : 'hsl(var(--muted-foreground) / 0.3)',
-              border: `1px solid ${dotColor}`,
-            }}
-            title={`${member.nome_liderado}: ${hasScore ? memberCompetency?.media_pontuacao.toFixed(1) : 'N/A'}`}
-          />
-        );
-      })}
-    </div>
-  );
-};
+import { cn } from "@/lib/utils";
 
 export default function Compare() {
   const navigate = useNavigate();
@@ -56,93 +17,67 @@ export default function Compare() {
   const memberIds = searchParams.get("members")?.split(",") || [];
   const { liderados } = useAuth();
 
-  // Comparison Mode states
-  // Initialize with max 4 members from URL params
   const [selectedMembersForComparison, setSelectedMembersForComparison] = useState<string[]>(memberIds.slice(0, 4));
-
-  // New states for filters
   const [selectedSoftSkills, setSelectedSoftSkills] = useState<string[]>([]);
   const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>([]);
-  const [isSoftSkillSelectOpen, setIsSoftSkillSelectOpen] = useState(false);
-  const [isHardSkillSelectOpen, setIsHardSkillSelectOpen] = useState(false);
-  const [softSkillSearch, setSoftSkillSearch] = useState("");
-  const [hardSkillSearch, setHardSkillSearch] = useState("");
 
   const selectedMembers = useMemo(() => 
     liderados.filter(m => selectedMembersForComparison.includes(m.id_liderado)), 
     [liderados, selectedMembersForComparison]
   );
 
-  // All unique Soft Skill competencies from templates
-  const allUniqueSoftSkillNames = useMemo(() => {
-    const competencies = new Set<string>();
-    softSkillTemplates.forEach(template => {
-      template.competencias.forEach(comp => competencies.add(comp.name));
-    });
-    return Array.from(competencies);
-  }, []);
+  // Cores para os liderados no gráfico
+  const colors = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
 
-  // All unique Hard Skill competencies from templates
-  const allUniqueHardSkillNames = useMemo(() => {
-    const competencies = new Set<string>();
-    technicalCategories.forEach(category => {
-      category.especializacoes.forEach(spec => {
-        spec.competencias.forEach(comp => competencies.add(comp.name));
-      });
-    });
-    return Array.from(competencies);
-  }, []);
-
-  // Function to sort competencies based on selected members' scores
+  // Função para obter e ordenar competências
   const getSortedCompetencies = (
-    competencyNames: string[],
+    competencyTemplates: Array<{ name: string; type: 'COMPORTAMENTAL' | 'TECNICA' }>,
     members: Liderado[],
-    isSoftSkill: boolean
+    competencyType: 'COMPORTAMENTAL' | 'TECNICA'
   ) => {
-    const competenciesWithRelevance = competencyNames.map(compName => {
+    const competenciesWithRelevance = competencyTemplates.map(comp => {
       const hasRelevantScore = members.some(member =>
         member.competencias.some(c =>
-          c.nome_competencia === compName && c.media_pontuacao > 0 &&
-          (isSoftSkill ? c.tipo === 'COMPORTAMENTAL' : c.tipo === 'TECNICA')
+          c.nome_competencia === comp.name && c.media_pontuacao > 0 && c.tipo === competencyType
         )
       );
-      return { name: compName, hasRelevantScore };
+      return { name: comp.name, hasRelevantScore };
     });
 
     return competenciesWithRelevance.sort((a, b) => {
-      // Prioritize competencies with relevant scores
       if (a.hasRelevantScore && !b.hasRelevantScore) return -1;
       if (!a.hasRelevantScore && b.hasRelevantScore) return 1;
-      // Then sort alphabetically
       return a.name.localeCompare(b.name);
-    }).map(item => item.name);
-  };
-
-  const sortedAllSoftSkillCompetencies = useMemo(() => {
-    return getSortedCompetencies(allUniqueSoftSkillNames, selectedMembers, true);
-  }, [allUniqueSoftSkillNames, selectedMembers]);
-
-  const sortedAllHardSkillCompetencies = useMemo(() => {
-    return getSortedCompetencies(allUniqueHardSkillNames, selectedMembers, false);
-  }, [allUniqueHardSkillNames, selectedMembers]);
-
-  const handleToggleMemberForComparison = (memberId: string) => {
-    setSelectedMembersForComparison(prev => {
-      if (prev.includes(memberId)) {
-        return prev.filter(id => id !== memberId);
-      } else {
-        if (prev.length >= 4) {
-          toast({
-            variant: "destructive",
-            title: "Limite de comparação atingido",
-            description: "Você pode comparar no máximo 4 liderados por vez.",
-          });
-          return prev; // Don't add the new member
-        }
-        return [...prev, memberId];
-      }
     });
   };
+
+  // Todas as Soft Skills únicas dos templates
+  const allUniqueSoftSkillTemplates = useMemo(() => {
+    const competencies = new Map<string, { name: string; type: 'COMPORTAMENTAL' | 'TECNICA' }>();
+    softSkillTemplates.forEach(template => {
+      template.competencias.forEach(comp => competencies.set(comp.name, { name: comp.name, type: 'COMPORTAMENTAL' }));
+    });
+    return Array.from(competencies.values());
+  }, []);
+
+  // Todas as Hard Skills únicas dos templates
+  const allUniqueHardSkillTemplates = useMemo(() => {
+    const competencies = new Map<string, { name: string; type: 'COMPORTAMENTAL' | 'TECNICA' }>();
+    technicalCategories.forEach(category => {
+      category.especializacoes.forEach(spec => {
+        spec.competencias.forEach(comp => competencies.set(comp.name, { name: comp.name, type: 'TECNICA' }));
+      });
+    });
+    return Array.from(competencies.values());
+  }, []);
+
+  const sortedSoftSkillChips = useMemo(() => {
+    return getSortedCompetencies(allUniqueSoftSkillTemplates, selectedMembers, 'COMPORTAMENTAL');
+  }, [allUniqueSoftSkillTemplates, selectedMembers]);
+
+  const sortedHardSkillChips = useMemo(() => {
+    return getSortedCompetencies(allUniqueHardSkillTemplates, selectedMembers, 'TECNICA');
+  }, [allUniqueHardSkillTemplates, selectedMembers]);
 
   const handleToggleSoftSkill = (skill: string) => {
     setSelectedSoftSkills(prev =>
@@ -161,10 +96,10 @@ export default function Compare() {
 
     const combinedSelectedCompetencies = [...selectedSoftSkills, ...selectedHardSkills];
     if (combinedSelectedCompetencies.length === 0) {
-      return []; // Return empty if no competencies are selected
+      return [];
     }
 
-    const radarDataMap: Record<string, any> = {}; // Key: competency name
+    const radarDataMap: Record<string, any> = {};
 
     combinedSelectedCompetencies.forEach(compName => {
       radarDataMap[compName] = { subject: compName, PerfilIdeal: 4.0, fullMark: 4 };
@@ -179,11 +114,8 @@ export default function Compare() {
   };
 
   const radarData = getRadarChartData();
+  const totalSelectedCompetencies = selectedSoftSkills.length + selectedHardSkills.length;
 
-  // Cores: Azul Primário, Laranja, Cinza, Roxo
-  const colors = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
-
-  // If no members are selected, show a message
   if (selectedMembers.length === 0) {
     return (
       <div className="p-8">
@@ -243,7 +175,7 @@ export default function Compare() {
         ))}
       </div>
 
-      {/* Gráfico de Radar e Filtros */}
+      {/* Gráfico de Radar e Filtros de Chips */}
       <Card className="p-6 bg-gradient-to-br from-card to-card/50">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
           <div>
@@ -254,150 +186,107 @@ export default function Compare() {
               O polígono externo (Ideal) representa a nota máxima (4.0) esperada em cada competência.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Soft Skills Filter */}
-            <Popover open={isSoftSkillSelectOpen} onOpenChange={setIsSoftSkillSelectOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  Soft Skills ({selectedSoftSkills.length})
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                <Command>
-                  <CommandInputWithClear
-                    placeholder="Buscar Soft Skill..."
-                    value={softSkillSearch}
-                    onValueChange={setSoftSkillSearch}
-                  />
-                  <CommandList>
-                    <CommandEmpty>Nenhuma Soft Skill encontrada.</CommandEmpty>
-                    <CommandGroup>
-                      {sortedAllSoftSkillCompetencies
-                        .filter(skill => skill.toLowerCase().includes(softSkillSearch.toLowerCase()))
-                        .map(skill => (
-                          <CommandItem
-                            key={skill}
-                            onSelect={() => handleToggleSoftSkill(skill)}
-                            className="flex items-center justify-between"
-                          >
-                            <div className="flex items-center">
-                              <Checkbox
-                                checked={selectedSoftSkills.includes(skill)}
-                                onCheckedChange={() => handleToggleSoftSkill(skill)}
-                                className="mr-2"
-                              />
-                              {skill}
-                            </div>
-                            <MemberScoreIndicators
-                              competencyName={skill}
-                              selectedMembers={selectedMembers}
-                              colors={colors}
-                            />
-                          </CommandItem>
-                        ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+        </div>
 
-            {/* Hard Skills Filter */}
-            <Popover open={isHardSkillSelectOpen} onOpenChange={setIsHardSkillSelectOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  Hard Skills ({selectedHardSkills.length})
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        {totalSelectedCompetencies < 3 && (
+          <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg text-sm">
+            <p className="font-semibold">Atenção:</p>
+            <p>Selecione pelo menos 3 competências (Soft ou Hard Skills) para uma visualização completa no gráfico de radar.</p>
+          </div>
+        )}
+        
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Hard Skills Chips (Left) */}
+          <div className="lg:w-1/4 flex-shrink-0">
+            <h3 className="font-semibold text-foreground mb-3">Hard Skills</h3>
+            <div className="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto pr-2">
+              {sortedHardSkillChips.map(skill => (
+                <Button
+                  key={skill.name}
+                  variant={selectedHardSkills.includes(skill.name) ? "default" : "outline"}
+                  onClick={() => handleToggleHardSkill(skill.name)}
+                  className={cn(
+                    "flex items-center gap-2",
+                    skill.hasRelevantScore ? "border-primary text-primary" : "border-muted-foreground/30 text-muted-foreground"
+                  )}
+                >
+                  {skill.name}
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                <Command>
-                  <CommandInputWithClear
-                    placeholder="Buscar Hard Skill..."
-                    value={hardSkillSearch}
-                    onValueChange={setHardSkillSearch}
+              ))}
+            </div>
+          </div>
+
+          {/* Radar Chart (Center) */}
+          <div className="flex-1 min-w-0">
+            <ResponsiveContainer width="100%" height={500}>
+              <RadarChart data={radarData}>
+                <PolarGrid 
+                  stroke="hsl(var(--muted-foreground) / 0.3)" 
+                  strokeWidth={1}
+                />
+                <PolarAngleAxis 
+                  dataKey="subject" 
+                  tick={{ fill: 'hsl(var(--foreground))', fontSize: 13, fontWeight: 500 }}
+                />
+                <PolarRadiusAxis 
+                  angle={90} 
+                  domain={[0, 4]} 
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  stroke="hsl(var(--muted-foreground) / 0.3)"
+                />
+                
+                {/* Perfil Ideal (4.0) - Linha de Referência */}
+                <Radar
+                  name="Perfil Ideal"
+                  dataKey="PerfilIdeal"
+                  stroke="hsl(var(--primary-dark))"
+                  fill="hsl(var(--primary-dark))"
+                  fillOpacity={0}
+                  strokeWidth={3}
+                  strokeDasharray="5 5"
+                />
+
+                {/* Liderados Selecionados */}
+                {selectedMembers.map((member, index) => (
+                  <Radar
+                    key={member.id_liderado}
+                    name={member.nome_liderado}
+                    dataKey={member.nome_liderado}
+                    stroke={colors[index % colors.length]}
+                    fill={colors[index % colors.length]}
+                    fillOpacity={0.4}
+                    strokeWidth={2}
                   />
-                  <CommandList>
-                    <CommandEmpty>Nenhuma Hard Skill encontrada.</CommandEmpty>
-                    <CommandGroup>
-                      {sortedAllHardSkillCompetencies
-                        .filter(skill => skill.toLowerCase().includes(hardSkillSearch.toLowerCase()))
-                        .map(skill => (
-                          <CommandItem
-                            key={skill}
-                            onSelect={() => handleToggleHardSkill(skill)}
-                            className="flex items-center justify-between"
-                          >
-                            <div className="flex items-center">
-                              <Checkbox
-                                checked={selectedHardSkills.includes(skill)}
-                                onCheckedChange={() => handleToggleHardSkill(skill)}
-                                className="mr-2"
-                              />
-                              {skill}
-                            </div>
-                            <MemberScoreIndicators
-                              competencyName={skill}
-                              selectedMembers={selectedMembers}
-                              colors={colors}
-                            />
-                          </CommandItem>
-                        ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+                ))}
+                <Legend 
+                  wrapperStyle={{ paddingTop: '30px' }}
+                  iconType="circle"
+                  iconSize={12}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Soft Skills Chips (Right) */}
+          <div className="lg:w-1/4 flex-shrink-0">
+            <h3 className="font-semibold text-foreground mb-3">Soft Skills</h3>
+            <div className="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto pr-2">
+              {sortedSoftSkillChips.map(skill => (
+                <Button
+                  key={skill.name}
+                  variant={selectedSoftSkills.includes(skill.name) ? "default" : "outline"}
+                  onClick={() => handleToggleSoftSkill(skill.name)}
+                  className={cn(
+                    "flex items-center gap-2",
+                    skill.hasRelevantScore ? "border-primary text-primary" : "border-muted-foreground/30 text-muted-foreground"
+                  )}
+                >
+                  {skill.name}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
-        
-        <ResponsiveContainer width="100%" height={500}>
-          <RadarChart data={radarData}>
-            <PolarGrid 
-              stroke="hsl(var(--muted-foreground) / 0.3)" 
-              strokeWidth={1}
-            />
-            <PolarAngleAxis 
-              dataKey="subject" 
-              tick={{ fill: 'hsl(var(--foreground))', fontSize: 13, fontWeight: 500 }}
-            />
-            <PolarRadiusAxis 
-              angle={90} 
-              domain={[0, 4]} 
-              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
-              stroke="hsl(var(--muted-foreground) / 0.3)"
-            />
-            
-            {/* Perfil Ideal (4.0) - Linha de Referência */}
-            <Radar
-              name="Perfil Ideal"
-              dataKey="PerfilIdeal"
-              stroke="hsl(var(--primary-dark))"
-              fill="hsl(var(--primary-dark))"
-              fillOpacity={0} // Changed to 0 for "empty pentagon"
-              strokeWidth={3}
-              strokeDasharray="5 5"
-            />
-
-            {/* Liderados Selecionados */}
-            {selectedMembers.map((member, index) => (
-              <Radar
-                key={member.id_liderado}
-                name={member.nome_liderado}
-                dataKey={member.nome_liderado}
-                stroke={colors[index % colors.length]}
-                fill={colors[index % colors.length]}
-                fillOpacity={0.4}
-                strokeWidth={2}
-              />
-            ))}
-            <Legend 
-              wrapperStyle={{ paddingTop: '30px' }}
-              iconType="circle"
-              iconSize={12}
-            />
-          </RadarChart>
-        </ResponsiveContainer>
         
         <div className="mt-6 p-4 bg-muted/30 rounded-lg">
           <h4 className="font-semibold text-foreground mb-2">Interpretação de Gaps:</h4>
