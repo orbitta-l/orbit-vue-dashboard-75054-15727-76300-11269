@@ -52,7 +52,7 @@ export const Sidebar = () => {
               {profile?.name || 'Usuário'}
             </p>
             <p className="text-sm text-sidebar-foreground/70 truncate">
-              {profile?.role === 'lider' ? 'Tech Lead' : 'Desenvolvedor'}
+              {profile?.role === 'LIDER' ? 'Tech Lead' : 'Desenvolvedor'}
             </p>
             <p className="text-sm text-sidebar-foreground/70 truncate">
               {profile?.email || 'email@exemplo.com'}

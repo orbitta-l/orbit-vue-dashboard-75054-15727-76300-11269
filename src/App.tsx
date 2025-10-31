@@ -38,7 +38,7 @@ const App = () => (
             <Route 
               path="/dashboard-lider" 
               element={
-                <ProtectedRoute allowedRole="lider">
+                <ProtectedRoute allowedRole="LIDER">
                   <DashboardLayout><Home /></DashboardLayout>
                 </ProtectedRoute>
               } 
@@ -46,7 +46,7 @@ const App = () => (
             <Route 
               path="/dashboard-liderado" 
               element={
-                <ProtectedRoute allowedRole="liderado">
+                <ProtectedRoute allowedRole="LIDERADO">
                   <DashboardLiderado />
                 </ProtectedRoute>
               } 

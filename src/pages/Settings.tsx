@@ -16,7 +16,7 @@ export default function Settings() {
   const mockUser = {
     email: profile?.email || "usuario@orbitta.com",
     name: profile?.name || "Usuário",
-    role: (profile?.role === 'lider' ? "LÍDER" : "LIDERADO") as "LÍDER" | "LIDERADO",
+    role: (profile?.role === 'LIDER' ? "LÍDER" : "LIDERADO") as "LÍDER" | "LIDERADO",
   };
 
   // Estado para alteração de senha

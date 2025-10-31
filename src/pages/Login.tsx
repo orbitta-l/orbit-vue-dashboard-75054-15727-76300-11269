@@ -44,7 +44,7 @@ function RightPanel() {
   // Redirecionar usuário já autenticado
   useEffect(() => {
     if (isAuthenticated && profile) {
-      const dashboard = profile.role === 'lider' ? '/dashboard-lider' : '/dashboard-liderado';
+      const dashboard = profile.role === 'LIDER' ? '/dashboard-lider' : '/dashboard-liderado';
       navigate(dashboard, { replace: true });
     }
   }, [isAuthenticated, profile, navigate]);
