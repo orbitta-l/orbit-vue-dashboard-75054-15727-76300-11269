@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react"; // Adicionado import React
 import { Plus, Search, ChevronDown, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, CalendarDays, HeartHandshake, PersonStanding, CircleUserRound } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -75,7 +75,7 @@ type Step1Form = z.infer<typeof step1Schema>;
 
 export default function Team() {
   const navigate = useNavigate();
-  const { liderados, addLiderado, profile, isPrimeiroAcesso } = useAuth(); // Adicionado isPrimeiroAcesso
+  const { liderados, addLiderado, profile } = useAuth();
 
   const [searchName, setSearchName] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -235,198 +235,172 @@ export default function Team() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <main className="flex-1 p-8 max-w-7xl mx-auto">
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}> {/* Dialog movido para envolver o conteúdo principal */}
-          <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="w-6 h-6 text-primary" /></div>
-                <h1 className="text-3xl font-bold text-foreground">Liderados</h1>
-              </div>
-              <p className="text-muted-foreground">{filteredMembers.length} {filteredMembers.length === 1 ? 'liderado encontrado' : 'liderados encontrados'}</p>
+      <main className="flex-1 p-8 max-w-7xl mx-auto"> {/* Centralized content */}
+        <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="w-6 h-6 text-primary" /></div>
+              <h1 className="text-3xl font-bold text-foreground">Liderados</h1>
             </div>
-            <div className="flex gap-3 w-full md:w-auto">
-              <div className="relative flex-1 md:flex-none">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Buscar liderado..." value={searchName} onChange={(e) => setSearchName(e.target.value)} className="pl-9 w-full md:w-64" />
-              </div>
-              <Button variant="outline" onClick={() => setIsFilterSidebarOpen(true)} className="gap-2">
-                <Filter className="w-4 h-4" />
-                Filtros
-              </Button>
+            <p className="text-muted-foreground">{filteredMembers.length} {filteredMembers.length === 1 ? 'liderado encontrado' : 'liderados encontrados'}</p>
+          </div>
+          <div className="flex gap-3 w-full md:w-auto">
+            <div className="relative flex-1 md:flex-none">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Buscar liderado..." value={searchName} onChange={(e) => setSearchName(e.target.value)} className="pl-9 w-full md:w-64" />
+            </div>
+            <Button variant="outline" onClick={() => setIsFilterSidebarOpen(true)} className="gap-2">
+              <Filter className="w-4 h-4" />
+              Filtros
+            </Button>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2"><Plus className="w-4 h-4" /> Adicionar Liderado</Button>
               </DialogTrigger>
-            </div>
-          </div>
-          {filteredMembers.length === 0 ? (
-            isPrimeiroAcesso && liderados.length === 0 ? (
-              <Card className="p-8 text-center bg-muted/20">
-                <div className="max-w-2xl mx-auto">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Users className="w-12 h-12 text-primary" />
+              <DialogContent onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+                <DialogHeader>
+                  <DialogTitle>{modalStep === 1 ? "Adicione o liderado" : "Senha de acesso"}</DialogTitle>
+                  <DialogDescription>
+                    {modalStep === 1 ? "Digite os dados do liderado para gerar a senha de acesso." : "Compartilhe a senha abaixo com seu liderado."}
+                  </DialogDescription>
+                </DialogHeader>
+                <Progress value={modalStep * 50} className="w-full my-4" />
+                {modalStep === 1 ? (
+                  <div className="space-y-4 mt-4">
+                    <div>
+                      <Label htmlFor="nome">Nome completo</Label>
+                      <Input id="nome" placeholder="João da Silva" {...register("nome")} />
+                      {errors.nome && <p className="text-sm text-destructive mt-1">{errors.nome.message}</p>}
+                    </div>
+                    <div>
+                      <Label htmlFor="email">E-mail</Label>
+                      <Input id="email" type="email" placeholder="joao.silva@orbitta.com" {...register("email")} />
+                      {errors.email && <p className="text-sm text-destructive mt-1">{errors.email.message}</p>}
+                    </div>
+                    <div>
+                      <Label htmlFor="cargo_id">Cargo</Label>
+                      <Controller
+                        name="cargo_id"
+                        control={control}
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o cargo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(cargoMap).map(([id, data]) => (
+                                <SelectItem key={id} value={id}>{data.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {errors.cargo_id && <p className="text-sm text-destructive mt-1">{errors.cargo_id.message}</p>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="sexo">Sexo</Label>
+                        <Controller
+                          name="sexo"
+                          control={control}
+                          render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="FEMININO">Feminino</SelectItem>
+                                <SelectItem value="MASCULINO">Masculino</SelectItem>
+                                <SelectItem value="NAO_BINARIO">Não Binário</SelectItem>
+                                <SelectItem value="NAO_INFORMADO">Não Informado</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                        {errors.sexo && <p className="text-sm text-destructive mt-1">{errors.sexo.message}</p>}
+                      </div>
+                      <div>
+                        <Label htmlFor="data_nascimento">Data de Nascimento</Label>
+                        <Input id="data_nascimento" type="date" {...register("data_nascimento")} />
+                        {errors.data_nascimento && <p className="text-sm text-destructive mt-1">{errors.data_nascimento.message}</p>}
+                      </div>
+                    </div>
+                    <Button onClick={handleNextStep} className="w-full gap-2">Avançar <ArrowRight className="w-4 h-4" /></Button>
                   </div>
-                  <h2 className="text-2xl font-bold text-foreground mb-3">
-                    Sua equipe ainda está vazia!
-                  </h2>
-                  <p className="text-muted-foreground mb-8 text-lg">
-                    Comece adicionando seu primeiro liderado para acompanhar o desenvolvimento.
-                  </p>
-                  <DialogTrigger asChild>
-                    <Button className="gap-2">
-                      <Plus className="w-4 h-4" /> Adicionar Primeiro Liderado
-                    </Button>
-                  </DialogTrigger>
+                ) : (
+                  <div className="space-y-4 mt-4">
+                    <div className="p-4 bg-muted rounded-lg">
+                      <Label className="text-sm font-medium mb-2 block">Senha Temporária</Label>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 text-lg font-mono bg-background p-3 rounded border border-border">{tempPassword}</code>
+                        <Button onClick={handleCopyPassword} size="sm">Copiar</Button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <Button variant="outline" onClick={() => setModalStep(1)} className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button>
+                      <Button onClick={handleConclude}>Concluir</Button>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredMembers.map((member) => {
+            const MainIcon = categoryIcons[member.categoria_dominante] || categoryIcons["Não Avaliado"];
+            return (
+              <Card 
+                key={member.id_liderado} 
+                className="relative overflow-hidden w-full max-w-[280px] mx-auto p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1" 
+                onClick={() => navigate(`/team/${member.id_liderado}`)}
+              >
+                {talentMemberId === member.id_liderado && (
+                  <Badge className="absolute top-4 right-4 z-10 bg-transparent text-yellow-600 font-bold text-sm px-0 py-0 flex items-center gap-1">
+                    <Rocket className="w-4 h-4" /> TALENTO
+                  </Badge>
+                )}
+                <div className="flex flex-col items-center text-center mb-4">
+                  <Avatar className="w-16 h-16 mb-3">
+                    <AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">
+                      {getInitials(member.nome_liderado)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="font-semibold text-lg text-foreground mb-1">{member.nome_liderado}</h3>
+                  {member.cargo_id && (
+                    <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2`}>
+                      {cargoMap[member.cargo_id]?.name || member.cargo}
+                    </Badge>
+                  )}
+                </div>
+                <div className="space-y-2 pt-4 border-t border-border">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-primary" />
+                      <span>Maturidade</span>
+                    </div>
+                    <span className="font-semibold text-foreground">{member.nivel_maturidade || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <MainIcon className="w-4 h-4 text-accent" />
+                      <span>Área Dominante</span>
+                    </div>
+                    <span className="font-semibold text-foreground truncate max-w-[120px]">{member.categoria_dominante || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4 text-secondary-foreground" />
+                      <span>Idade</span>
+                    </div>
+                    <span className="font-semibold text-foreground">{member.idade || 'N/A'} anos</span>
+                  </div>
                 </div>
               </Card>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Nenhum liderado encontrado com os filtros selecionados.</p>
-              </div>
-            )
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredMembers.map((member) => {
-                const MainIcon = categoryIcons[member.categoria_dominante] || categoryIcons["Não Avaliado"];
-                return (
-                  <Card 
-                    key={member.id_liderado} 
-                    className="relative overflow-hidden w-full max-w-[280px] mx-auto p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1" 
-                    onClick={() => navigate(`/team/${member.id_liderado}`)}
-                  >
-                    {talentMemberId === member.id_liderado && (
-                      <Badge className="absolute top-4 right-4 z-10 bg-transparent text-yellow-600 font-bold text-sm px-0 py-0 flex items-center gap-1">
-                        <Rocket className="w-4 h-4" /> TALENTO
-                      </Badge>
-                    )}
-                    <div className="flex flex-col items-center text-center mb-4">
-                      <Avatar className="w-16 h-16 mb-3">
-                        <AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">
-                          {getInitials(member.nome_liderado)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <h3 className="font-semibold text-lg text-foreground mb-1">{member.nome_liderado}</h3>
-                      {member.cargo_id && (
-                        <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2`}>
-                          {cargoMap[member.cargo_id]?.name || member.cargo}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="space-y-2 pt-4 border-t border-border">
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-primary" />
-                          <span>Maturidade</span>
-                        </div>
-                        <span className="font-semibold text-foreground">{member.nivel_maturidade || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <MainIcon className="w-4 h-4 text-accent" />
-                          <span>Área Dominante</span>
-                        </div>
-                        <span className="font-semibold text-foreground truncate max-w-[120px]">{member.categoria_dominante || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <CalendarDays className="w-4 h-4 text-secondary-foreground" />
-                          <span>Idade</span>
-                        </div>
-                        <span className="font-semibold text-foreground">{member.idade || 'N/A'} anos</span>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-          <DialogContent onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
-            <DialogHeader>
-              <DialogTitle>{modalStep === 1 ? "Adicione o liderado" : "Senha de acesso"}</DialogTitle>
-              <DialogDescription>
-                {modalStep === 1 ? "Digite os dados do liderado para gerar a senha de acesso." : "Compartilhe a senha abaixo com seu liderado."}
-              </DialogDescription>
-            </DialogHeader>
-            <Progress value={modalStep * 50} className="w-full my-4" />
-            {modalStep === 1 ? (
-              <div className="space-y-4 mt-4">
-                <div>
-                  <Label htmlFor="nome">Nome completo</Label>
-                  <Input id="nome" placeholder="João da Silva" {...register("nome")} />
-                  {errors.nome && <p className="text-sm text-destructive mt-1">{errors.nome.message}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" type="email" placeholder="joao.silva@orbitta.com" {...register("email")} />
-                  {errors.email && <p className="text-sm text-destructive mt-1">{errors.email.message}</p>}
-                </div>
-                <div>
-                  <Label htmlFor="cargo_id">Cargo</Label>
-                  <Controller
-                    name="cargo_id"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o cargo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(cargoMap).map(([id, data]) => (
-                            <SelectItem key={id} value={id}>{data.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.cargo_id && <p className="text-sm text-destructive mt-1">{errors.cargo_id.message}</p>}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="sexo">Sexo</Label>
-                    <Controller
-                      name="sexo"
-                      control={control}
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="FEMININO">Feminino</SelectItem>
-                            <SelectItem value="MASCULINO">Masculino</SelectItem>
-                            <SelectItem value="NAO_BINARIO">Não Binário</SelectItem>
-                            <SelectItem value="NAO_INFORMADO">Não Informado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    {errors.sexo && <p className="text-sm text-destructive mt-1">{errors.sexo.message}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="data_nascimento">Data de Nascimento</Label>
-                    <Input id="data_nascimento" type="date" {...register("data_nascimento")} />
-                    {errors.data_nascimento && <p className="text-sm text-destructive mt-1">{errors.data_nascimento.message}</p>}
-                  </div>
-                </div>
-                <Button onClick={handleNextStep} className="w-full gap-2">Avançar <ArrowRight className="w-4 h-4" /></Button>
-              </div>
-            ) : (
-              <div className="space-y-4 mt-4">
-                <div className="p-4 bg-muted rounded-lg">
-                  <Label className="text-sm font-medium mb-2 block">Senha Temporária</Label>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 text-lg font-mono bg-background p-3 rounded border border-border">{tempPassword}</code>
-                    <Button onClick={handleCopyPassword} size="sm">Copiar</Button>
-                  </div>
-                </div>
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setModalStep(1)} className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button>
-                  <Button onClick={handleConclude}>Concluir</Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
+            );
+          })}
+        </div>
+        {filteredMembers.length === 0 && (<div className="text-center py-12"><p className="text-muted-foreground">Nenhum liderado encontrado com os filtros selecionados.</p></div>)}
       </main>
 
       {/* Filter Sidebar */}
