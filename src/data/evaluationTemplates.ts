@@ -21,7 +21,7 @@ export interface SoftSkillTemplate {
 export interface TechnicalCompetency {
   id: string;
   name: string;
-  descricao: string; // Alterado de 'description' para 'descricao'
+  descricao: string; // Garantindo que 'descricao' está presente
 }
 
 export interface TechnicalSpecialization {
@@ -100,12 +100,10 @@ export const technicalCategories: TechnicalCategory[] = [
           },
           {
             id: "performance-web",
-            name: "Otimização de Performance Web",
             descricao: "Melhorias de carregamento, renderização e métricas web vitais.",
           },
           {
             id: "acessibilidade-web",
-            name: "Desenvolvimento Acessível",
             descricao: "Garantia de acessibilidade (WAI-ARIA) e inclusão em interfaces web.",
           },
         ],
@@ -116,22 +114,18 @@ export const technicalCategories: TechnicalCategory[] = [
         competencias: [
           {
             id: "api-rest",
-            name: "Criação e Gestão de APIs (REST)",
             descricao: "Modelagem de endpoints, versionamento e boas práticas REST.",
           },
           {
             id: "modelagem-sql-nosql",
-            name: "Modelagem e Consultas SQL/NoSQL",
             descricao: "Projetar esquemas e escrever consultas eficientes.",
           },
           {
             id: "regras-negocio",
-            name: "Implementação de Regras de Negócio",
             descricao: "Codificação de lógicas de domínio e validações no servidor.",
           },
           {
             id: "autenticacao-acesso",
-            name: "Autenticação e Controle de Acesso",
             descricao: "Sessões, tokens, OAuth2/OpenID e autorização por papéis.",
           },
         ],
@@ -149,22 +143,18 @@ export const technicalCategories: TechnicalCategory[] = [
         competencias: [
           {
             id: "programacao-nativa",
-            name: "Programação Específica (iOS/Android)",
             descricao: "Desenvolvimento com linguagens/plataformas nativas.",
           },
           {
             id: "recursos-nativos",
-            name: "Uso de Recursos Nativos",
             descricao: "Integração com câmera, GPS, notificações e sensores.",
           },
           {
             id: "publicacao-lojas",
-            name: "Publicação em Lojas de Aplicativos",
             descricao: "Empacotamento, requisitos e processos de publicação.",
           },
           {
             id: "padroes-ui-ux-plataforma",
-            name: "Padrões de Design de Plataforma (UI/UX)",
             descricao: "Aderência a Material, Human Interface e guidelines nativas.",
           },
         ],
@@ -175,17 +165,14 @@ export const technicalCategories: TechnicalCategory[] = [
         competencias: [
           {
             id: "reutilizacao-codigo",
-            name: "Reutilização de Código",
             descricao: "Compartilhamento de lógica e componentes multi-plataforma.",
           },
           {
             id: "estado-mobile",
-            name: "Gerenciamento de Estado",
             descricao: "Arquiteturas de estado previsível e performático.",
           },
           {
             id: "integracao-apis-mobile",
-            name: "Integração com APIs",
             descricao: "Consumo, cache e sincronização de dados remotos.",
           },
           {
@@ -207,22 +194,18 @@ export const technicalCategories: TechnicalCategory[] = [
         competencias: [
           {
             id: "etl",
-            name: "ETL",
             descricao: "Extração, transformação e carga de dados de múltiplas fontes.",
           },
           {
             id: "eda",
-            name: "Análise Exploratória",
             descricao: "Explorar dados, tratar outliers e hipóteses iniciais.",
           },
           {
             id: "visualizacao-dados",
-            name: "Visualização de Dados",
             descricao: "Criação de gráficos e dashboards para tomada de decisão.",
           },
           {
             id: "comunicacao-insights",
-            name: "Comunicação de Insights",
             descricao: "Storytelling com dados e suporte a decisões do negócio.",
           },
         ],
@@ -233,22 +216,18 @@ export const technicalCategories: TechnicalCategory[] = [
         competencias: [
           {
             id: "modelagem-preditiva",
-            name: "Modelagem Preditiva",
             descricao: "Seleção de algoritmos, tuning e validação cruzada.",
           },
           {
             id: "treino-avaliacao",
-            name: "Treinamento e Avaliação",
             descricao: "Métricas, overfitting/underfitting e experimentação.",
           },
           {
             id: "bibliotecas-ml",
-            name: "Uso de Bibliotecas de ML",
             descricao: "Aplicação prática com frameworks do ecossistema.",
           },
           {
             id: "interpretacao-resultados",
-            name: "Interpretação de Resultados",
             descricao: "Explicabilidade, feature importance e limitações.",
           },
         ],
@@ -266,22 +245,18 @@ export const technicalCategories: TechnicalCategory[] = [
         competencias: [
           {
             id: "docker",
-            name: "Docker",
             descricao: "Criação e gerenciamento de imagens e contêineres.",
           },
           {
             id: "monitoramento",
-            name: "Monitoramento",
             descricao: "Coleta de métricas e observabilidade de serviços.",
           },
           {
             id: "cloud-services",
-            name: "Serviços de Nuvem",
             descricao: "Provisionamento e operação em provedores cloud.",
           },
           {
             id: "troubleshooting",
-            name: "Troubleshooting",
             descricao: "Diagnóstico e mitigação de incidentes de produção.",
           },
         ],
@@ -292,22 +267,18 @@ export const technicalCategories: TechnicalCategory[] = [
         competencias: [
           {
             id: "integracao-continua",
-            name: "Integração Contínua",
             descricao: "Pipelines de build e testes automatizados.",
           },
           {
             id: "entrega-continua",
-            name: "Entrega Contínua",
             descricao: "Estratégias de release e deploy automatizado.",
           },
           {
             id: "iac",
-            name: "Infraestrutura como Código (IaC)",
             descricao: "Provisionamento automatizado e versionado de infra.",
           },
           {
             id: "fluxos-colaborativos",
-            name: "Fluxos Colaborativos",
             descricao: "Práticas DevOps e colaboração entre times.",
           },
         ],
@@ -325,22 +296,18 @@ export const technicalCategories: TechnicalCategory[] = [
         competencias: [
           {
             id: "owasp",
-            name: "OWASP",
             descricao: "Boas práticas e mitigação contra vulnerabilidades comuns.",
           },
           {
             id: "criptografia",
-            name: "Criptografia",
             descricao: "Primitivas, hashing e armazenamento seguro.",
           },
           {
             id: "autenticacao-segura",
-            name: "Autenticação Segura",
             descricao: "Padrões de segurança (OAuth2/OpenID) e proteção de sessão.",
           },
           {
             id: "postura-etica",
-            name: "Postura Ética",
             descricao: "Ética profissional e responsabilidade no manuseio de dados.",
           },
         ],
@@ -351,22 +318,18 @@ export const technicalCategories: TechnicalCategory[] = [
         competencias: [
           {
             id: "iam",
-            name: "IAM",
             descricao: "Gestão de identidades, permissões e políticas.",
           },
           {
             id: "hardening",
-            name: "Hardening",
             descricao: "Endurecimento de SO/serviços e redução de superfície de ataque.",
           },
           {
             id: "seguranca-rede",
-            name: "Segurança de Rede",
             descricao: "Segmentação, firewalls e proteção de tráfego.",
           },
           {
             id: "resposta-incidentes",
-            name: "Resposta a Incidentes",
             descricao: "Detecção, contenção e lições aprendidas.",
           },
         ],
@@ -384,22 +347,18 @@ export const technicalCategories: TechnicalCategory[] = [
         competencias: [
           {
             id: "entrevistas",
-            name: "Entrevistas",
             descricao: "Coleta estruturada de necessidades e dores do usuário.",
           },
           {
             id: "personas-jornadas",
-            name: "Personas e Jornadas",
             descricao: "Modelagem de perfis e mapeamento de jornadas.",
           },
           {
             id: "arquitetura-informacao",
-            name: "Arquitetura da Informação",
             descricao: "Organização de conteúdos e fluxos de navegação.",
           },
           {
             id: "testes-heuristicas",
-            name: "Testes e Heurísticas",
             descricao: "Avaliações com usuários e heurísticas de usabilidade.",
           },
         ],
@@ -410,22 +369,18 @@ export const technicalCategories: TechnicalCategory[] = [
         competencias: [
           {
             id: "design-visual",
-            name: "Design Visual",
             descricao: "Hierarquia, tipografia, cor e composição.",
           },
           {
             id: "prototipos",
-            name: "Protótipos Interativos",
             descricao: "Fluxos clicáveis e validação de interação.",
           },
           {
             id: "design-system",
-            name: "Design System",
             descricao: "Bibliotecas de componentes, tokens e consistência visual.",
           },
           {
             id: "justificativas-visuais",
-            name: "Justificativas Visuais",
             descricao: "Racional de escolhas e documentação de decisão.",
           },
         ],
