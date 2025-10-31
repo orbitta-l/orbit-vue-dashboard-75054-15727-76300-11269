@@ -426,11 +426,11 @@ export default function Team() {
                   {topCompetencies.length > 0 ? (
                     topCompetencies.map((comp, index) => (
                       <div key={index} className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Star className="w-4 h-4 text-gray-400 fill-gray-400" /> {/* Estrela cinza */}
-                          <span>{comp.nome_competencia}</span>
+                        <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
+                          <Star className="w-4 h-4 text-gray-400 fill-gray-400 flex-shrink-0" /> {/* Estrela cinza com tamanho fixo */}
+                          <span className="truncate">{comp.nome_competencia}</span> {/* Texto truncado */}
                         </div>
-                        <span className="font-semibold text-foreground text-right">
+                        <span className="font-semibold text-foreground text-right flex-shrink-0">
                           ({comp.media_pontuacao.toFixed(1)})
                         </span>
                       </div>
@@ -448,14 +448,14 @@ export default function Team() {
 
       {/* Filter Sidebar */}
       <Sheet open={isFilterSidebarOpen} onOpenChange={setIsFilterSidebarOpen}>
-        <SheetContent side="right" className="w-80 sm:w-[320px] p-6 flex flex-col"> {/* Changed side to 'right' */}
+        <SheetContent side="right" className="w-80 sm:w-[320px] p-6 flex flex-col">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-primary" />
               Filtros
             </SheetTitle>
           </SheetHeader>
-          <div className="flex-1 space-y-6 mt-6"> {/* Removed overflow-y-auto and pr-2 */}
+          <div className="flex-1 space-y-6 mt-6">
             {/* Maturidade Geral */}
             <div>
               <div className="flex items-center justify-between mb-3">
