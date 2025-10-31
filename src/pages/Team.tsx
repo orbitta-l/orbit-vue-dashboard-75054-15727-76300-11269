@@ -157,7 +157,7 @@ export default function Team() {
     toast({ title: "Senha copiada!" });
   };
 
-  const handleClearFilters = () => {
+  const handleClearAllFilters = () => {
     setFilterMaturityLevel("all");
     setFilterAgeRange("all");
     setFilterGender("all");
@@ -289,6 +289,12 @@ export default function Team() {
               <Filter className="w-4 h-4" />
               Filtros {countActiveFilters > 0 && <Badge className="ml-1 px-2 py-0.5">{countActiveFilters}</Badge>}
             </Button>
+            {countActiveFilters > 0 && (
+              <Button variant="outline" onClick={handleClearAllFilters} className="gap-2">
+                <X className="w-4 h-4" />
+                Limpar Todos
+              </Button>
+            )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2"><Plus className="w-4 h-4" /> Adicionar Liderado</Button>
@@ -406,7 +412,7 @@ export default function Team() {
                   <p className="text-sm text-muted-foreground mb-2">{member.email}</p>
                   {member.cargo_id && (
                     <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2 cursor-default`}>
-                      {getBaseCargoName(member.cargo)}
+                      {member.cargo}
                     </Badge>
                   )}
                   {talentMemberId === member.id_liderado && (
@@ -453,7 +459,7 @@ export default function Team() {
               Filtros
             </SheetTitle>
           </SheetHeader>
-          <div className="flex-1 space-y-6 mt-6">
+          <div className="flex-1 overflow-y-auto space-y-6 mt-6 pr-2"> {/* Added overflow-y-auto and pr-2 for scrollbar */}
             {/* Maturidade Geral */}
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -607,12 +613,6 @@ export default function Team() {
                 })}
               </div>
             </div>
-          </div>
-          <div className="mt-auto border-t pt-4">
-            <Button variant="outline" onClick={handleClearFilters} className="w-full gap-2">
-              <X className="w-4 h-4" />
-              Limpar Todos os Filtros
-            </Button>
           </div>
         </SheetContent>
       </Sheet>
