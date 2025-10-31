@@ -203,11 +203,15 @@ export default function Compare() {
               {sortedHardSkillChips.map(skill => (
                 <Button
                   key={skill.name}
-                  variant={selectedHardSkills.includes(skill.name) ? "default" : "outline"}
                   onClick={() => handleToggleHardSkill(skill.name)}
                   className={cn(
+                    "h-8 px-3 text-sm", // Smaller size
                     "flex items-center gap-2",
-                    skill.hasRelevantScore ? "border-primary text-primary" : "border-muted-foreground/30 text-muted-foreground"
+                    selectedHardSkills.includes(skill.name)
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
+                      : skill.hasRelevantScore
+                        ? "border-primary text-primary bg-primary/10 hover:bg-primary/20" // Relevant, unselected
+                        : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Non-relevant, unselected
                   )}
                 >
                   {skill.name}
@@ -274,11 +278,15 @@ export default function Compare() {
               {sortedSoftSkillChips.map(skill => (
                 <Button
                   key={skill.name}
-                  variant={selectedSoftSkills.includes(skill.name) ? "default" : "outline"}
                   onClick={() => handleToggleSoftSkill(skill.name)}
                   className={cn(
+                    "h-8 px-3 text-sm", // Smaller size
                     "flex items-center gap-2",
-                    skill.hasRelevantScore ? "border-primary text-primary" : "border-muted-foreground/30 text-muted-foreground"
+                    selectedSoftSkills.includes(skill.name)
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
+                      : skill.hasRelevantScore
+                        ? "border-primary text-primary bg-primary/10 hover:bg-primary/20" // Relevant, unselected
+                        : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Non-relevant, unselected
                   )}
                 >
                   {skill.name}
