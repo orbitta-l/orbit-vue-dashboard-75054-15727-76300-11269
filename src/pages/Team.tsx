@@ -207,7 +207,12 @@ export default function Team() {
       });
     }
     if (filterGender !== "all") {
-      members = members.filter(member => member.sexo === filterGender);
+      members = members.filter(member => {
+        if (filterGender === "OUTRO") {
+          return member.sexo === "NAO_BINARIO" || member.sexo === "NAO_INFORMADO";
+        }
+        return member.sexo === filterGender;
+      });
     }
 
     // Apply area/specialization/competency filters
@@ -385,10 +390,10 @@ export default function Team() {
                     </AvatarFallback>
                   </Avatar>
                   <h3 className="font-semibold text-lg text-foreground">{member.nome_liderado}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{member.email}</p> {/* Email added here */}
+                  <p className="text-sm text-muted-foreground mb-2">{member.email}</p>
                   {member.cargo_id && (
-                    <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2`}>
-                      {cargoMap[member.cargo_id]?.name || member.cargo}
+                    <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2 cursor-default hover:bg-none`}>
+                      {member.cargo}
                     </Badge>
                   )}
                 </div>
@@ -398,7 +403,7 @@ export default function Team() {
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       <span>Melhor Comp. Técnica</span>
                     </div>
-                    <span className="font-semibold text-foreground text-right text-wrap max-w-[120px]">
+                    <span className="font-semibold text-foreground text-right">
                       {topTechnicalCompetency ? `${topTechnicalCompetency.nome_competencia} (${topTechnicalCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
                     </span>
                   </div>
@@ -407,7 +412,7 @@ export default function Team() {
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       <span>Melhor Comp. Comportamental</span>
                     </div>
-                    <span className="font-semibold text-foreground text-right text-wrap max-w-[120px]">
+                    <span className="font-semibold text-foreground text-right">
                       {topBehavioralCompetency ? `${topBehavioralCompetency.nome_competencia} (${topBehavioralCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
                     </span>
                   </div>
@@ -431,7 +436,10 @@ export default function Team() {
           <div className="flex-1 space-y-6 mt-6">
             {/* Maturidade Geral */}
             <div>
-              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">MATURIDADE GERAL</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-foreground uppercase text-sm">MATURIDADE GERAL</h3>
+                <Button variant="ghost" size="sm" onClick={() => setFilterMaturityLevel("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {["all", "M1", "M2", "M3", "M4"].map((level) => (
                   <Badge
@@ -448,7 +456,10 @@ export default function Team() {
 
             {/* Área Específica */}
             <div>
-              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">ÁREA ESPECÍFICA</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-foreground uppercase text-sm">ÁREA ESPECÍFICA</h3>
+                <Button variant="ghost" size="sm" onClick={() => { setFilterArea("all"); setFilterSpecialization("all"); setFilterCompetency("all"); }} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+              </div>
               <div className="mt-3 space-y-3">
                 <Select value={filterArea} onValueChange={(value) => {
                   setFilterArea(value);
@@ -477,10 +488,12 @@ export default function Team() {
               </div>
             </div>
 
-            {/* Especialização (subpasta) */}
             {filterArea !== "all" && (
               <div className="pl-4">
-                <h3 className="font-semibold text-foreground uppercase text-sm mb-3">ESPECIALIZAÇÃO</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-foreground uppercase text-sm">ESPECIALIZAÇÃO</h3>
+                  <Button variant="ghost" size="sm" onClick={() => { setFilterSpecialization("all"); setFilterCompetency("all"); }} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                </div>
                 <div className="mt-3 space-y-3">
                   <Select value={filterSpecialization} onValueChange={(value) => {
                     setFilterSpecialization(value);
@@ -496,10 +509,12 @@ export default function Team() {
               </div>
             )}
 
-            {/* Competência (subpasta) */}
             {filterSpecialization !== "all" && (
               <div className="pl-8">
-                <h3 className="font-semibold text-foreground uppercase text-sm mb-3">COMPETÊNCIA</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-foreground uppercase text-sm">COMPETÊNCIA</h3>
+                  <Button variant="ghost" size="sm" onClick={() => setFilterCompetency("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                </div>
                 <div className="mt-3 space-y-3">
                   <Select value={filterCompetency} onValueChange={setFilterCompetency} disabled={availableCompetencies.length === 0}>
                     <SelectTrigger><SelectValue placeholder="Selecione uma competência" /></SelectTrigger>
@@ -514,7 +529,10 @@ export default function Team() {
 
             {/* Idade */}
             <div>
-              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">IDADE</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-foreground uppercase text-sm">IDADE</h3>
+                <Button variant="ghost" size="sm" onClick={() => setFilterAgeRange("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+              </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {Object.keys(AgeRanges).map((rangeKey) => (
                   <Badge
@@ -531,14 +549,16 @@ export default function Team() {
 
             {/* Gênero */}
             <div>
-              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">GÊNERO</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-foreground uppercase text-sm">GÊNERO</h3>
+                <Button variant="ghost" size="sm" onClick={() => setFilterGender("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+              </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {[
                   { key: "all", label: "Todos", icon: Users },
                   { key: "FEMININO", label: "Feminino", icon: PersonStanding },
                   { key: "MASCULINO", label: "Masculino", icon: PersonStanding },
-                  { key: "NAO_BINARIO", label: "Não Binário", icon: PersonStanding },
-                  { key: "NAO_INFORMADO", label: "Não Informado", icon: CircleUserRound },
+                  { key: "OUTRO", label: "Outro", icon: CircleUserRound },
                 ].map((gender) => {
                   const Icon = gender.icon;
                   return (
@@ -559,7 +579,7 @@ export default function Team() {
           <div className="mt-auto border-t pt-4">
             <Button variant="outline" onClick={handleClearFilters} className="w-full gap-2">
               <X className="w-4 h-4" />
-              Limpar Filtros
+              Limpar Todos os Filtros
             </Button>
           </div>
         </SheetContent>
