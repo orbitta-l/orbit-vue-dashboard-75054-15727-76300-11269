@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Check, Search, ChevronDown, Users, Trash2, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette } from "lucide-react";
+import { Plus, Search, ChevronDown, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, CalendarDays, HeartHandshake, PersonStanding, CircleUserRound } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -16,18 +16,18 @@ import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SexoTipo, NivelMaturidade } from "@/types/mer";
+import { SexoTipo, NivelMaturidade, calcularFaixaEtaria } from "@/types/mer";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { technicalCategories } from "@/data/evaluationTemplates";
 
 // Mapeamento de cargo_id para nome do cargo e cor
 const cargoMap: Record<string, { name: string; colorClass: string }> = {
-  "estagiario": { name: "Estagiário", colorClass: "bg-blue-500" },
-  "junior": { name: "Júnior", colorClass: "bg-green-500" },
-  "pleno": { name: "Pleno", colorClass: "bg-yellow-500" },
-  "senior": { name: "Sênior", colorClass: "bg-red-500" },
-  "especialista": { name: "Especialista", colorClass: "bg-purple-500" },
-  "nao-definido": { name: "Não Definido", colorClass: "bg-gray-400" },
+  "estagiario": { name: "Estagiário", colorClass: "bg-blue-600" },
+  "junior": { name: "Júnior", colorClass: "bg-green-600" },
+  "pleno": { name: "Pleno", colorClass: "bg-yellow-600" },
+  "senior": { name: "Sênior", colorClass: "bg-red-600" },
+  "especialista": { name: "Especialista", colorClass: "bg-purple-600" },
+  "nao-definido": { name: "Não Definido", colorClass: "bg-gray-500" },
 };
 
 // Mapeamento de categorias técnicas para ícones Lucide
@@ -38,7 +38,8 @@ const categoryIcons: Record<string, React.ElementType> = {
   "cloud-devops": Cloud,
   "sec-info": Shield,
   "ux-ui": Palette,
-  "Soft Skills": Users, // Adicionado para Soft Skills, caso seja usado no filtro
+  "Soft Skills": HeartHandshake, // Ícone para Soft Skills
+  "Não Avaliado": CircleUserRound, // Ícone para não avaliado
 };
 
 const getInitials = (name: string) => {
@@ -85,6 +86,8 @@ export default function Team() {
   // Filter states for sidebar
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
   const [filterMaturityLevel, setFilterMaturityLevel] = useState<string>("all");
+  const [filterAgeRange, setFilterAgeRange] = useState<string>("all");
+  const [filterGender, setFilterGender] = useState<string>("all");
   const [filterArea, setFilterArea] = useState<string>("all");
   const [filterSpecialization, setFilterSpecialization] = useState<string>("all");
   const [filterCompetency, setFilterCompetency] = useState<string>("all");
@@ -148,6 +151,8 @@ export default function Team() {
 
   const handleClearFilters = () => {
     setFilterMaturityLevel("all");
+    setFilterAgeRange("all");
+    setFilterGender("all");
     setFilterArea("all");
     setFilterSpecialization("all");
     setFilterCompetency("all");
@@ -176,6 +181,20 @@ export default function Team() {
       members = members.filter(member => member.nivel_maturidade === filterMaturityLevel);
     }
 
+    if (AgeRanges[filterAgeRange]) {
+      members = members.filter(member => {
+        const age = member.idade;
+        const range = AgeRanges[filterAgeRange];
+        if (range.min !== undefined && age < range.min) return false;
+        if (range.max !== undefined && age > range.max) return false;
+        return true;
+      });
+    }
+
+    if (filterGender !== "all") {
+      members = members.filter(member => member.sexo === filterGender);
+    }
+
     if (filterArea !== "all") {
       members = members.filter(member => member.competencias?.some(comp => comp.id_categoria === filterArea));
     }
@@ -188,7 +207,7 @@ export default function Team() {
       members = members.filter(member => member.competencias?.some(c => c.id_competencia === filterCompetency));
     }
     return members;
-  }, [liderados, searchName, filterMaturityLevel, filterArea, filterSpecialization, filterCompetency]);
+  }, [liderados, searchName, filterMaturityLevel, filterAgeRange, filterGender, filterArea, filterSpecialization, filterCompetency]);
 
   const talentMemberId = useMemo(() => {
     if (filterCompetency === "all" || filteredMembers.length === 0) return null;
@@ -206,9 +225,17 @@ export default function Team() {
     return talentId;
   }, [filteredMembers, filterCompetency]);
 
+  const AgeRanges: { [key: string]: { label: string; min?: number; max?: number } } = {
+    all: { label: "Todas as idades" },
+    "<21": { label: "<21", max: 20 },
+    "21-29": { label: "21-29", min: 21, max: 29 },
+    "30-39": { label: "30-39", min: 30, max: 39 },
+    "40+": { label: "40+", min: 40 },
+  };
+
   return (
     <div className="flex min-h-screen bg-background">
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 max-w-7xl mx-auto"> {/* Centralized content */}
         <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -320,50 +347,61 @@ export default function Team() {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredMembers.map((member) => (
-            <Card 
-              key={member.id_liderado} 
-              className="relative overflow-hidden w-full max-w-[280px] mx-auto p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1" 
-              onClick={() => navigate(`/team/${member.id_liderado}`)}
-            >
-              {talentMemberId === member.id_liderado && (
-                <Badge className="absolute top-4 right-4 z-10 bg-transparent text-yellow-600 font-bold text-sm px-0 py-0 flex items-center gap-1">
-                  <Rocket className="w-4 h-4" /> TALENTO
-                </Badge>
-              )}
-              <div className="flex flex-col items-start text-left mb-4">
-                <Avatar className="w-16 h-16 mb-3">
-                  <AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">
-                    {getInitials(member.nome_liderado)}
-                  </AvatarFallback>
-                </Avatar>
-                <h3 className="font-bold text-xl text-foreground mb-1">{member.nome_liderado}</h3>
-                {member.cargo_id && (
-                  <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-sm font-medium mb-2`}>
-                    {cargoMap[member.cargo_id]?.name || member.cargo}
+          {filteredMembers.map((member) => {
+            const MainIcon = categoryIcons[member.categoria_dominante] || categoryIcons["Não Avaliado"];
+            return (
+              <Card 
+                key={member.id_liderado} 
+                className="relative overflow-hidden w-full max-w-[280px] mx-auto p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1" 
+                onClick={() => navigate(`/team/${member.id_liderado}`)}
+              >
+                {talentMemberId === member.id_liderado && (
+                  <Badge className="absolute top-4 right-4 z-10 bg-transparent text-yellow-600 font-bold text-sm px-0 py-0 flex items-center gap-1">
+                    <Rocket className="w-4 h-4" /> TALENTO
                   </Badge>
                 )}
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-center border-t pt-4 mt-4">
-                <div className="flex flex-col items-center">
-                  <span className="text-xs text-muted-foreground">Maturidade</span>
-                  <span className="font-semibold text-sm text-foreground">{member.nivel_maturidade || 'N/A'}</span>
+                <div className="flex flex-col items-center text-center mb-4">
+                  <Avatar className="w-16 h-16 mb-3">
+                    <AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">
+                      {getInitials(member.nome_liderado)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="font-semibold text-lg text-foreground mb-1">{member.nome_liderado}</h3>
+                  {member.cargo_id && (
+                    <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2`}>
+                      {cargoMap[member.cargo_id]?.name || member.cargo}
+                    </Badge>
+                  )}
                 </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-xs text-muted-foreground">Área</span>
-                  <span className="font-semibold text-sm text-foreground truncate w-full">{member.categoria_dominante || 'N/A'}</span>
+                <div className="space-y-2 pt-4 border-t border-border">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-primary" />
+                      <span>Maturidade</span>
+                    </div>
+                    <span className="font-semibold text-foreground">{member.nivel_maturidade || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <MainIcon className="w-4 h-4 text-accent" />
+                      <span>Área Dominante</span>
+                    </div>
+                    <span className="font-semibold text-foreground truncate max-w-[120px]">{member.categoria_dominante || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4 text-secondary-foreground" />
+                      <span>Idade</span>
+                    </div>
+                    <span className="font-semibold text-foreground">{member.idade || 'N/A'} anos</span>
+                  </div>
                 </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-xs text-muted-foreground">Especialização</span>
-                  <span className="font-semibold text-sm text-foreground truncate w-full">{member.especializacao_dominante || 'N/A'}</span>
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
         {filteredMembers.length === 0 && (<div className="text-center py-12"><p className="text-muted-foreground">Nenhum liderado encontrado com os filtros selecionados.</p></div>)}
       </main>
-      {/* Removed floating compare button as per user request */}
 
       {/* Filter Sidebar */}
       <Sheet open={isFilterSidebarOpen} onOpenChange={setIsFilterSidebarOpen}>
@@ -380,17 +418,65 @@ export default function Team() {
                 <h3 className="font-semibold text-foreground uppercase text-sm">Maturidade Geral</h3>
                 <ChevronDown className="w-4 h-4 text-muted-foreground" />
               </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3 space-y-2">
-                <Select value={filterMaturityLevel} onValueChange={setFilterMaturityLevel}>
-                  <SelectTrigger><SelectValue placeholder="Todos os níveis" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os níveis</SelectItem>
-                    <SelectItem value="M1">M1</SelectItem>
-                    <SelectItem value="M2">M2</SelectItem>
-                    <SelectItem value="M3">M3</SelectItem>
-                    <SelectItem value="M4">M4</SelectItem>
-                  </SelectContent>
-                </Select>
+              <CollapsibleContent className="mt-3 flex flex-wrap gap-2">
+                {["all", "M1", "M2", "M3", "M4"].map((level) => (
+                  <Badge
+                    key={level}
+                    variant={filterMaturityLevel === level ? "default" : "secondary"}
+                    className={`cursor-pointer ${filterMaturityLevel === level ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/70"}`}
+                    onClick={() => setFilterMaturityLevel(level)}
+                  >
+                    {level === "all" ? "Todos" : level}
+                  </Badge>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <h3 className="font-semibold text-foreground uppercase text-sm">Idade</h3>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 flex flex-wrap gap-2">
+                {Object.keys(AgeRanges).map((rangeKey) => (
+                  <Badge
+                    key={rangeKey}
+                    variant={filterAgeRange === rangeKey ? "default" : "secondary"}
+                    className={`cursor-pointer ${filterAgeRange === rangeKey ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/70"}`}
+                    onClick={() => setFilterAgeRange(rangeKey)}
+                  >
+                    {AgeRanges[rangeKey].label}
+                  </Badge>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <h3 className="font-semibold text-foreground uppercase text-sm">Gênero</h3>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 flex flex-wrap gap-2">
+                {[
+                  { key: "all", label: "Todos", icon: Users },
+                  { key: "FEMININO", label: "Feminino", icon: PersonStanding },
+                  { key: "MASCULINO", label: "Masculino", icon: PersonStanding },
+                  { key: "NAO_BINARIO", label: "Não Binário", icon: PersonStanding },
+                  { key: "NAO_INFORMADO", label: "Não Informado", icon: CircleUserRound },
+                ].map((gender) => {
+                  const Icon = gender.icon;
+                  return (
+                    <Badge
+                      key={gender.key}
+                      variant={filterGender === gender.key ? "default" : "secondary"}
+                      className={`cursor-pointer flex items-center gap-1 ${filterGender === gender.key ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/70"}`}
+                      onClick={() => setFilterGender(gender.key)}
+                    >
+                      <Icon className="w-3 h-3" />
+                      {gender.label}
+                    </Badge>
+                  );
+                })}
               </CollapsibleContent>
             </Collapsible>
 
