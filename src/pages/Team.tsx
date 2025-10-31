@@ -281,11 +281,21 @@ export default function Team() {
   };
 
   const handleToggleMemberForComparison = (memberId: string) => {
-    setSelectedMembersForComparison(prev =>
-      prev.includes(memberId)
-        ? prev.filter(id => id !== memberId)
-        : [...prev, memberId]
-    );
+    setSelectedMembersForComparison(prev => {
+      if (prev.includes(memberId)) {
+        return prev.filter(id => id !== memberId);
+      } else {
+        if (prev.length >= 4) {
+          toast({
+            variant: "destructive",
+            title: "Limite de comparação atingido",
+            description: "Você pode comparar no máximo 4 liderados por vez.",
+          });
+          return prev; // Don't add the new member
+        }
+        return [...prev, memberId];
+      }
+    });
   };
 
   const handleCompareMembers = () => {
@@ -294,6 +304,14 @@ export default function Team() {
         variant: "destructive",
         title: "Selecione mais membros",
         description: "Você precisa selecionar pelo menos 2 membros para comparar.",
+      });
+      return;
+    }
+    if (selectedMembersForComparison.length > 4) { // Added check for max 4 members
+      toast({
+        variant: "destructive",
+        title: "Limite de comparação excedido",
+        description: "Você pode comparar no máximo 4 liderados por vez.",
       });
       return;
     }
@@ -352,7 +370,7 @@ export default function Team() {
                 </Button>
                 <Button
                   onClick={handleCompareMembers}
-                  disabled={selectedMembersForComparison.length < 2}
+                  disabled={selectedMembersForComparison.length < 2 || selectedMembersForComparison.length > 4}
                   className="gap-2 bg-accent hover:bg-accent/80 text-accent-foreground"
                 >
                   <Rocket className="w-4 h-4" />

@@ -5,15 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer } from "recharts";
 import { useState, useMemo } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useAuth, Liderado } from "@/contexts/AuthContext";
-import { CompetenciaTipo } from "@/types/mer";
+import { useAuth } from "@/contexts/AuthContext";
 import { Command, CommandEmpty, CommandGroup, CommandList, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CommandInputWithClear } from "@/components/CommandInputWithClear"; // Importa o novo componente
-
-type ComparisonLevel = "category" | "specialization" | "competency";
+import { CommandInputWithClear } from "@/components/CommandInputWithClear";
+import { toast } from "@/hooks/use-toast";
+import { softSkillTemplates, technicalCategories } from "@/data/evaluationTemplates";
 
 export default function Compare() {
   const navigate = useNavigate();
@@ -21,112 +19,93 @@ export default function Compare() {
   const memberIds = searchParams.get("members")?.split(",") || [];
   const { liderados } = useAuth();
 
-  const [comparisonLevel, setComparisonLevel] = useState<ComparisonLevel>("specialization");
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
-  const [selectedSpecializationFilter, setSelectedSpecializationFilter] = useState<string>("all");
-  const [customSelectedCompetencies, setCustomSelectedCompetencies] = useState<string[]>([]);
-  const [isCompetencySelectOpen, setIsCompetencySelectOpen] = useState(false);
-  const [customCompetencySearch, setCustomCompetencySearch] = useState(""); // Novo estado para o termo de busca
+  // Comparison Mode states
+  // Initialize with max 4 members from URL params
+  const [selectedMembersForComparison, setSelectedMembersForComparison] = useState<string[]>(memberIds.slice(0, 4));
+
+  // New states for filters
+  const [selectedSoftSkills, setSelectedSoftSkills] = useState<string[]>([]);
+  const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>([]);
+  const [isSoftSkillSelectOpen, setIsSoftSkillSelectOpen] = useState(false);
+  const [isHardSkillSelectOpen, setIsHardSkillSelectOpen] = useState(false);
+  const [softSkillSearch, setSoftSkillSearch] = useState("");
+  const [hardSkillSearch, setHardSkillSearch] = useState("");
 
   const selectedMembers = useMemo(() => 
-    liderados.filter(m => memberIds.includes(m.id_liderado)), 
-    [liderados, memberIds]
+    liderados.filter(m => selectedMembersForComparison.includes(m.id_liderado)), 
+    [liderados, selectedMembersForComparison]
   );
 
-  const allAvailableCategories = useMemo(() => {
-    const categories = new Set<string>();
-    selectedMembers.forEach(member => {
-      member.competencias.forEach(comp => {
-        if (comp.tipo === 'TECNICA' && comp.nome_categoria) {
-          categories.add(comp.nome_categoria);
-        }
-      });
-    });
-    return Array.from(categories).sort();
-  }, [selectedMembers]);
-
-  const allAvailableSpecializations = useMemo(() => {
-    const specializations = new Set<string>();
-    selectedMembers.forEach(member => {
-      member.competencias.forEach(comp => {
-        if (comp.tipo === 'TECNICA' && comp.nome_especializacao && (selectedCategoryFilter === 'all' || comp.nome_categoria === selectedCategoryFilter)) {
-          specializations.add(comp.nome_especializacao);
-        }
-      });
-    });
-    return Array.from(specializations).sort();
-  }, [selectedMembers, selectedCategoryFilter]);
-
-  const allAvailableCompetencies = useMemo(() => {
+  // All available soft skill competencies
+  const allSoftSkillCompetencies = useMemo(() => {
     const competencies = new Set<string>();
-    selectedMembers.forEach(member => {
-      member.competencias.forEach(comp => {
-        if (comp.tipo === 'TECNICA' && (selectedCategoryFilter === 'all' || comp.nome_categoria === selectedCategoryFilter) && (selectedSpecializationFilter === 'all' || comp.nome_especializacao === selectedSpecializationFilter)) {
-          competencies.add(comp.nome_competencia);
-        } else if (comp.tipo === 'COMPORTAMENTAL' && selectedCategoryFilter === 'Soft Skills') {
-          competencies.add(comp.nome_competencia);
-        }
+    softSkillTemplates.forEach(template => {
+      template.competencias.forEach(comp => competencies.add(comp.name));
+    });
+    return Array.from(competencies).sort();
+  }, []);
+
+  // All available hard skill competencies
+  const allHardSkillCompetencies = useMemo(() => {
+    const competencies = new Set<string>();
+    technicalCategories.forEach(category => {
+      category.especializacoes.forEach(spec => {
+        spec.competencias.forEach(comp => competencies.add(comp.name));
       });
     });
     return Array.from(competencies).sort();
-  }, [selectedMembers, selectedCategoryFilter, selectedSpecializationFilter]);
+  }, []);
+
+  const handleToggleMemberForComparison = (memberId: string) => {
+    setSelectedMembersForComparison(prev => {
+      if (prev.includes(memberId)) {
+        return prev.filter(id => id !== memberId);
+      } else {
+        if (prev.length >= 4) {
+          toast({
+            variant: "destructive",
+            title: "Limite de comparação atingido",
+            description: "Você pode comparar no máximo 4 liderados por vez.",
+          });
+          return prev; // Don't add the new member
+        }
+        return [...prev, memberId];
+      }
+    });
+  };
+
+  const handleToggleSoftSkill = (skill: string) => {
+    setSelectedSoftSkills(prev =>
+      prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
+    );
+  };
+
+  const handleToggleHardSkill = (skill: string) => {
+    setSelectedHardSkills(prev =>
+      prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
+    );
+  };
 
   const getRadarChartData = () => {
-    if (selectedMembers.length < 2) return [];
+    if (selectedMembers.length < 1) return [];
 
-    const data: Record<string, any> = {};
-    const subjects = new Set<string>();
+    const combinedSelectedCompetencies = [...selectedSoftSkills, ...selectedHardSkills];
+    if (combinedSelectedCompetencies.length === 0) {
+      return []; // Return empty if no competencies are selected
+    }
 
-    selectedMembers.forEach(member => {
-      member.competencias.forEach(comp => {
-        let subjectKey: string | null = null;
-        let score = comp.media_pontuacao;
+    const radarDataMap: Record<string, any> = {}; // Key: competency name
 
-        // Lógica de filtragem e agrupamento
-        if (comparisonLevel === "category") {
-          if (selectedCategoryFilter === "all") {
-            if (comp.tipo === 'TECNICA' && comp.nome_categoria) {
-              subjectKey = comp.nome_categoria;
-            } else if (comp.tipo === 'COMPORTAMENTAL') {
-              subjectKey = 'Soft Skills';
-            }
-          } else if (comp.nome_categoria === selectedCategoryFilter) {
-            subjectKey = comp.nome_especializacao || comp.nome_competencia;
-          } else if (selectedCategoryFilter === 'Soft Skills' && comp.tipo === 'COMPORTAMENTAL') {
-            subjectKey = comp.nome_competencia;
-          }
-        } else if (comparisonLevel === "specialization") {
-          if (comp.nome_especializacao === selectedSpecializationFilter) {
-            subjectKey = comp.nome_competencia;
-          }
-        } else if (comparisonLevel === "competency" && customSelectedCompetencies.includes(comp.nome_competencia)) {
-          subjectKey = comp.nome_competencia;
-        }
+    combinedSelectedCompetencies.forEach(compName => {
+      radarDataMap[compName] = { subject: compName, PerfilIdeal: 4.0, fullMark: 4 };
 
-        if (subjectKey) {
-          subjects.add(subjectKey);
-          if (!data[subjectKey]) {
-            data[subjectKey] = { subject: subjectKey };
-          }
-          data[subjectKey][member.nome_liderado] = (data[subjectKey][member.nome_liderado] || 0) + score;
-          data[subjectKey][`${member.nome_liderado}_count`] = (data[subjectKey][`${member.nome_liderado}_count`] || 0) + 1;
-        }
-      });
-    });
-
-    const finalData = Array.from(subjects).map(subject => {
-      const item: any = { subject };
       selectedMembers.forEach(member => {
-        const totalScore = data[subject]?.[member.nome_liderado] || 0;
-        const count = data[subject]?.[`${member.nome_liderado}_count`] || 0;
-        item[member.nome_liderado] = count > 0 ? parseFloat((totalScore / count).toFixed(1)) : 0;
+        const memberCompetency = member.competencias.find(c => c.nome_competencia === compName);
+        radarDataMap[compName][member.nome_liderado] = memberCompetency ? parseFloat(memberCompetency.media_pontuacao.toFixed(1)) : 0;
       });
-      item.PerfilIdeal = 4.0; // Adiciona o Perfil Ideal como referência
-      item.fullMark = 4;
-      return item;
     });
 
-    return finalData;
+    return Object.values(radarDataMap);
   };
 
   const radarData = getRadarChartData();
@@ -134,7 +113,8 @@ export default function Compare() {
   // Cores: Azul Primário, Laranja, Cinza, Roxo
   const colors = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
 
-  if (selectedMembers.length < 2) {
+  // If no members are selected, show a message
+  if (selectedMembers.length === 0) {
     return (
       <div className="p-8">
         <Button 
@@ -145,7 +125,7 @@ export default function Compare() {
           <ArrowLeft className="w-4 h-4" />
           Voltar para Liderados
         </Button>
-        <p className="text-muted-foreground">Selecione pelo menos 2 membros para comparar</p>
+        <p className="text-muted-foreground">Selecione pelo menos 1 membro na página de "Time" para iniciar a comparação.</p>
       </div>
     );
   }
@@ -168,7 +148,7 @@ export default function Compare() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">Comparação de Liderados</h1>
         <p className="text-muted-foreground">
-          {selectedMembers.length} colaboradores selecionados para comparação
+          {selectedMembers.length} colaborador(es) selecionado(s) para comparação
         </p>
       </div>
 
@@ -205,96 +185,83 @@ export default function Compare() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Select value={comparisonLevel} onValueChange={(v: ComparisonLevel) => {
-              setComparisonLevel(v);
-              setSelectedCategoryFilter("all");
-              setSelectedSpecializationFilter("all");
-              setCustomSelectedCompetencies([]);
-            }}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Nível de Comparação" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="category">Por Categoria</SelectItem>
-                <SelectItem value="specialization">Por Especialização</SelectItem>
-                <SelectItem value="competency">Competências Personalizadas</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {comparisonLevel === "category" && (
-              <Select value={selectedCategoryFilter} onValueChange={setSelectedCategoryFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrar Categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Categorias</SelectItem>
-                  <SelectItem value="Soft Skills">Soft Skills</SelectItem>
-                  {allAvailableCategories.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {comparisonLevel === "specialization" && (
-              <Select value={selectedSpecializationFilter} onValueChange={setSelectedSpecializationFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filtrar Especialização" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Especializações</SelectItem>
-                  {allAvailableSpecializations.map(spec => (
-                    <SelectItem key={spec} value={spec}>{spec}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {comparisonLevel === "competency" && (
-              <Popover open={isCompetencySelectOpen} onOpenChange={setIsCompetencySelectOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    {customSelectedCompetencies.length > 0 ? `${customSelectedCompetencies.length} selecionadas` : "Selecione competências..."}
-                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                  <Command>
-                    <CommandInputWithClear // Usando o novo componente
-                      placeholder="Buscar competência..."
-                      value={customCompetencySearch}
-                      onValueChange={setCustomCompetencySearch}
-                    />
-                    <CommandList>
-                      <CommandEmpty>Nenhuma competência encontrada.</CommandEmpty>
-                      <CommandGroup>
-                        {allAvailableCompetencies.map(comp => (
+            {/* Soft Skills Filter */}
+            <Popover open={isSoftSkillSelectOpen} onOpenChange={setIsSoftSkillSelectOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  Soft Skills ({selectedSoftSkills.length})
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                <Command>
+                  <CommandInputWithClear
+                    placeholder="Buscar Soft Skill..."
+                    value={softSkillSearch}
+                    onValueChange={setSoftSkillSearch}
+                  />
+                  <CommandList>
+                    <CommandEmpty>Nenhuma Soft Skill encontrada.</CommandEmpty>
+                    <CommandGroup>
+                      {allSoftSkillCompetencies
+                        .filter(skill => skill.toLowerCase().includes(softSkillSearch.toLowerCase()))
+                        .map(skill => (
                           <CommandItem
-                            key={comp}
-                            onSelect={() => {
-                              setCustomSelectedCompetencies(prev => 
-                                prev.includes(comp) ? prev.filter(c => c !== comp) : [...prev, comp]
-                              );
-                            }}
+                            key={skill}
+                            onSelect={() => handleToggleSoftSkill(skill)}
                           >
                             <Checkbox
-                              checked={customSelectedCompetencies.includes(comp)}
-                              onCheckedChange={() => {
-                                setCustomSelectedCompetencies(prev => 
-                                  prev.includes(comp) ? prev.filter(c => c !== comp) : [...prev, comp]
-                                );
-                              }}
+                              checked={selectedSoftSkills.includes(skill)}
+                              onCheckedChange={() => handleToggleSoftSkill(skill)}
                               className="mr-2"
                             />
-                            {comp}
+                            {skill}
                           </CommandItem>
                         ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            )}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+
+            {/* Hard Skills Filter */}
+            <Popover open={isHardSkillSelectOpen} onOpenChange={setIsHardSkillSelectOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  Hard Skills ({selectedHardSkills.length})
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                <Command>
+                  <CommandInputWithClear
+                    placeholder="Buscar Hard Skill..."
+                    value={hardSkillSearch}
+                    onValueChange={setHardSkillSearch}
+                  />
+                  <CommandList>
+                    <CommandEmpty>Nenhuma Hard Skill encontrada.</CommandEmpty>
+                    <CommandGroup>
+                      {allHardSkillCompetencies
+                        .filter(skill => skill.toLowerCase().includes(hardSkillSearch.toLowerCase()))
+                        .map(skill => (
+                          <CommandItem
+                            key={skill}
+                            onSelect={() => handleToggleHardSkill(skill)}
+                          >
+                            <Checkbox
+                              checked={selectedHardSkills.includes(skill)}
+                              onCheckedChange={() => handleToggleHardSkill(skill)}
+                              className="mr-2"
+                            />
+                            {skill}
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
         
@@ -321,7 +288,7 @@ export default function Compare() {
               dataKey="PerfilIdeal"
               stroke="hsl(var(--primary-dark))"
               fill="hsl(var(--primary-dark))"
-              fillOpacity={0.1}
+              fillOpacity={0} // Changed to 0 for "empty pentagon"
               strokeWidth={3}
               strokeDasharray="5 5"
             />
