@@ -131,6 +131,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             })
         : [];
       
+      let categoria_dominante = "Não Avaliado";
+      let especializacao_dominante = "Não Avaliado";
+
+      if (competenciasDaUltimaAvaliacao.length > 0) {
+        const techCompetencies = competenciasDaUltimaAvaliacao.filter(c => c.tipo === 'HARD' && c.categoria_nome);
+        
+        if (techCompetencies.length > 0) {
+          const categories = new Map<string, { soma: number; count: number; especializacoes: Map<string, { soma: number; count: number }> }>();
+
+          techCompetencies.forEach(comp => {
+            const catName = comp.categoria_nome!;
+            const specName = comp.especializacao_nome;
+
+            if (!categories.has(catName)) {
+              categories.set(catName, { soma: 0, count: 0, especializacoes: new Map() });
+            }
+            const categoryData = categories.get(catName)!;
+            categoryData.soma += comp.pontuacao_1a4;
+            categoryData.count++;
+
+            if (specName) {
+              if (!categoryData.especializacoes.has(specName)) {
+                categoryData.especializacoes.set(specName, { soma: 0, count: 0 });
+              }
+              const specData = categoryData.especializacoes.get(specName)!;
+              specData.soma += comp.pontuacao_1a4;
+              specData.count++;
+            }
+          });
+
+          let maxAvg = 0;
+          let topCategory: string | null = null;
+
+          categories.forEach((data, name) => {
+            const avg = data.soma / data.count;
+            if (avg > maxAvg) {
+              maxAvg = avg;
+              topCategory = name;
+            }
+          });
+
+          if (topCategory) {
+            categoria_dominante = topCategory;
+            const topCategoryData = categories.get(topCategory)!;
+            
+            let maxSpecAvg = 0;
+            let topSpec: string | null = null;
+            topCategoryData.especializacoes.forEach((data, name) => {
+              const avg = data.soma / data.count;
+              if (avg > maxSpecAvg) {
+                maxSpecAvg = avg;
+                topSpec = name;
+              }
+            });
+            if (topSpec) {
+              especializacao_dominante = topSpec;
+            } else {
+              especializacao_dominante = "N/A";
+            }
+          }
+        }
+      }
+
       return {
         ...liderado,
         idade: calcularIdade(liderado.data_nascimento),
@@ -142,6 +205,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data_avaliacao: ultimaAvaliacao.data_avaliacao,
         } : undefined,
         competencias: competenciasDaUltimaAvaliacao,
+        categoria_dominante,
+        especializacao_dominante,
       };
     });
   }, [profile, liderados, avaliacoes, pontuacoes]);

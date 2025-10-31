@@ -3,7 +3,7 @@
 // ============ ENUMS ============
 
 export type UserRole = 'LIDER' | 'LIDERADO';
-export type SexoTipo = 'MASCULINO' | 'FEMININO' | 'OUTRO';
+export type SexoTipo = 'MASCULINO' | 'FEMININO' | 'OUTRO' | 'NAO_BINARIO' | 'NAO_INFORMADO';
 export type CompetenciaTipo = 'SOFT' | 'HARD';
 export type AvaliacaoStatus = 'RASCUNHO' | 'CONCLUIDA';
 export type NivelMaturidade = 'M1' | 'M2' | 'M3' | 'M4';
@@ -132,4 +132,6 @@ export interface LideradoDashboard extends Usuario {
     categoria_nome?: string;
     especializacao_nome?: string;
   })[];
+  categoria_dominante?: string;
+  especializacao_dominante?: string;
 }
