@@ -278,7 +278,6 @@ export default function Team() {
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="w-6 h-6 text-primary" /></div>
               <h1 className="text-3xl font-bold text-foreground">Liderados</h1>
             </div>
-            {/* Removido: <p className="text-muted-foreground">{sortedAndLimitedMembers.length} {sortedAndLimitedMembers.length === 1 ? 'liderado encontrado' : 'liderados encontrados'}</p> */}
           </div>
           <div className="flex gap-3 w-full md:w-auto">
             <div className="relative flex-1 md:flex-none">
@@ -390,9 +389,8 @@ export default function Team() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sortedAndLimitedMembers.map((member) => {
-            // Encontrar as 3 melhores competências técnicas
-            const topTechnicalCompetencies = member.competencias
-              .filter(c => c.tipo === 'TECNICA')
+            // Encontrar as 3 melhores competências (técnicas e comportamentais)
+            const topCompetencies = member.competencias
               .sort((a, b) => b.media_pontuacao - a.media_pontuacao)
               .slice(0, 3);
 
@@ -415,6 +413,9 @@ export default function Team() {
                       {member.cargo}
                     </Badge>
                   )}
+                  <Badge className="bg-primary/10 text-primary text-sm font-semibold mb-2">
+                    {member.nivel_maturidade}
+                  </Badge>
                   {talentMemberId === member.id_liderado && (
                     <Badge className="mt-2 bg-transparent text-yellow-600 font-bold text-sm px-0 py-0 flex items-center gap-1">
                       <Rocket className="w-4 h-4" /> TALENTO
@@ -422,8 +423,8 @@ export default function Team() {
                   )}
                 </div>
                 <div className="space-y-2 pt-4 border-t border-border">
-                  {topTechnicalCompetencies.length > 0 ? (
-                    topTechnicalCompetencies.map((comp, index) => (
+                  {topCompetencies.length > 0 ? (
+                    topCompetencies.map((comp, index) => (
                       <div key={index} className="flex items-center justify-between text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <Star className="w-4 h-4 text-gray-400 fill-gray-400" /> {/* Estrela cinza */}
@@ -437,10 +438,6 @@ export default function Team() {
                   ) : (
                     <p className="text-sm text-muted-foreground text-center">N/A</p>
                   )}
-                  <div className="flex items-center justify-between text-sm text-muted-foreground mt-4 pt-2 border-t border-border">
-                    <span className="font-medium text-foreground">Nível de Maturidade:</span>
-                    <Badge className="bg-primary/10 text-primary text-sm font-semibold">{member.nivel_maturidade}</Badge>
-                  </div>
                 </div>
               </Card>
             );
