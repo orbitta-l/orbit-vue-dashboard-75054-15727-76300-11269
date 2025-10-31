@@ -381,10 +381,10 @@ export default function Team() {
                   </div>
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      <CalendarDays className="w-4 h-4 text-secondary-foreground" />
-                      <span>Idade</span>
+                      <HeartHandshake className="w-4 h-4 text-secondary-foreground" />
+                      <span>Média Comportamental</span>
                     </div>
-                    <span className="font-semibold text-foreground">{member.idade || 'N/A'} anos</span>
+                    <span className="font-semibold text-foreground">{member.eixo_y_comportamental?.toFixed(1) || 'N/A'}</span>
                   </div>
                 </div>
               </Card>
@@ -422,6 +422,78 @@ export default function Team() {
                 ))}
               </CollapsibleContent>
             </Collapsible>
+
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <h3 className="font-semibold text-foreground uppercase text-sm">Área Específica</h3>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-3">
+                <Select value={filterArea} onValueChange={(value) => {
+                  setFilterArea(value);
+                  setFilterSpecialization("all"); // Reset specialization when area changes
+                  setFilterCompetency("all"); // Reset competency when area changes
+                }}>
+                  <SelectTrigger className="flex items-center gap-2">
+                    {filterArea !== "all" && categoryIcons[filterArea] && React.createElement(categoryIcons[filterArea], { className: "w-4 h-4" })}
+                    <SelectValue placeholder="Selecione uma área" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as áreas</SelectItem>
+                    {allTechnicalCategories.map((area) => {
+                      const Icon = categoryIcons[area.id];
+                      return (
+                        <SelectItem key={area.id} value={area.id}>
+                          <div className="flex items-center gap-2">
+                            {Icon && <Icon className="w-4 h-4" />}
+                            {area.name}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {filterArea !== "all" && (
+              <Collapsible defaultOpen>
+                <CollapsibleTrigger className="flex items-center justify-between w-full pl-4"> {/* Added pl-4 for 'subfolder' effect */}
+                  <h3 className="font-semibold text-foreground uppercase text-sm">Especialização</h3>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-3 pl-4"> {/* Added pl-4 for 'subfolder' effect */}
+                  <Select value={filterSpecialization} onValueChange={(value) => {
+                    setFilterSpecialization(value);
+                    setFilterCompetency("all"); // Reset competency when specialization changes
+                  }} disabled={availableSpecializations.length === 0}>
+                    <SelectTrigger><SelectValue placeholder="Selecione uma especialização" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas especializações</SelectItem>
+                      {availableSpecializations.map((spec) => (<SelectItem key={spec.id} value={spec.id}>{spec.name}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+
+            {filterSpecialization !== "all" && (
+              <Collapsible defaultOpen>
+                <CollapsibleTrigger className="flex items-center justify-between w-full pl-8"> {/* Added pl-8 for 'subfolder' effect */}
+                  <h3 className="font-semibold text-foreground uppercase text-sm">Competência</h3>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-3 pl-8"> {/* Added pl-8 for 'subfolder' effect */}
+                  <Select value={filterCompetency} onValueChange={setFilterCompetency} disabled={availableCompetencies.length === 0}>
+                    <SelectTrigger><SelectValue placeholder="Selecione uma competência" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas competências</SelectItem>
+                      {availableCompetencies.map((comp) => (<SelectItem key={comp.id} value={comp.id}>{comp.name}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
 
             <Collapsible defaultOpen>
               <CollapsibleTrigger className="flex items-center justify-between w-full">
@@ -470,78 +542,6 @@ export default function Team() {
                 })}
               </CollapsibleContent>
             </Collapsible>
-
-            <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <h3 className="font-semibold text-foreground uppercase text-sm">Área Específica</h3>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3 space-y-3">
-                <Select value={filterArea} onValueChange={(value) => {
-                  setFilterArea(value);
-                  setFilterSpecialization("all"); // Reset specialization when area changes
-                  setFilterCompetency("all"); // Reset competency when area changes
-                }}>
-                  <SelectTrigger className="flex items-center gap-2">
-                    {filterArea !== "all" && categoryIcons[filterArea] && React.createElement(categoryIcons[filterArea], { className: "w-4 h-4" })}
-                    <SelectValue placeholder="Selecione uma área" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as áreas</SelectItem>
-                    {allTechnicalCategories.map((area) => {
-                      const Icon = categoryIcons[area.id];
-                      return (
-                        <SelectItem key={area.id} value={area.id}>
-                          <div className="flex items-center gap-2">
-                            {Icon && <Icon className="w-4 h-4" />}
-                            {area.name}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </CollapsibleContent>
-            </Collapsible>
-
-            {filterArea !== "all" && (
-              <Collapsible defaultOpen>
-                <CollapsibleTrigger className="flex items-center justify-between w-full">
-                  <h3 className="font-semibold text-foreground uppercase text-sm">Especialização</h3>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-3 space-y-3">
-                  <Select value={filterSpecialization} onValueChange={(value) => {
-                    setFilterSpecialization(value);
-                    setFilterCompetency("all"); // Reset competency when specialization changes
-                  }} disabled={availableSpecializations.length === 0}>
-                    <SelectTrigger><SelectValue placeholder="Selecione uma especialização" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas especializações</SelectItem>
-                      {availableSpecializations.map((spec) => (<SelectItem key={spec.id} value={spec.id}>{spec.name}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-
-            {filterSpecialization !== "all" && (
-              <Collapsible defaultOpen>
-                <CollapsibleTrigger className="flex items-center justify-between w-full">
-                  <h3 className="font-semibold text-foreground uppercase text-sm">Competência</h3>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-3 space-y-3">
-                  <Select value={filterCompetency} onValueChange={setFilterCompetency} disabled={availableCompetencies.length === 0}>
-                    <SelectTrigger><SelectValue placeholder="Selecione uma competência" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas competências</SelectItem>
-                      {availableCompetencies.map((comp) => (<SelectItem key={comp.id} value={comp.id}>{comp.name}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                </CollapsibleContent>
-              </Collapsible>
-            )}
           </div>
           <div className="mt-auto border-t pt-4">
             <Button variant="outline" onClick={handleClearFilters} className="w-full gap-2">

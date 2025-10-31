@@ -4,12 +4,12 @@ import { MOCK_CARGOS } from "@/data/mockData";
 
 // Mapeamento de cargo_id para nome do cargo e cor
 export const cargoMap: Record<string, { name: string; colorClass: string }> = {
-  "estagiario": { name: "Estagiário", colorClass: "bg-blue-600" },
-  "junior": { name: "Júnior", colorClass: "bg-green-600" },
-  "pleno": { name: "Pleno", colorClass: "bg-yellow-600" },
-  "senior": { name: "Sênior", colorClass: "bg-red-600" },
-  "especialista": { name: "Especialista", colorClass: "bg-purple-600" },
-  "nao-definido": { name: "Não Definido", colorClass: "bg-gray-500" },
+  "estagiario": { name: "Estagiário", colorClass: "bg-cargo-estagiario" },
+  "junior": { name: "Júnior", colorClass: "bg-cargo-junior" },
+  "pleno": { name: "Pleno", colorClass: "bg-cargo-pleno" },
+  "senior": { name: "Sênior", colorClass: "bg-cargo-senior" },
+  "especialista": { name: "Especialista", colorClass: "bg-cargo-especialista" },
+  "nao-definido": { name: "Não Definido", colorClass: "bg-cargo-nao-definido" },
 };
 
 /**

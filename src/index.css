@@ -64,6 +64,13 @@ All colors MUST be HSL.
     --color-good: 142 71% 45%;
     --color-mid: 45 93% 47%;
     --color-talent-glow: 45 93% 60%; /* Cor para o brilho do talento */
+
+    /* Accent Orange Palette for Cargo Badges */
+    --accent-orange-light: 21 40% 80%;
+    --accent-orange-default: 21 58% 71%;
+    --accent-orange-dark: 21 70% 60%;
+    --accent-orange-darker: 21 80% 50%;
+    --accent-orange-deep: 21 90% 40%;
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -98,6 +105,13 @@ All colors MUST be HSL.
     --ring: 219 98% 23%;
     
     --icon-color: 21 60% 68%;
+
+    /* Dark mode adjustments for Accent Orange Palette */
+    --accent-orange-light: 21 30% 70%;
+    --accent-orange-default: 21 50% 65%;
+    --accent-orange-dark: 21 60% 55%;
+    --accent-orange-darker: 21 70% 45%;
+    --accent-orange-deep: 21 80% 35%;
   }
 }
 
@@ -115,4 +129,10 @@ All colors MUST be HSL.
   .talent-glow {
     box-shadow: 0 0 20px 5px hsl(var(--color-talent-glow) / 0.5);
   }
+  .bg-cargo-estagiario { background-color: hsl(var(--accent-orange-light)); }
+  .bg-cargo-junior { background-color: hsl(var(--accent-orange-default)); }
+  .bg-cargo-pleno { background-color: hsl(var(--accent-orange-dark)); }
+  .bg-cargo-senior { background-color: hsl(var(--accent-orange-darker)); }
+  .bg-cargo-especialista { background-color: hsl(var(--accent-orange-deep)); }
+  .bg-cargo-nao-definido { background-color: hsl(var(--muted-foreground)); }
 }
