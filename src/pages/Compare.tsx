@@ -411,14 +411,15 @@ export default function Compare() {
                             "h-7 px-2.5 text-xs", // Smaller size
                             selectedSoftSkills.includes(skill.name)
                               ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
-                            : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
-                        )}
-                      >
-                        {skill.name}
-                      </Button>
-                    ))}
-                  </div>
-                </CollapsibleContent>
+                              : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
+                          )}
+                        >
+                          {skill.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               )}
             </div>
           </div>
