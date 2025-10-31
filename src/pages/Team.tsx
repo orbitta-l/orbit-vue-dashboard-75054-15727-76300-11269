@@ -314,153 +314,155 @@ export default function Team() {
             </div>
             <p className="text-muted-foreground mt-1">Gerencie e compare o desempenho dos membros da sua equipe.</p>
           </div>
-          {isComparisonMode ? (
-            <div className="flex gap-3 w-full md:w-auto">
-              <Button variant="outline" onClick={handleCancelComparison} className="gap-2">
-                <X className="w-4 h-4" />
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleCompareMembers}
-                disabled={selectedMembersForComparison.length < 2}
-                className="gap-2 bg-accent hover:bg-accent/80 text-accent-foreground"
-              >
-                <Rocket className="w-4 h-4" />
-                Comparar ({selectedMembersForComparison.length})
-              </Button>
-            </div>
-          ) : (
-            <div className="flex gap-3 w-full md:w-auto">
-              {/* Search Input */}
-              <div className="relative flex-1 md:flex-none">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Buscar liderado..." value={searchName} onChange={(e) => setSearchName(e.target.value)} className="pl-9 w-full md:w-64" />
-                {searchName && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-3 hover:bg-transparent"
-                    onClick={() => setSearchName("")}
-                  >
-                    <X className="w-4 h-4 text-muted-foreground" />
-                  </Button>
-                )}
-              </div>
-              {/* Filters Button */}
-              <Button variant="outline" onClick={() => setIsFilterSidebarOpen(true)} className="gap-2">
-                <Filter className="w-4 h-4" />
-                Filtros {countActiveFilters > 0 && <Badge className="ml-1 px-2 py-0.5">{countActiveFilters}</Badge>}
-              </Button>
-              {/* Clear Filters Button */}
-              {countActiveFilters > 0 && (
-                <Button variant="outline" onClick={handleClearAllFilters} className="gap-2">
-                  <X className="w-4 h-4" />
-                  Limpar filtros
+          <div className="flex gap-3 w-full md:w-auto">
+            {/* Search Input */}
+            <div className="relative flex-1 md:flex-none">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input placeholder="Buscar liderado..." value={searchName} onChange={(e) => setSearchName(e.target.value)} className="pl-9 w-full md:w-64" />
+              {searchName && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-3 hover:bg-transparent"
+                  onClick={() => setSearchName("")}
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
                 </Button>
               )}
-              {/* Versus Button */}
-              <Button
-                onClick={() => setIsComparisonMode(true)}
-                className="gap-2 bg-accent hover:bg-accent/80 text-accent-foreground"
-              >
-                <Rocket className="w-4 h-4" />
-                Versus
+            </div>
+            {/* Filters Button */}
+            <Button variant="outline" onClick={() => setIsFilterSidebarOpen(true)} className="gap-2">
+              <Filter className="w-4 h-4" />
+              Filtros {countActiveFilters > 0 && <Badge className="ml-1 px-2 py-0.5">{countActiveFilters}</Badge>}
+            </Button>
+            {/* Clear Filters Button */}
+            {countActiveFilters > 0 && (
+              <Button variant="outline" onClick={handleClearAllFilters} className="gap-2">
+                <X className="w-4 h-4" />
+                Limpar filtros
               </Button>
-              {/* Add Liderado Button */}
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2"><Plus className="w-4 h-4" /> Adicionar Liderado</Button>
-                </DialogTrigger>
-                <DialogContent onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
-                  <DialogHeader>
-                    <DialogTitle>{modalStep === 1 ? "Adicione o liderado" : "Senha de acesso"}</DialogTitle>
-                    <DialogDescription>
-                      {modalStep === 1 ? "Digite os dados do liderado para gerar a senha de acesso." : "Compartilhe a senha abaixo com seu liderado."}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Progress value={modalStep * 50} className="w-full my-4" />
-                  {modalStep === 1 ? (
-                    <div className="space-y-4 mt-4">
-                      <div>
-                        <Label htmlFor="nome">Nome completo</Label>
-                        <Input id="nome" placeholder="João da Silva" {...register("nome")} />
-                        {errors.nome && <p className="text-sm text-destructive mt-1">{errors.nome.message}</p>}
-                      </div>
-                      <div>
-                        <Label htmlFor="email">E-mail</Label>
-                        <Input id="email" type="email" placeholder="joao.silva@orbitta.com" {...register("email")} />
-                        {errors.email && <p className="text-sm text-destructive mt-1">{errors.email.message}</p>}
-                      </div>
-                      <div>
-                        <Label htmlFor="cargo_id">Cargo</Label>
-                        <Controller
-                          name="cargo_id"
-                          control={control}
-                          render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione o cargo" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Object.entries(cargoMap).map(([id, data]) => (
-                                  <SelectItem key={id} value={id}>{data.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        />
-                        {errors.cargo_id && <p className="text-sm text-destructive mt-1">{errors.cargo_id.message}</p>}
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
+            )}
+
+            {isComparisonMode ? (
+              <>
+                <Button variant="outline" onClick={handleCancelComparison} className="gap-2">
+                  <X className="w-4 h-4" />
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleCompareMembers}
+                  disabled={selectedMembersForComparison.length < 2}
+                  className="gap-2 bg-accent hover:bg-accent/80 text-accent-foreground"
+                >
+                  <Rocket className="w-4 h-4" />
+                  Comparar ({selectedMembersForComparison.length})
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={() => setIsComparisonMode(true)}
+                  className="gap-2 bg-accent hover:bg-accent/80 text-accent-foreground"
+                >
+                  <Rocket className="w-4 h-4" />
+                  Versus
+                </Button>
+                {/* Add Liderado Button */}
+                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2"><Plus className="w-4 h-4" /> Adicionar Liderado</Button>
+                  </DialogTrigger>
+                  <DialogContent onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+                    <DialogHeader>
+                      <DialogTitle>{modalStep === 1 ? "Adicione o liderado" : "Senha de acesso"}</DialogTitle>
+                      <DialogDescription>
+                        {modalStep === 1 ? "Digite os dados do liderado para gerar a senha de acesso." : "Compartilhe a senha abaixo com seu liderado."}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Progress value={modalStep * 50} className="w-full my-4" />
+                    {modalStep === 1 ? (
+                      <div className="space-y-4 mt-4">
                         <div>
-                          <Label htmlFor="sexo">Sexo</Label>
+                          <Label htmlFor="nome">Nome completo</Label>
+                          <Input id="nome" placeholder="João da Silva" {...register("nome")} />
+                          {errors.nome && <p className="text-sm text-destructive mt-1">{errors.nome.message}</p>}
+                        </div>
+                        <div>
+                          <Label htmlFor="email">E-mail</Label>
+                          <Input id="email" type="email" placeholder="joao.silva@orbitta.com" {...register("email")} />
+                          {errors.email && <p className="text-sm text-destructive mt-1">{errors.email.message}</p>}
+                        </div>
+                        <div>
+                          <Label htmlFor="cargo_id">Cargo</Label>
                           <Controller
-                            name="sexo"
+                            name="cargo_id"
                             control={control}
                             render={({ field }) => (
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Selecione" />
+                                  <SelectValue placeholder="Selecione o cargo" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="FEMININO">Feminino</SelectItem>
-                                  <SelectItem value="MASCULINO">Masculino</SelectItem>
-                                  <SelectItem value="NAO_BINARIO">Não Binário</SelectItem>
-                                  <SelectItem value="NAO_INFORMADO">Não Informado</SelectItem>
+                                  {Object.entries(cargoMap).map(([id, data]) => (
+                                    <SelectItem key={id} value={id}>{data.name}</SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                             )}
                           />
-                          {errors.sexo && <p className="text-sm text-destructive mt-1">{errors.sexo.message}</p>}
+                          {errors.cargo_id && <p className="text-sm text-destructive mt-1">{errors.cargo_id.message}</p>}
                         </div>
-                        <div>
-                          <Label htmlFor="data_nascimento">Data de Nascimento</Label>
-                          <Input id="data_nascimento" type="date" {...register("data_nascimento")} />
-                          {errors.data_nascimento && <p className="text-sm text-destructive mt-1">{errors.data_nascimento.message}</p>}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="sexo">Sexo</Label>
+                            <Controller
+                              name="sexo"
+                              control={control}
+                              render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="FEMININO">Feminino</SelectItem>
+                                    <SelectItem value="MASCULINO">Masculino</SelectItem>
+                                    <SelectItem value="NAO_BINARIO">Não Binário</SelectItem>
+                                    <SelectItem value="NAO_INFORMADO">Não Informado</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            />
+                            {errors.sexo && <p className="text-sm text-destructive mt-1">{errors.sexo.message}</p>}
+                          </div>
+                          <div>
+                            <Label htmlFor="data_nascimento">Data de Nascimento</Label>
+                            <Input id="data_nascimento" type="date" {...register("data_nascimento")} />
+                            {errors.data_nascimento && <p className="text-sm text-destructive mt-1">{errors.data_nascimento.message}</p>}
+                          </div>
+                        </div>
+                        <Button onClick={handleNextStep} className="w-full gap-2">Avançar <ArrowRight className="w-4 h-4" /></Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 mt-4">
+                        <div className="p-4 bg-muted rounded-lg">
+                          <Label className="text-sm font-medium mb-2 block">Senha Temporária</Label>
+                          <div className="flex items-center gap-2">
+                            <code className="flex-1 text-lg font-mono bg-background p-3 rounded border border-border">{tempPassword}</code>
+                            <Button onClick={handleCopyPassword} size="sm">Copiar</Button>
+                          </div>
+                        </div>
+                        <div className="flex justify-between">
+                          <Button variant="outline" onClick={() => setModalStep(1)} className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button>
+                          <Button onClick={handleConclude}>Concluir</Button>
                         </div>
                       </div>
-                      <Button onClick={handleNextStep} className="w-full gap-2">Avançar <ArrowRight className="w-4 h-4" /></Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 mt-4">
-                      <div className="p-4 bg-muted rounded-lg">
-                        <Label className="text-sm font-medium mb-2 block">Senha Temporária</Label>
-                        <div className="flex items-center gap-2">
-                          <code className="flex-1 text-lg font-mono bg-background p-3 rounded border border-border">{tempPassword}</code>
-                          <Button onClick={handleCopyPassword} size="sm">Copiar</Button>
-                        </div>
-                      </div>
-                      <div className="flex justify-between">
-                        <Button variant="outline" onClick={() => setModalStep(1)} className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button>
-                        <Button onClick={handleConclude}>Concluir</Button>
-                      </div>
-                    </div>
-                  )}
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sortedAndLimitedMembers.map((member) => {
