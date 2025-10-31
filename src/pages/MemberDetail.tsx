@@ -149,7 +149,7 @@ export default function MemberDetail() {
       {/* Header com botões de ação */}
       <div className="mb-6 flex items-center justify-between">
         <Button onClick={() => navigate(-1)} variant="ghost" className="gap-2">
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
         <div className="flex gap-3">
@@ -174,35 +174,37 @@ export default function MemberDetail() {
           </div>
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-foreground mb-2">{liderado.nome_liderado}</h1>
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-              <div className="flex items-center gap-2">
-                <Briefcase className="w-4 h-4" />
-                <span>{liderado.cargo}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                <span>
-                  {liderado.email}
-                </span>
-              </div>
+            
+            {/* Cargo */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+              <Briefcase className="w-4 h-4" />
+              <span>{liderado.cargo}</span>
             </div>
             
-            {/* Categoria e Especialização Dominante */}
-            <div className="flex flex-wrap gap-2 mb-2">
-              <Badge variant="default" className="text-sm">
-                {liderado.nivel_maturidade}
-              </Badge>
-              <Badge variant="secondary" className="text-sm flex items-center gap-1">
-                <Award className="w-3 h-3" />
-                {liderado.categoria_dominante}
-              </Badge>
-              <Badge variant="outline" className="text-sm">
-                {liderado.especializacao_dominante}
-              </Badge>
+            {/* Email */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+              <Mail className="w-4 h-4" />
+              <span>{liderado.email}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Especialização dominante identificada com base no melhor desempenho técnico
-            </p>
+            
+            {/* Divider and then Categoria e Especialização Dominante */}
+            <div className="pt-4 border-t border-border">
+              <div className="flex flex-wrap gap-2 mb-2">
+                <Badge variant="default" className="text-sm">
+                  {liderado.nivel_maturidade}
+                </Badge>
+                <Badge variant="secondary" className="text-sm flex items-center gap-1">
+                  <Award className="w-3 h-3" />
+                  {liderado.categoria_dominante}
+                </Badge>
+                <Badge variant="outline" className="text-sm">
+                  {liderado.especializacao_dominante}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Especialização dominante identificada com base no melhor desempenho técnico
+              </p>
+            </div>
           </div>
         </div>
       </Card>
