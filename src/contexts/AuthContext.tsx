@@ -36,10 +36,9 @@ interface AuthContextType {
   avaliacoes: Avaliacao[];
   setAvaliacoes: React.Dispatch<React.SetStateAction<Avaliacao[]>>;
   isPrimeiroAcesso: boolean;
-  addLiderado: (novo: Omit<Liderado, 'nivel_maturidade' | 'eixo_x_tecnico_geral' | 'eixo_y_comportamental' | 'categoria_dominante' | 'especializacao_dominante' | 'competencias' | 'idade'> & { lider_id: string }) => void;
+  addLiderado: (novo: Omit<Liderado, 'nivel_maturidade' | 'eixo_x_tecnico_geral' | 'eixo_y_comportamental' | 'categoria_dominante' | 'especializacao_dominante' | 'competencias' | 'idade' | 'lider_id'> & { lider_id: string }) => void;
   addAvaliacao: (nova: Avaliacao) => void;
   updateLideradoPerformance: (lideradoId: string, performanceData: Partial<LideradoPerformance>) => void;
-  deleteLiderado: (lideradoId: string) => void; // Nova função para deletar
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -144,11 +143,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ));
   };
 
-  const deleteLiderado = (lideradoId: string) => {
-    setLiderados(prev => prev.filter(l => l.id_liderado !== lideradoId));
-    setAvaliacoes(prev => prev.filter(a => a.id_liderado !== lideradoId)); // Remove avaliações também
-  };
-
   const primeiroAcesso = useMemo(() => isPrimeiroAcesso(profile, liderados, avaliacoes), [profile, liderados, avaliacoes]);
 
   return (
@@ -166,7 +160,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         addLiderado,
         addAvaliacao,
         updateLideradoPerformance,
-        deleteLiderado,
       }}
     >
       {children}

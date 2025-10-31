@@ -1,5 +1,4 @@
 import { CompetenciaTipo } from "@/types/mer";
-import { Code, Smartphone, Database, Cloud, Shield, LayoutDashboard } from "lucide-react";
 
 // ==================================
 // INTERFACES PARA OS TEMPLATES
@@ -35,7 +34,6 @@ export interface TechnicalCategory {
   id: string;
   name: string;
   tipo: CompetenciaTipo;
-  icon?: React.ElementType; // Adicionado para ícones
   especializacoes: TechnicalSpecialization[];
 }
 
@@ -85,7 +83,6 @@ export const technicalCategories: TechnicalCategory[] = [
     id: "dev-web",
     name: "Desenvolvimento Web",
     tipo: "TECNICA",
-    icon: Code,
     especializacoes: [
       {
         id: "frontend-web",
@@ -145,7 +142,6 @@ export const technicalCategories: TechnicalCategory[] = [
     id: "dev-mobile",
     name: "Desenvolvimento Mobile",
     tipo: "TECNICA",
-    icon: Smartphone,
     especializacoes: [
       {
         id: "mobile-nativo",
@@ -205,7 +201,6 @@ export const technicalCategories: TechnicalCategory[] = [
     id: "data-ai",
     name: "Ciência de Dados e IA",
     tipo: "TECNICA",
-    icon: Database,
     especializacoes: [
       {
         id: "analise-viz",
@@ -265,7 +260,6 @@ export const technicalCategories: TechnicalCategory[] = [
     id: "cloud-devops",
     name: "Cloud e DevOps",
     tipo: "TECNICA",
-    icon: Cloud,
     especializacoes: [
       {
         id: "infra-containers",
@@ -325,7 +319,6 @@ export const technicalCategories: TechnicalCategory[] = [
     id: "sec-info",
     name: "Segurança da Informação",
     tipo: "TECNICA",
-    icon: Shield,
     especializacoes: [
       {
         id: "appsec",
@@ -385,7 +378,6 @@ export const technicalCategories: TechnicalCategory[] = [
     id: "ux-ui",
     name: "UX/UI Design",
     tipo: "TECNICA",
-    icon: LayoutDashboard,
     especializacoes: [
       {
         id: "ux-research",

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, User, Mail, Briefcase, Target, Award, Filter, Trash2, ClipboardCheck } from "lucide-react";
+import { ArrowLeft, User, Mail, Briefcase, Target, Award, Filter, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,12 +9,11 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, 
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export default function MemberDetail() {
   const { memberId } = useParams();
   const navigate = useNavigate();
-  const { liderados, deleteLiderado } = useAuth();
+  const { liderados } = useAuth();
   
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedEspecializacao, setSelectedEspecializacao] = useState<string>("all");
@@ -65,7 +64,7 @@ export default function MemberDetail() {
     if (radarViewMode === "soft") return softSkillsRadarData;
     if (radarViewMode === "custom") {
       const filteredHard = hardSkillsRadarData.filter(hs => 
-        selectedHardCategories.includes(hs.categoria || '')
+        selectedHardCategories.includes(hs.categoria)
       );
       return [...softSkillsRadarData, ...filteredHard];
     }
@@ -129,48 +128,14 @@ export default function MemberDetail() {
         }))
     : [];
 
-  const handleDelete = () => {
-    if (memberId) {
-      deleteLiderado(memberId);
-      toast({ title: "Liderado removido", description: `${liderado.nome_liderado} foi removido da sua equipe.` });
-      navigate("/team");
-    }
-  };
-
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="mb-6 flex justify-between items-center">
-        <Button onClick={() => navigate(-1)} variant="ghost" className="gap-2">
-          <ArrowLeft className="w-4 h-4" />
+      <div className="mb-6">
+        <Button onClick={() => navigate(-1)} variant="ghost" className="mb-4">
+          <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
-        <div className="flex gap-2">
-          <Button onClick={() => navigate(`/evaluation/${liderado.id_liderado}`)} className="gap-2">
-            <ClipboardCheck className="w-4 h-4" /> Avaliar Agora
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="gap-2">
-                <Trash2 className="w-4 h-4" /> Excluir Liderado
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Esta ação não pode ser desfeita. Isso removerá permanentemente o liderado e todas as suas avaliações.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Excluir
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
       </div>
 
       {/* Informações Básicas + Categoria/Especialização Dominante */}
@@ -191,7 +156,7 @@ export default function MemberDetail() {
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
                 <span>
-                  {liderado.email}
+                  {liderado.nome_liderado.toLowerCase().replace(' ', '.')}@orbitta.com
                 </span>
               </div>
             </div>
