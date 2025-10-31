@@ -417,7 +417,10 @@ export default function Team() {
                     {member.nivel_maturidade}
                   </Badge>
                   {talentMemberId === member.id_liderado && (
-                    <Badge className="mt-2 bg-transparent text-yellow-600 font-bold text-sm px-0 py-0 flex items-center gap-1">
+                    <Badge 
+                      className="mt-2 bg-transparent text-yellow-600 font-bold text-sm px-0 py-0 flex items-center gap-1
+                                 border border-transparent hover:border-yellow-400 hover:shadow-md transition-all duration-200"
+                    >
                       <Rocket className="w-4 h-4" /> TALENTO
                     </Badge>
                   )}
