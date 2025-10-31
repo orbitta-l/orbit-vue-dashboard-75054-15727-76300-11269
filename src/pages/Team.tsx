@@ -83,6 +83,15 @@ export default function Team() {
   const [filterSpecialization, setFilterSpecialization] = useState<string>("all");
   const [filterCompetency, setFilterCompetency] = useState<string>("all");
 
+  // Declaração de AgeRanges movida para antes do useMemo de filteredMembers
+  const AgeRanges: { [key: string]: { label: string; min?: number; max?: number } } = {
+    all: { label: "Todas as idades" },
+    "<21": { label: "<21", max: 20 },
+    "21-29": { label: "21-29", min: 21, max: 29 },
+    "30-39": { label: "30-39", min: 30, max: 39 },
+    "40+": { label: "40+", min: 40 },
+  };
+
   const { register, control, formState: { errors }, trigger, getValues, reset } = useForm<Step1Form>({
     resolver: zodResolver(step1Schema),
     mode: "onBlur",
@@ -214,14 +223,6 @@ export default function Team() {
     });
     return talentId;
   }, [filteredMembers, filterCompetency]);
-
-  const AgeRanges: { [key: string]: { label: string; min?: number; max?: number } } = {
-    all: { label: "Todas as idades" },
-    "<21": { label: "<21", max: 20 },
-    "21-29": { label: "21-29", min: 21, max: 29 },
-    "30-39": { label: "30-39", min: 30, max: 39 },
-    "40+": { label: "40+", min: 40 },
-  };
 
   return (
     <div className="flex min-h-screen bg-background">
