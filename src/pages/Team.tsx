@@ -292,7 +292,7 @@ export default function Team() {
             {countActiveFilters > 0 && (
               <Button variant="outline" onClick={handleClearAllFilters} className="gap-2">
                 <X className="w-4 h-4" />
-                Limpar Todos
+                Limpar filtros
               </Button>
             )}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -422,7 +422,6 @@ export default function Team() {
                   )}
                 </div>
                 <div className="space-y-2 pt-4 border-t border-border">
-                  {/* Removido: <p className="text-sm font-medium text-foreground mb-2">Top 3 Competências Técnicas:</p> */}
                   {topTechnicalCompetencies.length > 0 ? (
                     topTechnicalCompetencies.map((comp, index) => (
                       <div key={index} className="flex items-center justify-between text-sm text-muted-foreground">
@@ -452,14 +451,14 @@ export default function Team() {
 
       {/* Filter Sidebar */}
       <Sheet open={isFilterSidebarOpen} onOpenChange={setIsFilterSidebarOpen}>
-        <SheetContent side="left" className="w-80 sm:w-[320px] p-6 flex flex-col">
+        <SheetContent side="right" className="w-80 sm:w-[320px] p-6 flex flex-col"> {/* Changed side to 'right' */}
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <Filter className="w-5 h-5 text-primary" />
               Filtros
             </SheetTitle>
           </SheetHeader>
-          <div className="flex-1 overflow-y-auto space-y-6 mt-6 pr-2"> {/* Added overflow-y-auto and pr-2 for scrollbar */}
+          <div className="flex-1 space-y-6 mt-6"> {/* Removed overflow-y-auto and pr-2 */}
             {/* Maturidade Geral */}
             <div>
               <div className="flex items-center justify-between mb-3">
