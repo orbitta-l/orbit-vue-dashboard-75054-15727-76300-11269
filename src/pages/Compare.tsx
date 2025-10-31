@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { useAuth, Liderado } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { softSkillTemplates, technicalCategories } from "@/data/evaluationTemplates";
 import { cn } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 // Interface para os dados de exibição dos chips de competência
 interface CompetencyChipDisplayData {
@@ -30,12 +31,16 @@ export default function Compare() {
   // Estado para controlar a categoria selecionada no dropdown de Hard Skills
   const [selectedHardSkillCategory, setSelectedHardSkillCategory] = useState<string>("all");
 
+  // Estados para controlar o estado de colapsar das seções de competências ausentes
+  const [isHardSkillsAbsentCollapsed, setIsHardSkillsAbsentCollapsed] = useState(true);
+  const [isSoftSkillsAbsentCollapsed, setIsSoftSkillsAbsentCollapsed] = useState(true);
+
   const selectedMembers = useMemo(() => 
     liderados.filter(m => selectedMembersForComparison.includes(m.id_liderado)), 
     [liderados, selectedMembersForComparison]
   );
 
-  // Cores para os liderados no gráfico
+  // Cores para os liderados no gráfico, utilizando a paleta do projeto
   const colors = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
 
   // Função para obter e ordenar competências com base na relevância
@@ -281,25 +286,32 @@ export default function Compare() {
               )}
 
               {absentHardSkillChips.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mt-4 mb-2">Competências Ausentes</p>
-                  <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2">
-                    {absentHardSkillChips.map(skill => (
-                      <Button
-                        key={skill.name}
-                        onClick={() => handleToggleHardSkill(skill.name)}
-                        className={cn(
-                          "h-7 px-2.5 text-xs", // Smaller size
-                          selectedHardSkills.includes(skill.name)
-                            ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
-                            : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
-                        )}
-                      >
-                        {skill.name}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                <Collapsible open={isHardSkillsAbsentCollapsed} onOpenChange={setIsHardSkillsAbsentCollapsed} className="mt-4">
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-between text-sm font-medium text-muted-foreground hover:text-foreground">
+                      Competências Ausentes
+                      {isHardSkillsAbsentCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                    </mButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="CollapsibleContent">
+                    <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2 pt-2">
+                      {absentHardSkillChips.map(skill => (
+                        <Button
+                          key={skill.name}
+                          onClick={() => handleToggleHardSkill(skill.name)}
+                          className={cn(
+                            "h-7 px-2.5 text-xs", // Smaller size
+                            selectedHardSkills.includes(skill.name)
+                              ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
+                              : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
+                          )}
+                        >
+                          {skill.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               )}
             </div>
           </div>
@@ -382,25 +394,32 @@ export default function Compare() {
               )}
 
               {absentSoftSkillChips.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mt-4 mb-2">Competências Ausentes</p>
-                  <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2">
-                    {absentSoftSkillChips.map(skill => (
-                      <Button
-                        key={skill.name}
-                        onClick={() => handleToggleSoftSkill(skill.name)}
-                        className={cn(
-                          "h-7 px-2.5 text-xs", // Smaller size
-                          selectedSoftSkills.includes(skill.name)
-                            ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
-                            : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
-                        )}
-                      >
-                        {skill.name}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                <Collapsible open={isSoftSkillsAbsentCollapsed} onOpenChange={setIsSoftSkillsAbsentCollapsed} className="mt-4">
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-between text-sm font-medium text-muted-foreground hover:text-foreground">
+                      Competências Ausentes
+                      {isSoftSkillsAbsentCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="CollapsibleContent">
+                    <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2 pt-2">
+                      {absentSoftSkillChips.map(skill => (
+                        <Button
+                          key={skill.name}
+                          onClick={() => handleToggleSoftSkill(skill.name)}
+                          className={cn(
+                            "h-7 px-2.5 text-xs", // Smaller size
+                            selectedSoftSkills.includes(skill.name)
+                              ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
+                              : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
+                          )}
+                        >
+                          {skill.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               )}
             </div>
           </div>
