@@ -291,7 +291,7 @@ export default function Compare() {
                     <Button variant="ghost" className="w-full justify-between text-sm font-medium text-muted-foreground hover:text-foreground">
                       Competências Ausentes
                       {isHardSkillsAbsentCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                    </mButton>
+                    </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="CollapsibleContent">
                     <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2 pt-2">
@@ -411,15 +411,14 @@ export default function Compare() {
                             "h-7 px-2.5 text-xs", // Smaller size
                             selectedSoftSkills.includes(skill.name)
                               ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
-                              : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
-                          )}
-                        >
-                          {skill.name}
-                        </Button>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                            : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
+                        )}
+                      >
+                        {skill.name}
+                      </Button>
+                    ))}
+                  </div>
+                </CollapsibleContent>
               )}
             </div>
           </div>
