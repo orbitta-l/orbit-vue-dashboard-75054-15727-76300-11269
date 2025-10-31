@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Plus, Search, ChevronDown, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail, HeartHandshake } from "lucide-react";
+import { Plus, Search, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail, HeartHandshake } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -40,6 +40,17 @@ const getInitials = (name: string) => {
     .join("")
     .toUpperCase()
     .slice(0, 2);
+};
+
+// Função para obter o nome base do cargo (ex: "Desenvolvedor" de "Desenvolvedor Junior")
+const getBaseCargoName = (fullCargoName: string): string => {
+  if (!fullCargoName) return "Não Definido";
+  const parts = fullCargoName.split(' ');
+  const lastPart = parts[parts.length - 1].toLowerCase();
+  if (['junior', 'pleno', 'sênior', 'estagiário', 'especialista'].includes(lastPart)) {
+    return parts.slice(0, -1).join(' ');
+  }
+  return fullCargoName;
 };
 
 const step1Schema = z.object({
@@ -247,6 +258,17 @@ export default function Team() {
     return null;
   }, [sortedAndLimitedMembers, filterArea, filterSpecialization, filterCompetency]);
 
+  const countActiveFilters = useMemo(() => {
+    let count = 0;
+    if (filterMaturityLevel !== "all") count++;
+    if (filterAgeRange !== "all") count++;
+    if (filterGender !== "all") count++;
+    if (filterArea !== "all") count++;
+    if (filterSpecialization !== "all") count++;
+    if (filterCompetency !== "all") count++;
+    return count;
+  }, [filterMaturityLevel, filterAgeRange, filterGender, filterArea, filterSpecialization, filterCompetency]);
+
   return (
     <div className="flex min-h-screen bg-background">
       <main className="flex-1 p-8 max-w-7xl mx-auto"> {/* Centralized content */}
@@ -265,7 +287,7 @@ export default function Team() {
             </div>
             <Button variant="outline" onClick={() => setIsFilterSidebarOpen(true)} className="gap-2">
               <Filter className="w-4 h-4" />
-              Filtros
+              Filtros {countActiveFilters > 0 && <Badge className="ml-1 px-2 py-0.5">{countActiveFilters}</Badge>}
             </Button>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
@@ -362,15 +384,11 @@ export default function Team() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sortedAndLimitedMembers.map((member) => {
-            // Encontrar a melhor competência técnica
-            const topTechnicalCompetency = member.competencias
+            // Encontrar as 3 melhores competências técnicas
+            const topTechnicalCompetencies = member.competencias
               .filter(c => c.tipo === 'TECNICA')
-              .sort((a, b) => b.media_pontuacao - a.media_pontuacao)[0];
-
-            // Encontrar a melhor competência comportamental
-            const topBehavioralCompetency = member.competencias
-              .filter(c => c.tipo === 'COMPORTAMENTAL')
-              .sort((a, b) => b.media_pontuacao - a.media_pontuacao)[0];
+              .sort((a, b) => b.media_pontuacao - a.media_pontuacao)
+              .slice(0, 3);
 
             return (
               <Card 
@@ -378,11 +396,6 @@ export default function Team() {
                 className={`relative overflow-hidden w-full max-w-[280px] mx-auto p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1 ${talentMemberId === member.id_liderado ? 'talent-glow' : ''}`} 
                 onClick={() => navigate(`/team/${member.id_liderado}`)}
               >
-                {talentMemberId === member.id_liderado && (
-                  <Badge className="absolute top-4 right-4 z-10 bg-transparent text-yellow-600 font-bold text-sm px-0 py-0 flex items-center gap-1">
-                    <Rocket className="w-4 h-4" /> TALENTO
-                  </Badge>
-                )}
                 <div className="flex flex-col items-center text-center mb-4">
                   <Avatar className="w-16 h-16 mb-3">
                     <AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">
@@ -392,29 +405,36 @@ export default function Team() {
                   <h3 className="font-semibold text-lg text-foreground">{member.nome_liderado}</h3>
                   <p className="text-sm text-muted-foreground mb-2">{member.email}</p>
                   {member.cargo_id && (
-                    <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2 cursor-default hover:bg-none`}>
-                      {member.cargo}
+                    <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2 cursor-default`}>
+                      {getBaseCargoName(member.cargo)}
+                    </Badge>
+                  )}
+                  {talentMemberId === member.id_liderado && (
+                    <Badge className="mt-2 bg-transparent text-yellow-600 font-bold text-sm px-0 py-0 flex items-center gap-1">
+                      <Rocket className="w-4 h-4" /> TALENTO
                     </Badge>
                   )}
                 </div>
                 <div className="space-y-2 pt-4 border-t border-border">
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      <span>Melhor Comp. Técnica</span>
-                    </div>
-                    <span className="font-semibold text-foreground text-right">
-                      {topTechnicalCompetency ? `${topTechnicalCompetency.nome_competencia} (${topTechnicalCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      <span>Melhor Comp. Comportamental</span>
-                    </div>
-                    <span className="font-semibold text-foreground text-right">
-                      {topBehavioralCompetency ? `${topBehavioralCompetency.nome_competencia} (${topBehavioralCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
-                    </span>
+                  <p className="text-sm font-medium text-foreground mb-2">Top 3 Competências Técnicas:</p>
+                  {topTechnicalCompetencies.length > 0 ? (
+                    topTechnicalCompetencies.map((comp, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          <span>{comp.nome_competencia}</span>
+                        </div>
+                        <span className="font-semibold text-foreground text-right">
+                          ({comp.media_pontuacao.toFixed(1)})
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center">N/A</p>
+                  )}
+                  <div className="flex items-center justify-between text-sm text-muted-foreground mt-4 pt-2 border-t border-border">
+                    <span className="font-medium text-foreground">Nível de Maturidade:</span>
+                    <Badge className="bg-primary/10 text-primary text-sm font-semibold">{member.nivel_maturidade}</Badge>
                   </div>
                 </div>
               </Card>
@@ -438,7 +458,9 @@ export default function Team() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-foreground uppercase text-sm">MATURIDADE GERAL</h3>
-                <Button variant="ghost" size="sm" onClick={() => setFilterMaturityLevel("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                {filterMaturityLevel !== "all" && (
+                  <Button variant="ghost" size="sm" onClick={() => setFilterMaturityLevel("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                )}
               </div>
               <div className="flex flex-wrap gap-2">
                 {["all", "M1", "M2", "M3", "M4"].map((level) => (
@@ -458,7 +480,9 @@ export default function Team() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-foreground uppercase text-sm">ÁREA ESPECÍFICA</h3>
-                <Button variant="ghost" size="sm" onClick={() => { setFilterArea("all"); setFilterSpecialization("all"); setFilterCompetency("all"); }} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                {filterArea !== "all" && (
+                  <Button variant="ghost" size="sm" onClick={() => { setFilterArea("all"); setFilterSpecialization("all"); setFilterCompetency("all"); }} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                )}
               </div>
               <div className="mt-3 space-y-3">
                 <Select value={filterArea} onValueChange={(value) => {
@@ -492,7 +516,9 @@ export default function Team() {
               <div className="pl-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-foreground uppercase text-sm">ESPECIALIZAÇÃO</h3>
-                  <Button variant="ghost" size="sm" onClick={() => { setFilterSpecialization("all"); setFilterCompetency("all"); }} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                  {filterSpecialization !== "all" && (
+                    <Button variant="ghost" size="sm" onClick={() => { setFilterSpecialization("all"); setFilterCompetency("all"); }} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                  )}
                 </div>
                 <div className="mt-3 space-y-3">
                   <Select value={filterSpecialization} onValueChange={(value) => {
@@ -513,7 +539,9 @@ export default function Team() {
               <div className="pl-8">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-foreground uppercase text-sm">COMPETÊNCIA</h3>
-                  <Button variant="ghost" size="sm" onClick={() => setFilterCompetency("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                  {filterCompetency !== "all" && (
+                    <Button variant="ghost" size="sm" onClick={() => setFilterCompetency("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                  )}
                 </div>
                 <div className="mt-3 space-y-3">
                   <Select value={filterCompetency} onValueChange={setFilterCompetency} disabled={availableCompetencies.length === 0}>
@@ -531,7 +559,9 @@ export default function Team() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-foreground uppercase text-sm">IDADE</h3>
-                <Button variant="ghost" size="sm" onClick={() => setFilterAgeRange("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                {filterAgeRange !== "all" && (
+                  <Button variant="ghost" size="sm" onClick={() => setFilterAgeRange("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                )}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {Object.keys(AgeRanges).map((rangeKey) => (
@@ -551,7 +581,9 @@ export default function Team() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-foreground uppercase text-sm">GÊNERO</h3>
-                <Button variant="ghost" size="sm" onClick={() => setFilterGender("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                {filterGender !== "all" && (
+                  <Button variant="ghost" size="sm" onClick={() => setFilterGender("all")} className="h-auto px-2 py-1 text-xs text-muted-foreground hover:bg-muted">Limpar</Button>
+                )}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {[
