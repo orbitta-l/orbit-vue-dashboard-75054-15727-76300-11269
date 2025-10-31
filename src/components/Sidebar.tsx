@@ -6,6 +6,7 @@ import logo from "@/assets/logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"; // Import Avatar and AvatarFallback
+import { Button } from "@/components/ui/button"; // Import Button
 
 const navItems = [
   { to: "/dashboard-lider", icon: Home, label: "Dashboard" },
@@ -43,13 +44,14 @@ export const Sidebar = () => {
         isCollapsed ? "px-2" : "px-6"
       )}>
         <img src={logo} alt="ORBITTA Logo" className={cn("h-8 transition-all duration-300", isCollapsed && "h-6")} />
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 p-1 rounded-full bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-primary transition-colors border border-sidebar-border"
+          className="absolute top-2 left-2 p-1 rounded-full bg-transparent text-sidebar-foreground/80 hover:bg-sidebar-accent/20 hover:text-sidebar-foreground transition-colors border border-transparent opacity-50 hover:opacity-100"
           aria-label={isCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
+        </Button>
       </div>
 
       {/* Profile Section */}
@@ -58,21 +60,21 @@ export const Sidebar = () => {
         isCollapsed ? "py-3 px-2" : "py-4 px-4"
       )}>
         <div className={cn(
-          "flex items-center gap-3 p-2 rounded-lg bg-sidebar-accent/50 transition-all duration-300",
+          "flex flex-col items-center p-2 rounded-lg transition-all duration-300 hover:bg-sidebar-accent/20", // Removed default background, added hover
           isCollapsed ? "justify-center" : ""
         )}>
-          <Avatar className={cn("w-10 h-10", isCollapsed && "w-8 h-8")}>
+          <Avatar className={cn("mb-2", isCollapsed ? "w-8 h-8" : "w-16 h-16")}> {/* Larger avatar */}
             {/* Se houver avatar_url no profile, usar <AvatarImage src={profile.avatar_url} /> */}
-            <AvatarFallback className="bg-accent text-accent-foreground font-semibold text-sm">
+            <AvatarFallback className="bg-accent text-accent-foreground font-semibold text-lg">
               {profile ? getInitials(profile.name) : 'U'}
             </AvatarFallback>
           </Avatar>
           {!isCollapsed && (
-            <div className="flex-1 min-w-0 transition-opacity duration-300">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">
+            <div className="flex-1 min-w-0 text-center transition-opacity duration-300"> {/* Centered text */}
+              <p className="text-base font-medium text-sidebar-foreground truncate"> {/* Adjusted font size */}
                 {profile?.name || 'Usuário'}
               </p>
-              <p className="text-xs text-sidebar-foreground/70 truncate">
+              <p className="text-sm text-sidebar-foreground/70 truncate"> {/* Adjusted font size */}
                 {profile?.role === 'lider' ? 'Tech Lead' : 'Desenvolvedor'}
               </p>
             </div>
@@ -133,12 +135,12 @@ export const Sidebar = () => {
         <button 
           onClick={handleLogout}
           className={cn(
-            "flex items-center gap-3 px-4 py-3 w-full rounded-lg bg-accent text-accent-foreground hover:bg-accent/80 transition-all duration-200", // Laranja de destaque
+            "flex items-center gap-3 px-4 py-3 w-full rounded-lg bg-transparent hover:bg-accent/80 transition-all duration-200", // Fundo transparente, hover laranja
             isCollapsed ? "justify-center px-2" : ""
           )}
         >
-          <LogOut className="w-5 h-5" />
-          {!isCollapsed && <span>Sair</span>}
+          <LogOut className="w-5 h-5 text-accent" /> {/* Ícone laranja */}
+          {!isCollapsed && <span className="text-accent">Sair</span>} {/* Texto laranja */}
         </button>
       </div>
     </aside>
