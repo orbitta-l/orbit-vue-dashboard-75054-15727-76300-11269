@@ -5,8 +5,8 @@ import { toast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"; // Import Avatar and AvatarFallback
-import { Button } from "@/components/ui/button"; // Import Button
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { to: "/dashboard-lider", icon: Home, label: "Dashboard" },
@@ -43,7 +43,7 @@ export const Sidebar = () => {
         "relative flex items-center justify-center h-16 border-b border-sidebar-border transition-all duration-300",
         isCollapsed ? "px-2" : "px-6"
       )}>
-        <img src={logo} alt="ORBITTA Logo" className={cn("h-8 transition-all duration-300", isCollapsed && "h-6")} />
+        {!isCollapsed && <img src={logo} alt="ORBITTA Logo" className="h-8 transition-all duration-300" />}
         <Button
           variant="ghost"
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -60,21 +60,21 @@ export const Sidebar = () => {
         isCollapsed ? "py-3 px-2" : "py-4 px-4"
       )}>
         <div className={cn(
-          "flex flex-col items-center p-2 rounded-lg transition-all duration-300 hover:bg-sidebar-accent/20", // Removed default background, added hover
+          "flex flex-col items-center p-2 transition-all duration-300 hover:bg-white/5", // Subtle hover, no rounded-lg
           isCollapsed ? "justify-center" : ""
         )}>
-          <Avatar className={cn("mb-2", isCollapsed ? "w-8 h-8" : "w-16 h-16")}> {/* Larger avatar */}
+          <Avatar className={cn("mb-2", isCollapsed ? "w-8 h-8" : "w-16 h-16")}>
             {/* Se houver avatar_url no profile, usar <AvatarImage src={profile.avatar_url} /> */}
             <AvatarFallback className="bg-accent text-accent-foreground font-semibold text-lg">
               {profile ? getInitials(profile.name) : 'U'}
             </AvatarFallback>
           </Avatar>
           {!isCollapsed && (
-            <div className="flex-1 min-w-0 text-center transition-opacity duration-300"> {/* Centered text */}
-              <p className="text-base font-medium text-sidebar-foreground truncate"> {/* Adjusted font size */}
+            <div className="flex-1 min-w-0 text-center transition-opacity duration-300">
+              <p className="text-base font-medium text-sidebar-foreground truncate">
                 {profile?.name || 'Usuário'}
               </p>
-              <p className="text-sm text-sidebar-foreground/70 truncate"> {/* Adjusted font size */}
+              <p className="text-sm text-sidebar-foreground/70 truncate">
                 {profile?.role === 'lider' ? 'Tech Lead' : 'Desenvolvedor'}
               </p>
             </div>
@@ -92,10 +92,10 @@ export const Sidebar = () => {
               end={item.to === "/dashboard-lider"}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
+                  "flex items-center gap-3 px-4 py-3 transition-all duration-200", // Removed rounded-lg
                   isActive
                     ? "bg-primary text-primary-foreground font-medium"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                    : "text-sidebar-foreground/80 hover:bg-white/5 hover:text-sidebar-foreground", // Subtle hover
                   isCollapsed ? "justify-center px-2" : ""
                 )
               }
@@ -117,10 +117,10 @@ export const Sidebar = () => {
           to="/settings"
           className={({ isActive }) =>
             cn(
-              "flex items-center gap-3 px-4 py-3 w-full rounded-lg transition-all duration-200 mb-1",
+              "flex items-center gap-3 px-4 py-3 w-full transition-all duration-200 mb-1", // Removed rounded-lg
               isActive
                 ? "bg-primary text-primary-foreground font-medium"
-                : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground", // Mais opaco
+                : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-sidebar-foreground", // Mais opaco, hover sutil
               isCollapsed ? "justify-center px-2" : ""
             )
           }
@@ -135,7 +135,7 @@ export const Sidebar = () => {
         <button 
           onClick={handleLogout}
           className={cn(
-            "flex items-center gap-3 px-4 py-3 w-full rounded-lg bg-transparent hover:bg-accent/80 transition-all duration-200", // Fundo transparente, hover laranja
+            "flex items-center gap-3 px-4 py-3 w-full bg-transparent hover:bg-accent/20 transition-all duration-200", // Fundo transparente, hover laranja sutil
             isCollapsed ? "justify-center px-2" : ""
           )}
         >
