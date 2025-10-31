@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
@@ -386,7 +385,7 @@ export default function Team() {
                     </AvatarFallback>
                   </Avatar>
                   <h3 className="font-semibold text-lg text-foreground">{member.nome_liderado}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{member.email}</p>
+                  <p className="text-sm text-muted-foreground mb-2">{member.email}</p> {/* Email added here */}
                   {member.cargo_id && (
                     <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2`}>
                       {cargoMap[member.cargo_id]?.name || member.cargo}
@@ -399,7 +398,7 @@ export default function Team() {
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       <span>Melhor Comp. Técnica</span>
                     </div>
-                    <span className="font-semibold text-foreground text-right">
+                    <span className="font-semibold text-foreground text-right text-wrap max-w-[120px]">
                       {topTechnicalCompetency ? `${topTechnicalCompetency.nome_competencia} (${topTechnicalCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
                     </span>
                   </div>
@@ -408,7 +407,7 @@ export default function Team() {
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       <span>Melhor Comp. Comportamental</span>
                     </div>
-                    <span className="font-semibold text-foreground text-right">
+                    <span className="font-semibold text-foreground text-right text-wrap max-w-[120px]">
                       {topBehavioralCompetency ? `${topBehavioralCompetency.nome_competencia} (${topBehavioralCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
                     </span>
                   </div>
@@ -417,7 +416,7 @@ export default function Team() {
             );
           })}
         </div>
-        {sortedAndLimitedMembers.length === 0 && (<div className="text-center py-12"><p className="text-muted-foreground">Nenhum liderado encontrado com os filtros selecionados.</p></div>)}
+        {filteredMembers.length === 0 && (<div className="text-center py-12"><p className="text-muted-foreground">Nenhum liderado encontrado com os filtros selecionados.</p></div>)}
       </main>
 
       {/* Filter Sidebar */}
@@ -430,8 +429,9 @@ export default function Team() {
             </SheetTitle>
           </SheetHeader>
           <div className="flex-1 space-y-6 mt-6">
+            {/* Maturidade Geral */}
             <div>
-              <h3 className="font-semibold text-foreground text-sm mb-3">MATURIDADE GERAL</h3>
+              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">MATURIDADE GERAL</h3>
               <div className="flex flex-wrap gap-2">
                 {["all", "M1", "M2", "M3", "M4"].map((level) => (
                   <Badge
@@ -446,8 +446,9 @@ export default function Team() {
               </div>
             </div>
 
+            {/* Área Específica */}
             <div>
-              <h3 className="font-semibold text-foreground text-sm mb-3">ÁREA ESPECÍFICA</h3>
+              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">ÁREA ESPECÍFICA</h3>
               <div className="mt-3 space-y-3">
                 <Select value={filterArea} onValueChange={(value) => {
                   setFilterArea(value);
@@ -476,9 +477,10 @@ export default function Team() {
               </div>
             </div>
 
+            {/* Especialização (subpasta) */}
             {filterArea !== "all" && (
-              <div className="pl-4"> {/* Added pl-4 for 'subfolder' effect */}
-                <h3 className="font-semibold text-foreground text-sm mb-3">ESPECIALIZAÇÃO</h3>
+              <div className="pl-4">
+                <h3 className="font-semibold text-foreground uppercase text-sm mb-3">ESPECIALIZAÇÃO</h3>
                 <div className="mt-3 space-y-3">
                   <Select value={filterSpecialization} onValueChange={(value) => {
                     setFilterSpecialization(value);
@@ -494,9 +496,10 @@ export default function Team() {
               </div>
             )}
 
+            {/* Competência (subpasta) */}
             {filterSpecialization !== "all" && (
-              <div className="pl-8"> {/* Added pl-8 for 'subfolder' effect */}
-                <h3 className="font-semibold text-foreground text-sm mb-3">COMPETÊNCIA</h3>
+              <div className="pl-8">
+                <h3 className="font-semibold text-foreground uppercase text-sm mb-3">COMPETÊNCIA</h3>
                 <div className="mt-3 space-y-3">
                   <Select value={filterCompetency} onValueChange={setFilterCompetency} disabled={availableCompetencies.length === 0}>
                     <SelectTrigger><SelectValue placeholder="Selecione uma competência" /></SelectTrigger>
@@ -509,8 +512,9 @@ export default function Team() {
               </div>
             )}
 
+            {/* Idade */}
             <div>
-              <h3 className="font-semibold text-foreground text-sm mb-3">IDADE</h3>
+              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">IDADE</h3>
               <div className="mt-3 flex flex-wrap gap-2">
                 {Object.keys(AgeRanges).map((rangeKey) => (
                   <Badge
@@ -525,8 +529,9 @@ export default function Team() {
               </div>
             </div>
 
+            {/* Gênero */}
             <div>
-              <h3 className="font-semibold text-foreground text-sm mb-3">GÊNERO</h3>
+              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">GÊNERO</h3>
               <div className="mt-3 flex flex-wrap gap-2">
                 {[
                   { key: "all", label: "Todos", icon: Users },
@@ -548,8 +553,8 @@ export default function Team() {
                     </Badge>
                   );
                 })}
-              </CollapsibleContent>
-            </Collapsible>
+              </div>
+            </div>
           </div>
           <div className="mt-auto border-t pt-4">
             <Button variant="outline" onClick={handleClearFilters} className="w-full gap-2">
