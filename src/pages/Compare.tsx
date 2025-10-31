@@ -32,8 +32,8 @@ export default function Compare() {
   const [selectedHardSkillCategory, setSelectedHardSkillCategory] = useState<string>("all");
 
   // Estados para controlar o estado de colapsar das seções de competências ausentes
-  const [isHardSkillsAbsentCollapsed, setIsHardSkillsAbsentCollapsed] = useState(true);
-  const [isSoftSkillsAbsentCollapsed, setIsSoftSkillsAbsentCollapsed] = useState(true);
+  const [isHardSkillsAbsentCollapsed, setIsHardSkillsAbsentCollapsed] = useState(false); // Alterado para false
+  const [isSoftSkillsAbsentCollapsed, setIsSoftSkillsAbsentCollapsed] = useState(false); // Alterado para false
 
   const selectedMembers = useMemo(() => 
     liderados.filter(m => selectedMembersForComparison.includes(m.id_liderado)), 
@@ -411,15 +411,14 @@ export default function Compare() {
                             "h-7 px-2.5 text-xs", // Smaller size
                             selectedSoftSkills.includes(skill.name)
                               ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
-                              : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
-                          )}
-                        >
-                          {skill.name}
-                        </Button>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                            : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
+                        )}
+                      >
+                        {skill.name}
+                      </Button>
+                    ))}
+                  </div>
+                </CollapsibleContent>
               )}
             </div>
           </div>
