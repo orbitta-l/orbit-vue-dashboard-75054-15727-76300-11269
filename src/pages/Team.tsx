@@ -1,16 +1,17 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Plus, Search, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, HeartHandshake, PersonStanding, CircleUserRound, Star } from "lucide-react";
+import { Plus, Search, ChevronDown, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, CalendarDays, HeartHandshake, PersonStanding, CircleUserRound, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { useAuth, Liderado } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
@@ -82,6 +83,7 @@ export default function Team() {
   const [filterSpecialization, setFilterSpecialization] = useState<string>("all");
   const [filterCompetency, setFilterCompetency] = useState<string>("all");
 
+  // Declaração de AgeRanges movida para antes do useMemo de filteredMembers
   const AgeRanges: { [key: string]: { label: string; min?: number; max?: number } } = {
     all: { label: "Todas as idades" },
     "<21": { label: "<21", max: 20 },
@@ -169,37 +171,15 @@ export default function Team() {
     return specialization ? specialization.competencias.map(comp => ({ id: comp.id, name: comp.name })) : [];
   }, [filterArea, filterSpecialization]);
 
-  // Helper para calcular score de ordenação
-  const getMemberScoreForSorting = (member: Liderado, filterArea: string, filterSpecialization: string, filterCompetency: string): number => {
-    if (filterCompetency !== "all") {
-      return member.competencias.find(c => c.id_competencia === filterCompetency)?.media_pontuacao || 0;
-    }
-    if (filterSpecialization !== "all") {
-      const relevantCompetencies = member.competencias.filter(c => c.id_especializacao === filterSpecialization);
-      if (relevantCompetencies.length === 0) return 0;
-      const sum = relevantCompetencies.reduce((acc, c) => acc + c.media_pontuacao, 0);
-      return sum / relevantCompetencies.length;
-    }
-    if (filterArea !== "all") {
-      const relevantCompetencies = member.competencias.filter(c => c.id_categoria === filterArea);
-      if (relevantCompetencies.length === 0) return 0;
-      const sum = relevantCompetencies.reduce((acc, c) => acc + c.media_pontuacao, 0);
-      return sum / relevantCompetencies.length;
-    }
-    // Default sorting by maturity level if no specific filter
-    const maturityMap: { [key: string]: number } = { M1: 1, M2: 2, M3: 3, M4: 4 };
-    return maturityMap[member.nivel_maturidade] || 0;
-  };
-
-  const sortedAndLimitedMembers = useMemo(() => {
+  const filteredMembers = useMemo(() => {
     let members = liderados.filter(member =>
       member.nome_liderado.toLowerCase().includes(searchName.toLowerCase())
     );
 
-    // Apply all other filters first
     if (filterMaturityLevel !== "all") {
       members = members.filter(member => member.nivel_maturidade === filterMaturityLevel);
     }
+
     if (AgeRanges[filterAgeRange]) {
       members = members.filter(member => {
         const age = member.idade;
@@ -209,46 +189,40 @@ export default function Team() {
         return true;
       });
     }
+
     if (filterGender !== "all") {
       members = members.filter(member => member.sexo === filterGender);
     }
+
     if (filterArea !== "all") {
       members = members.filter(member => member.competencias?.some(comp => comp.id_categoria === filterArea));
     }
+
     if (filterSpecialization !== "all") {
       members = members.filter(member => member.competencias?.some(comp => comp.id_especializacao === filterSpecialization));
     }
+
     if (filterCompetency !== "all") {
       members = members.filter(member => member.competencias?.some(c => c.id_competencia === filterCompetency));
     }
-
-    // Sort members based on the active filter
-    members.sort((a, b) => {
-      const scoreA = getMemberScoreForSorting(a, filterArea, filterSpecialization, filterCompetency);
-      const scoreB = getMemberScoreForSorting(b, filterArea, filterSpecialization, filterCompetency);
-      return scoreB - scoreA; // Descending order
-    });
-
-    // Identify the "talent" (highest score among the filtered)
-    const currentTalentId = members.length > 0 ? members[0].id_liderado : null;
-
-    // Reorder to put talent first (if not already) and then limit to top 3
-    const finalMembers: Liderado[] = [];
-    if (currentTalentId) {
-      const talentMember = members.find(m => m.id_liderado === currentTalentId);
-      if (talentMember) {
-        finalMembers.push(talentMember);
-        members = members.filter(m => m.id_liderado !== currentTalentId);
-      }
-    }
-    
-    // Add remaining top members, up to 3 total
-    finalMembers.push(...members.slice(0, 3 - finalMembers.length));
-
-    return finalMembers;
+    return members;
   }, [liderados, searchName, filterMaturityLevel, filterAgeRange, filterGender, filterArea, filterSpecialization, filterCompetency]);
 
-  const talentMemberId = sortedAndLimitedMembers.length > 0 ? sortedAndLimitedMembers[0].id_liderado : null;
+  const talentMemberId = useMemo(() => {
+    if (filterCompetency === "all" || filteredMembers.length === 0) return null;
+
+    let bestScore = -1;
+    let talentId: string | null = null;
+
+    filteredMembers.forEach(member => {
+      const competencyScore = member.competencias.find(c => c.id_competencia === filterCompetency)?.media_pontuacao || 0;
+      if (competencyScore > bestScore) {
+        bestScore = competencyScore;
+        talentId = member.id_liderado;
+      }
+    });
+    return talentId;
+  }, [filteredMembers, filterCompetency]);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -259,7 +233,7 @@ export default function Team() {
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="w-6 h-6 text-primary" /></div>
               <h1 className="text-3xl font-bold text-foreground">Liderados</h1>
             </div>
-            <p className="text-muted-foreground">{sortedAndLimitedMembers.length} {sortedAndLimitedMembers.length === 1 ? 'liderado encontrado' : 'liderados encontrados'}</p>
+            <p className="text-muted-foreground">{filteredMembers.length} {filteredMembers.length === 1 ? 'liderado encontrado' : 'liderados encontrados'}</p>
           </div>
           <div className="flex gap-3 w-full md:w-auto">
             <div className="relative flex-1 md:flex-none">
@@ -364,7 +338,7 @@ export default function Team() {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {sortedAndLimitedMembers.map((member) => {
+          {filteredMembers.map((member) => {
             // Encontrar a melhor competência técnica
             const topTechnicalCompetency = member.competencias
               .filter(c => c.tipo === 'TECNICA')
@@ -392,8 +366,7 @@ export default function Team() {
                       {getInitials(member.nome_liderado)}
                     </AvatarFallback>
                   </Avatar>
-                  <h3 className="font-semibold text-lg text-foreground mb-0">{member.nome_liderado}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{member.email}</p>
+                  <h3 className="font-semibold text-lg text-foreground mb-1">{member.nome_liderado}</h3>
                   {member.cargo_id && (
                     <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2`}>
                       {cargoMap[member.cargo_id]?.name || member.cargo}
@@ -408,21 +381,21 @@ export default function Team() {
                     </div>
                     <span className="font-semibold text-foreground">{member.nivel_maturidade || 'N/A'}</span>
                   </div>
-                  <div className="flex items-start justify-between text-sm text-muted-foreground">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       <span>Melhor Comp. Técnica</span>
                     </div>
-                    <span className="font-semibold text-foreground text-right">
+                    <span className="font-semibold text-foreground truncate max-w-[120px]">
                       {topTechnicalCompetency ? `${topTechnicalCompetency.nome_competencia} (${topTechnicalCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
                     </span>
                   </div>
-                  <div className="flex items-start justify-between text-sm text-muted-foreground">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                       <span>Melhor Comp. Comportamental</span>
                     </div>
-                    <span className="font-semibold text-foreground text-right">
+                    <span className="font-semibold text-foreground truncate max-w-[120px]">
                       {topBehavioralCompetency ? `${topBehavioralCompetency.nome_competencia} (${topBehavioralCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
                     </span>
                   </div>
@@ -431,7 +404,7 @@ export default function Team() {
             );
           })}
         </div>
-        {sortedAndLimitedMembers.length === 0 && (<div className="text-center py-12"><p className="text-muted-foreground">Nenhum liderado encontrado com os filtros selecionados.</p></div>)}
+        {filteredMembers.length === 0 && (<div className="text-center py-12"><p className="text-muted-foreground">Nenhum liderado encontrado com os filtros selecionados.</p></div>)}
       </main>
 
       {/* Filter Sidebar */}
@@ -444,10 +417,12 @@ export default function Team() {
             </SheetTitle>
           </SheetHeader>
           <div className="flex-1 space-y-6 mt-6">
-            {/* Maturidade Geral */}
-            <div>
-              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">Maturidade Geral</h3>
-              <div className="flex flex-wrap gap-2">
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <h3 className="font-semibold text-foreground uppercase text-sm">Maturidade Geral</h3>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 flex flex-wrap gap-2">
                 {["all", "M1", "M2", "M3", "M4"].map((level) => (
                   <Badge
                     key={level}
@@ -458,13 +433,15 @@ export default function Team() {
                     {level === "all" ? "Todos" : level}
                   </Badge>
                 ))}
-              </div>
-            </div>
+              </CollapsibleContent>
+            </Collapsible>
 
-            {/* Área Específica */}
-            <div>
-              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">Área Específica</h3>
-              <div className="space-y-3">
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <h3 className="font-semibold text-foreground uppercase text-sm">Área Específica</h3>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-3">
                 <Select value={filterArea} onValueChange={(value) => {
                   setFilterArea(value);
                   setFilterSpecialization("all"); // Reset specialization when area changes
@@ -489,13 +466,16 @@ export default function Team() {
                     })}
                   </SelectContent>
                 </Select>
-              </div>
-            </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             {filterArea !== "all" && (
-              <div className="pl-4"> {/* 'Subpasta' para Especialização */}
-                <h3 className="font-semibold text-foreground uppercase text-sm mb-3">Especialização</h3>
-                <div className="space-y-3">
+              <Collapsible defaultOpen>
+                <CollapsibleTrigger className="flex items-center justify-between w-full pl-4"> {/* Added pl-4 for 'subfolder' effect */}
+                  <h3 className="font-semibold text-foreground uppercase text-sm">Especialização</h3>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-3 pl-4"> {/* Added pl-4 for 'subfolder' effect */}
                   <Select value={filterSpecialization} onValueChange={(value) => {
                     setFilterSpecialization(value);
                     setFilterCompetency("all"); // Reset competency when specialization changes
@@ -506,14 +486,17 @@ export default function Team() {
                       {availableSpecializations.map((spec) => (<SelectItem key={spec.id} value={spec.id}>{spec.name}</SelectItem>))}
                     </SelectContent>
                   </Select>
-                </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
             )}
 
             {filterSpecialization !== "all" && (
-              <div className="pl-8"> {/* 'Subpasta' para Competência */}
-                <h3 className="font-semibold text-foreground uppercase text-sm mb-3">Competência</h3>
-                <div className="space-y-3">
+              <Collapsible defaultOpen>
+                <CollapsibleTrigger className="flex items-center justify-between w-full pl-8"> {/* Added pl-8 for 'subfolder' effect */}
+                  <h3 className="font-semibold text-foreground uppercase text-sm">Competência</h3>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-3 pl-8"> {/* Added pl-8 for 'subfolder' effect */}
                   <Select value={filterCompetency} onValueChange={setFilterCompetency} disabled={availableCompetencies.length === 0}>
                     <SelectTrigger><SelectValue placeholder="Selecione uma competência" /></SelectTrigger>
                     <SelectContent>
@@ -521,14 +504,16 @@ export default function Team() {
                       {availableCompetencies.map((comp) => (<SelectItem key={comp.id} value={comp.id}>{comp.name}</SelectItem>))}
                     </SelectContent>
                   </Select>
-                </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
             )}
 
-            {/* Idade */}
-            <div>
-              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">Idade</h3>
-              <div className="flex flex-wrap gap-2">
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <h3 className="font-semibold text-foreground uppercase text-sm">Idade</h3>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 flex flex-wrap gap-2">
                 {Object.keys(AgeRanges).map((rangeKey) => (
                   <Badge
                     key={rangeKey}
@@ -539,13 +524,15 @@ export default function Team() {
                     {AgeRanges[rangeKey].label}
                   </Badge>
                 ))}
-              </div>
-            </div>
+              </CollapsibleContent>
+            </Collapsible>
 
-            {/* Gênero */}
-            <div>
-              <h3 className="font-semibold text-foreground uppercase text-sm mb-3">Gênero</h3>
-              <div className="flex flex-wrap gap-2">
+            <Collapsible defaultOpen>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <h3 className="font-semibold text-foreground uppercase text-sm">Gênero</h3>
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 flex flex-wrap gap-2">
                 {[
                   { key: "all", label: "Todos", icon: Users },
                   { key: "FEMININO", label: "Feminino", icon: PersonStanding },
@@ -566,8 +553,8 @@ export default function Team() {
                     </Badge>
                   );
                 })}
-              </div>
-            </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
           <div className="mt-auto border-t pt-4">
             <Button variant="outline" onClick={handleClearFilters} className="w-full gap-2">
