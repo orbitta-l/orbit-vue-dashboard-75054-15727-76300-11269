@@ -278,7 +278,7 @@ export default function Team() {
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Users className="w-6 h-6 text-primary" /></div>
               <h1 className="text-3xl font-bold text-foreground">Liderados</h1>
             </div>
-            <p className="text-muted-foreground">{sortedAndLimitedMembers.length} {sortedAndLimitedMembers.length === 1 ? 'liderado encontrado' : 'liderados encontrados'}</p>
+            {/* Removido: <p className="text-muted-foreground">{sortedAndLimitedMembers.length} {sortedAndLimitedMembers.length === 1 ? 'liderado encontrado' : 'liderados encontrados'}</p> */}
           </div>
           <div className="flex gap-3 w-full md:w-auto">
             <div className="relative flex-1 md:flex-none">
@@ -422,12 +422,12 @@ export default function Team() {
                   )}
                 </div>
                 <div className="space-y-2 pt-4 border-t border-border">
-                  <p className="text-sm font-medium text-foreground mb-2">Top 3 Competências Técnicas:</p>
+                  {/* Removido: <p className="text-sm font-medium text-foreground mb-2">Top 3 Competências Técnicas:</p> */}
                   {topTechnicalCompetencies.length > 0 ? (
                     topTechnicalCompetencies.map((comp, index) => (
                       <div key={index} className="flex items-center justify-between text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
-                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          <Star className="w-4 h-4 text-gray-400 fill-gray-400" /> {/* Estrela cinza */}
                           <span>{comp.nome_competencia}</span>
                         </div>
                         <span className="font-semibold text-foreground text-right">
