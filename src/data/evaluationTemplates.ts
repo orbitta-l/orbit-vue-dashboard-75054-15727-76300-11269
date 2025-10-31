@@ -21,7 +21,7 @@ export interface SoftSkillTemplate {
 export interface TechnicalCompetency {
   id: string;
   name: string;
-  description: string;
+  descricao: string; // Alterado de 'description' para 'descricao'
 }
 
 export interface TechnicalSpecialization {
@@ -91,22 +91,22 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "design-responsivo",
             name: "Design Responsivo (HTML/CSS)",
-            description: "Construção de UI responsivas com boas práticas de layout e semântica.",
+            descricao: "Construção de UI responsivas com boas práticas de layout e semântica.",
           },
           {
             id: "interatividade-js",
             name: "Interatividade (JavaScript/DOM)",
-            description: "Criação de interfaces interativas e manipulação do DOM.",
+            descricao: "Criação de interfaces interativas e manipulação do DOM.",
           },
           {
             id: "performance-web",
             name: "Otimização de Performance Web",
-            description: "Melhorias de carregamento, renderização e métricas web vitais.",
+            descricao: "Melhorias de carregamento, renderização e métricas web vitais.",
           },
           {
             id: "acessibilidade-web",
             name: "Desenvolvimento Acessível",
-            description: "Garantia de acessibilidade (WAI-ARIA) e inclusão em interfaces web.",
+            descricao: "Garantia de acessibilidade (WAI-ARIA) e inclusão em interfaces web.",
           },
         ],
       },
@@ -117,22 +117,22 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "api-rest",
             name: "Criação e Gestão de APIs (REST)",
-            description: "Modelagem de endpoints, versionamento e boas práticas REST.",
+            descricao: "Modelagem de endpoints, versionamento e boas práticas REST.",
           },
           {
             id: "modelagem-sql-nosql",
             name: "Modelagem e Consultas SQL/NoSQL",
-            description: "Projetar esquemas e escrever consultas eficientes.",
+            descricao: "Projetar esquemas e escrever consultas eficientes.",
           },
           {
             id: "regras-negocio",
             name: "Implementação de Regras de Negócio",
-            description: "Codificação de lógicas de domínio e validações no servidor.",
+            descricao: "Codificação de lógicas de domínio e validações no servidor.",
           },
           {
             id: "autenticacao-acesso",
             name: "Autenticação e Controle de Acesso",
-            description: "Sessões, tokens, OAuth2/OpenID e autorização por papéis.",
+            descricao: "Sessões, tokens, OAuth2/OpenID e autorização por papéis.",
           },
         ],
       },
@@ -150,22 +150,22 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "programacao-nativa",
             name: "Programação Específica (iOS/Android)",
-            description: "Desenvolvimento com linguagens/plataformas nativas.",
+            descricao: "Desenvolvimento com linguagens/plataformas nativas.",
           },
           {
             id: "recursos-nativos",
             name: "Uso de Recursos Nativos",
-            description: "Integração com câmera, GPS, notificações e sensores.",
+            descricao: "Integração com câmera, GPS, notificações e sensores.",
           },
           {
             id: "publicacao-lojas",
             name: "Publicação em Lojas de Aplicativos",
-            description: "Empacotamento, requisitos e processos de publicação.",
+            descricao: "Empacotamento, requisitos e processos de publicação.",
           },
           {
             id: "padroes-ui-ux-plataforma",
             name: "Padrões de Design de Plataforma (UI/UX)",
-            description: "Aderência a Material, Human Interface e guidelines nativas.",
+            descricao: "Aderência a Material, Human Interface e guidelines nativas.",
           },
         ],
       },
@@ -176,22 +176,21 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "reutilizacao-codigo",
             name: "Reutilização de Código",
-            description: "Compartilhamento de lógica e componentes multi-plataforma.",
+            descricao: "Compartilhamento de lógica e componentes multi-plataforma.",
           },
           {
             id: "estado-mobile",
             name: "Gerenciamento de Estado",
-            description: "Arquiteturas de estado previsível e performático.",
+            descricao: "Arquiteturas de estado previsível e performático.",
           },
           {
             id: "integracao-apis-mobile",
             name: "Integração com APIs",
-            description: "Consumo, cache e sincronização de dados remotos.",
+            descricao: "Consumo, cache e sincronização de dados remotos.",
           },
           {
             id: "teste-debug-mobile",
-            name: "Teste e Debugging",
-            description: "Estratégias de testes, logs e inspeção de problemas.",
+            descricao: "Estratégias de testes, logs e inspeção de problemas.",
           },
         ],
       },
@@ -209,22 +208,22 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "etl",
             name: "ETL",
-            description: "Extração, transformação e carga de dados de múltiplas fontes.",
+            descricao: "Extração, transformação e carga de dados de múltiplas fontes.",
           },
           {
             id: "eda",
             name: "Análise Exploratória",
-            description: "Explorar dados, tratar outliers e hipóteses iniciais.",
+            descricao: "Explorar dados, tratar outliers e hipóteses iniciais.",
           },
           {
             id: "visualizacao-dados",
             name: "Visualização de Dados",
-            description: "Criação de gráficos e dashboards para tomada de decisão.",
+            descricao: "Criação de gráficos e dashboards para tomada de decisão.",
           },
           {
             id: "comunicacao-insights",
             name: "Comunicação de Insights",
-            description: "Storytelling com dados e suporte a decisões do negócio.",
+            descricao: "Storytelling com dados e suporte a decisões do negócio.",
           },
         ],
       },
@@ -235,22 +234,22 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "modelagem-preditiva",
             name: "Modelagem Preditiva",
-            description: "Seleção de algoritmos, tuning e validação cruzada.",
+            descricao: "Seleção de algoritmos, tuning e validação cruzada.",
           },
           {
             id: "treino-avaliacao",
             name: "Treinamento e Avaliação",
-            description: "Métricas, overfitting/underfitting e experimentação.",
+            descricao: "Métricas, overfitting/underfitting e experimentação.",
           },
           {
             id: "bibliotecas-ml",
             name: "Uso de Bibliotecas de ML",
-            description: "Aplicação prática com frameworks do ecossistema.",
+            descricao: "Aplicação prática com frameworks do ecossistema.",
           },
           {
             id: "interpretacao-resultados",
             name: "Interpretação de Resultados",
-            description: "Explicabilidade, feature importance e limitações.",
+            descricao: "Explicabilidade, feature importance e limitações.",
           },
         ],
       },
@@ -268,22 +267,22 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "docker",
             name: "Docker",
-            description: "Criação e gerenciamento de imagens e contêineres.",
+            descricao: "Criação e gerenciamento de imagens e contêineres.",
           },
           {
             id: "monitoramento",
             name: "Monitoramento",
-            description: "Coleta de métricas e observabilidade de serviços.",
+            descricao: "Coleta de métricas e observabilidade de serviços.",
           },
           {
             id: "cloud-services",
             name: "Serviços de Nuvem",
-            description: "Provisionamento e operação em provedores cloud.",
+            descricao: "Provisionamento e operação em provedores cloud.",
           },
           {
             id: "troubleshooting",
             name: "Troubleshooting",
-            description: "Diagnóstico e mitigação de incidentes de produção.",
+            descricao: "Diagnóstico e mitigação de incidentes de produção.",
           },
         ],
       },
@@ -294,22 +293,22 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "integracao-continua",
             name: "Integração Contínua",
-            description: "Pipelines de build e testes automatizados.",
+            descricao: "Pipelines de build e testes automatizados.",
           },
           {
             id: "entrega-continua",
             name: "Entrega Contínua",
-            description: "Estratégias de release e deploy automatizado.",
+            descricao: "Estratégias de release e deploy automatizado.",
           },
           {
             id: "iac",
             name: "Infraestrutura como Código (IaC)",
-            description: "Provisionamento automatizado e versionado de infra.",
+            descricao: "Provisionamento automatizado e versionado de infra.",
           },
           {
             id: "fluxos-colaborativos",
             name: "Fluxos Colaborativos",
-            description: "Práticas DevOps e colaboração entre times.",
+            descricao: "Práticas DevOps e colaboração entre times.",
           },
         ],
       },
@@ -327,22 +326,22 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "owasp",
             name: "OWASP",
-            description: "Boas práticas e mitigação contra vulnerabilidades comuns.",
+            descricao: "Boas práticas e mitigação contra vulnerabilidades comuns.",
           },
           {
             id: "criptografia",
             name: "Criptografia",
-            description: "Primitivas, hashing e armazenamento seguro.",
+            descricao: "Primitivas, hashing e armazenamento seguro.",
           },
           {
             id: "autenticacao-segura",
             name: "Autenticação Segura",
-            description: "Padrões de segurança (OAuth2/OpenID) e proteção de sessão.",
+            descricao: "Padrões de segurança (OAuth2/OpenID) e proteção de sessão.",
           },
           {
             id: "postura-etica",
             name: "Postura Ética",
-            description: "Ética profissional e responsabilidade no manuseio de dados.",
+            descricao: "Ética profissional e responsabilidade no manuseio de dados.",
           },
         ],
       },
@@ -353,22 +352,22 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "iam",
             name: "IAM",
-            description: "Gestão de identidades, permissões e políticas.",
+            descricao: "Gestão de identidades, permissões e políticas.",
           },
           {
             id: "hardening",
             name: "Hardening",
-            description: "Endurecimento de SO/serviços e redução de superfície de ataque.",
+            descricao: "Endurecimento de SO/serviços e redução de superfície de ataque.",
           },
           {
             id: "seguranca-rede",
             name: "Segurança de Rede",
-            description: "Segmentação, firewalls e proteção de tráfego.",
+            descricao: "Segmentação, firewalls e proteção de tráfego.",
           },
           {
             id: "resposta-incidentes",
             name: "Resposta a Incidentes",
-            description: "Detecção, contenção e lições aprendidas.",
+            descricao: "Detecção, contenção e lições aprendidas.",
           },
         ],
       },
@@ -386,22 +385,22 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "entrevistas",
             name: "Entrevistas",
-            description: "Coleta estruturada de necessidades e dores do usuário.",
+            descricao: "Coleta estruturada de necessidades e dores do usuário.",
           },
           {
             id: "personas-jornadas",
             name: "Personas e Jornadas",
-            description: "Modelagem de perfis e mapeamento de jornadas.",
+            descricao: "Modelagem de perfis e mapeamento de jornadas.",
           },
           {
             id: "arquitetura-informacao",
             name: "Arquitetura da Informação",
-            description: "Organização de conteúdos e fluxos de navegação.",
+            descricao: "Organização de conteúdos e fluxos de navegação.",
           },
           {
             id: "testes-heuristicas",
             name: "Testes e Heurísticas",
-            description: "Avaliações com usuários e heurísticas de usabilidade.",
+            descricao: "Avaliações com usuários e heurísticas de usabilidade.",
           },
         ],
       },
@@ -412,22 +411,22 @@ export const technicalCategories: TechnicalCategory[] = [
           {
             id: "design-visual",
             name: "Design Visual",
-            description: "Hierarquia, tipografia, cor e composição.",
+            descricao: "Hierarquia, tipografia, cor e composição.",
           },
           {
             id: "prototipos",
             name: "Protótipos Interativos",
-            description: "Fluxos clicáveis e validação de interação.",
+            descricao: "Fluxos clicáveis e validação de interação.",
           },
           {
             id: "design-system",
             name: "Design System",
-            description: "Bibliotecas de componentes, tokens e consistência visual.",
+            descricao: "Bibliotecas de componentes, tokens e consistência visual.",
           },
           {
             id: "justificativas-visuais",
             name: "Justificativas Visuais",
-            description: "Racional de escolhas e documentação de decisão.",
+            descricao: "Racional de escolhas e documentação de decisão.",
           },
         ],
       },
