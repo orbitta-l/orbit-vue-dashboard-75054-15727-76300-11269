@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Check, Search, ChevronDown, Users, Trash2, ArrowRight, ArrowLeft, Rocket, Filter, X } from "lucide-react";
+import { Plus, Check, Search, ChevronDown, Users, Trash2, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -28,6 +28,17 @@ const cargoMap: Record<string, { name: string; colorClass: string }> = {
   "senior": { name: "Sênior", colorClass: "bg-red-500" },
   "especialista": { name: "Especialista", colorClass: "bg-purple-500" },
   "nao-definido": { name: "Não Definido", colorClass: "bg-gray-400" },
+};
+
+// Mapeamento de categorias técnicas para ícones Lucide
+const categoryIcons: Record<string, React.ElementType> = {
+  "dev-web": Code,
+  "dev-mobile": Smartphone,
+  "data-ai": Brain,
+  "cloud-devops": Cloud,
+  "sec-info": Shield,
+  "ux-ui": Palette,
+  "Soft Skills": Users, // Adicionado para Soft Skills, caso seja usado no filtro
 };
 
 const getInitials = (name: string) => {
@@ -65,7 +76,6 @@ export default function Team() {
   const navigate = useNavigate();
   const { liderados, addLiderado, profile } = useAuth();
 
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [searchName, setSearchName] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [modalStep, setModalStep] = useState(1);
@@ -90,20 +100,6 @@ export default function Team() {
       data_nascimento: "",
     }
   });
-
-  const toggleMemberSelection = (memberId: string) => {
-    setSelectedMembers(prev => 
-      prev.includes(memberId) 
-        ? prev.filter(id => id !== memberId)
-        : prev.length < 4 ? [...prev, memberId] : prev
-    );
-  };
-
-  const handleCompare = () => {
-    if (selectedMembers.length >= 2) {
-      navigate(`/compare?members=${selectedMembers.join(",")}`);
-    }
-  };
 
   const handleNextStep = async () => {
     const isValid = await trigger();
@@ -323,54 +319,43 @@ export default function Team() {
             </Dialog>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredMembers.map((member) => (
             <Card 
               key={member.id_liderado} 
-              className="relative overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1" 
+              className="relative overflow-hidden w-full max-w-[280px] mx-auto p-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group hover:-translate-y-1" 
               onClick={() => navigate(`/team/${member.id_liderado}`)}
             >
-              <div className="absolute top-4 right-4 z-10 flex gap-2">
-                {talentMemberId === member.id_liderado && (
-                  <Badge className="bg-yellow-400 text-yellow-900 font-bold text-sm px-3 py-1 flex items-center gap-1 animate-pulse">
-                    <Rocket className="w-4 h-4" /> TALENTO
+              {talentMemberId === member.id_liderado && (
+                <Badge className="absolute top-4 right-4 z-10 bg-transparent text-yellow-600 font-bold text-sm px-0 py-0 flex items-center gap-1">
+                  <Rocket className="w-4 h-4" /> TALENTO
+                </Badge>
+              )}
+              <div className="flex flex-col items-start text-left mb-4">
+                <Avatar className="w-16 h-16 mb-3">
+                  <AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">
+                    {getInitials(member.nome_liderado)}
+                  </AvatarFallback>
+                </Avatar>
+                <h3 className="font-bold text-xl text-foreground mb-1">{member.nome_liderado}</h3>
+                {member.cargo_id && (
+                  <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-sm font-medium mb-2`}>
+                    {cargoMap[member.cargo_id]?.name || member.cargo}
                   </Badge>
                 )}
-                <div onClick={(e) => { e.stopPropagation(); toggleMemberSelection(member.id_liderado); }} className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition-all ${selectedMembers.includes(member.id_liderado) ? 'bg-primary text-primary-foreground' : 'bg-background border-2 border-primary text-primary hover:bg-primary/10'}`} title="Adicionar para comparação">
-                  {selectedMembers.includes(member.id_liderado) ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                </div>
               </div>
-              <div className="p-6 pt-20">
-                <div className="flex flex-col items-center text-center mb-4">
-                  <Avatar className="w-16 h-16 mb-3">
-                    <AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">
-                      {getInitials(member.nome_liderado)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h3 className="font-semibold text-lg text-foreground mb-1">{member.nome_liderado}</h3>
-                  {member.cargo_id && (
-                    <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white mb-2`}>
-                      {cargoMap[member.cargo_id]?.name || member.cargo}
-                    </Badge>
-                  )}
-                  {member.nivel_maturidade && <Badge className="bg-primary/10 text-primary hover:bg-primary/20">{member.nivel_maturidade}</Badge>}
+              <div className="grid grid-cols-3 gap-2 text-center border-t pt-4 mt-4">
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-muted-foreground">Maturidade</span>
+                  <span className="font-semibold text-sm text-foreground">{member.nivel_maturidade || 'N/A'}</span>
                 </div>
-                <div className="space-y-2 pt-4 border-t border-border">
-                  <p className="text-xs text-muted-foreground text-center mb-2">{member.email}</p>
-                  <div className="space-y-1">
-                    {member.categoria_dominante && member.categoria_dominante !== "Não Avaliado" && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center">
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-                        <span className="truncate">{member.categoria_dominante}</span>
-                      </div>
-                    )}
-                    {member.especializacao_dominante && member.especializacao_dominante !== "Não Avaliado" && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center">
-                        <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
-                        <span className="truncate">{member.especializacao_dominante}</span>
-                      </div>
-                    )}
-                  </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-muted-foreground">Área</span>
+                  <span className="font-semibold text-sm text-foreground truncate w-full">{member.categoria_dominante || 'N/A'}</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs text-muted-foreground">Especialização</span>
+                  <span className="font-semibold text-sm text-foreground truncate w-full">{member.especializacao_dominante || 'N/A'}</span>
                 </div>
               </div>
             </Card>
@@ -378,13 +363,7 @@ export default function Team() {
         </div>
         {filteredMembers.length === 0 && (<div className="text-center py-12"><p className="text-muted-foreground">Nenhum liderado encontrado com os filtros selecionados.</p></div>)}
       </main>
-      {selectedMembers.length >= 2 && (
-        <div className="fixed bottom-8 right-8 z-50">
-          <Button size="lg" className="shadow-lg gap-2" onClick={handleCompare}>
-            Comparar {selectedMembers.length} liderados
-          </Button>
-        </div>
-      )}
+      {/* Removed floating compare button as per user request */}
 
       {/* Filter Sidebar */}
       <Sheet open={isFilterSidebarOpen} onOpenChange={setIsFilterSidebarOpen}>
@@ -426,10 +405,23 @@ export default function Team() {
                   setFilterSpecialization("all"); // Reset specialization when area changes
                   setFilterCompetency("all"); // Reset competency when area changes
                 }}>
-                  <SelectTrigger><SelectValue placeholder="Selecione uma área" /></SelectTrigger>
+                  <SelectTrigger className="flex items-center gap-2">
+                    {filterArea !== "all" && categoryIcons[filterArea] && React.createElement(categoryIcons[filterArea], { className: "w-4 h-4" })}
+                    <SelectValue placeholder="Selecione uma área" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as áreas</SelectItem>
-                    {allTechnicalCategories.map((area) => (<SelectItem key={area.id} value={area.id}>{area.name}</SelectItem>))}
+                    {allTechnicalCategories.map((area) => {
+                      const Icon = categoryIcons[area.id];
+                      return (
+                        <SelectItem key={area.id} value={area.id}>
+                          <div className="flex items-center gap-2">
+                            {Icon && <Icon className="w-4 h-4" />}
+                            {area.name}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </CollapsibleContent>
