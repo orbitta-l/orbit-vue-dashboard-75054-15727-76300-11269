@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 import { SexoTipo } from "@/types/mer";
+import { cargoMap, getCargoNameById } from "@/utils/cargoUtils"; // Importando o utilitário
 
 const schema = z.object({
   nome: z.string().min(2, "Nome muito curto"),
@@ -70,11 +71,11 @@ export default function Register() {
     }
 
     const novoLiderado = {
-      id_liderado: `lid-${Date.now()}`, // Corrigido para id_liderado
-      nome_liderado: form.nome, // Corrigido para nome_liderado
+      id_liderado: `lid-${Date.now()}`,
+      nome_liderado: form.nome,
       email: form.email,
-      cargo: form.cargo_id, // Corrigido para cargo (nome do cargo)
-      cargo_id: form.cargo_id, // Mantido para consistência
+      cargo: getCargoNameById(form.cargo_id), // Usando o utilitário para obter o nome do cargo
+      cargo_id: form.cargo_id,
       sexo: form.sexo,
       data_nascimento: form.data_nascimento,
       lider_id: "lider-001", // Mockado, assumindo um líder padrão
@@ -123,11 +124,9 @@ export default function Register() {
                 <SelectValue placeholder="Selecione o cargo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="estagiario">Estagiário</SelectItem>
-                <SelectItem value="junior">Júnior</SelectItem>
-                <SelectItem value="pleno">Pleno</SelectItem>
-                <SelectItem value="senior">Sênior</SelectItem>
-                <SelectItem value="especialista">Especialista</SelectItem>
+                {Object.entries(cargoMap).map(([id, data]) => (
+                  <SelectItem key={id} value={id}>{data.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {errors.cargo_id && <p className="text-sm text-destructive mt-1">{errors.cargo_id}</p>}

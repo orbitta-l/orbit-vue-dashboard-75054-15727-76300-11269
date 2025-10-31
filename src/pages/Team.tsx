@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react"; // Adicionado import React
+import React, { useState, useMemo, useEffect } from "react";
 import { Plus, Search, ChevronDown, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, CalendarDays, HeartHandshake, PersonStanding, CircleUserRound } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,16 +19,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SexoTipo, NivelMaturidade } from "@/types/mer";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { technicalCategories } from "@/data/evaluationTemplates";
-
-// Mapeamento de cargo_id para nome do cargo e cor
-const cargoMap: Record<string, { name: string; colorClass: string }> = {
-  "estagiario": { name: "Estagiário", colorClass: "bg-blue-600" },
-  "junior": { name: "Júnior", colorClass: "bg-green-600" },
-  "pleno": { name: "Pleno", colorClass: "bg-yellow-600" },
-  "senior": { name: "Sênior", colorClass: "bg-red-600" },
-  "especialista": { name: "Especialista", colorClass: "bg-purple-600" },
-  "nao-definido": { name: "Não Definido", colorClass: "bg-gray-500" },
-};
+import { cargoMap } from "@/utils/cargoUtils"; // Importando o cargoMap do utilitário
 
 // Mapeamento de categorias técnicas para ícones Lucide
 const categoryIcons: Record<string, React.ElementType> = {
@@ -127,7 +118,6 @@ export default function Team() {
       email: provisionedData.email,
       sexo: provisionedData.sexo as SexoTipo,
       data_nascimento: provisionedData.data_nascimento,
-      cargo: cargoMap[provisionedData.cargo_id]?.name || "Não definido",
       cargo_id: provisionedData.cargo_id,
       lider_id: profile.id,
     };

@@ -400,7 +400,6 @@ export const technicalCategories: TechnicalCategory[] = [
           },
           {
             id: "resposta-incidentes",
-            name: "Resposta a Incidentes",
             descricao: "Detecção, contenção e lições aprendidas.",
           },
         ],
@@ -459,7 +458,6 @@ export const technicalCategories: TechnicalCategory[] = [
           },
           {
             id: "justificativas-visuais",
-            name: "Justificativas Visuais",
             descricao: "Racional de escolhas e documentação de decisão.",
           },
         ],
@@ -472,25 +470,43 @@ export const technicalCategories: TechnicalCategory[] = [
 // ============ CARGOS ============
 export const MOCK_CARGOS: Cargo[] = [
   {
-    id_cargo: 'cargo-001',
+    id_cargo: 'estagiario',
+    nome_cargo: 'Estagiário',
+    descricao: 'Desenvolvedor em fase inicial de carreira',
+    created_at: new Date('2024-01-01'),
+  },
+  {
+    id_cargo: 'junior',
     nome_cargo: 'Desenvolvedor Junior',
     descricao: 'Desenvolvedor em fase inicial de carreira',
     created_at: new Date('2024-01-01'),
   },
   {
-    id_cargo: 'cargo-002',
+    id_cargo: 'pleno',
     nome_cargo: 'Desenvolvedor Pleno',
     descricao: 'Desenvolvedor com experiência intermediária',
     created_at: new Date('2024-01-01'),
   },
   {
-    id_cargo: 'cargo-003',
+    id_cargo: 'senior',
+    nome_cargo: 'Desenvolvedor Sênior',
+    descricao: 'Desenvolvedor com vasta experiência',
+    created_at: new Date('2024-01-01'),
+  },
+  {
+    id_cargo: 'especialista',
+    nome_cargo: 'Especialista',
+    descricao: 'Especialista técnico',
+    created_at: new Date('2024-01-01'),
+  },
+  {
+    id_cargo: 'cargo-003', // Mantido para compatibilidade, mas idealmente deveria ser um dos acima
     nome_cargo: 'Designer Sênior',
     descricao: 'Designer com vasta experiência',
     created_at: new Date('2024-01-01'),
   },
   {
-    id_cargo: 'cargo-004',
+    id_cargo: 'cargo-004', // Mantido para compatibilidade
     nome_cargo: 'Product Manager',
     descricao: 'Gerente de produto',
     created_at: new Date('2024-01-01'),
