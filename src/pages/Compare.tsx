@@ -27,9 +27,8 @@ export default function Compare() {
   const [selectedSoftSkills, setSelectedSoftSkills] = useState<string[]>([]);
   const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>([]);
 
-  // Estados para controlar a categoria selecionada nos dropdowns de Hard Skills e Soft Skills
+  // Estado para controlar a categoria selecionada no dropdown de Hard Skills
   const [selectedHardSkillCategory, setSelectedHardSkillCategory] = useState<string>("all");
-  const [selectedSoftSkillCategory, setSelectedSoftSkillCategory] = useState<string>("soft-skills-category"); // Default para a única categoria de soft skills
 
   const selectedMembers = useMemo(() => 
     liderados.filter(m => selectedMembersForComparison.includes(m.id_liderado)), 
@@ -41,7 +40,7 @@ export default function Compare() {
 
   // Função para obter e ordenar competências com base na relevância
   const getSortedCompetencies = (
-    competencyList: Array<{ name: string; type: 'COMPORTAMENTAL' | 'TECNICA'; categoryId: string; categoryName: string; specializationId?: string; specializationName?: string }>,
+    competencyList: Array<{ name: string; type: 'COMPORTAMENTAL' | 'TECNICA'; categoryId?: string; categoryName?: string; specializationId?: string; specializationName?: string }>,
     members: Liderado[],
     competencyType: 'COMPORTAMENTAL' | 'TECNICA'
   ): CompetencyChipDisplayData[] => {
@@ -107,9 +106,6 @@ export default function Compare() {
     return technicalCategories.map(cat => ({ id: cat.id, name: cat.name }));
   }, []);
 
-  // Categoria de Soft Skills para o dropdown (única)
-  const softSkillCategoriesForSelect = [{ id: "soft-skills-category", name: "Soft Skills" }];
-
   // Chips de Hard Skills filtrados pela categoria selecionada no dropdown
   const filteredHardSkillChips = useMemo(() => {
     if (selectedHardSkillCategory === "all") {
@@ -121,18 +117,13 @@ export default function Compare() {
     return getSortedCompetencies(categoryCompetencies, selectedMembers, 'TECNICA');
   }, [sortedHardSkillChipsData, selectedHardSkillCategory, allHardSkillCompetenciesFlat, selectedMembers]);
 
-  // Chips de Soft Skills filtrados pela categoria selecionada (sempre a única)
-  const filteredSoftSkillChips = useMemo(() => {
-    return sortedSoftSkillChipsData; // Não há filtro de categoria real para soft skills
-  }, [sortedSoftSkillChipsData]);
+  // Separação de chips presentes e ausentes para Hard Skills
+  const presentHardSkillChips = filteredHardSkillChips.filter(chip => chip.hasRelevantScore);
+  const absentHardSkillChips = filteredHardSkillChips.filter(chip => !chip.hasRelevantScore);
 
-  // Separação de chips relevantes e não relevantes para Hard Skills
-  const relevantHardSkillChips = filteredHardSkillChips.filter(chip => chip.hasRelevantScore);
-  const nonRelevantHardSkillChips = filteredHardSkillChips.filter(chip => !chip.hasRelevantScore);
-
-  // Separação de chips relevantes e não relevantes para Soft Skills
-  const relevantSoftSkillChips = filteredSoftSkillChips.filter(chip => chip.hasRelevantScore);
-  const nonRelevantSoftSkillChips = filteredSoftSkillChips.filter(chip => !chip.hasRelevantScore);
+  // Separação de chips presentes e ausentes para Soft Skills
+  const presentSoftSkillChips = sortedSoftSkillChipsData.filter(chip => chip.hasRelevantScore);
+  const absentSoftSkillChips = sortedSoftSkillChipsData.filter(chip => !chip.hasRelevantScore);
 
   const handleToggleSoftSkill = (skillName: string) => {
     setSelectedSoftSkills(prev =>
@@ -267,11 +258,11 @@ export default function Compare() {
             </Select>
 
             <div className="space-y-4">
-              {relevantHardSkillChips.length > 0 && (
+              {presentHardSkillChips.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-primary mb-2">Competências Relevantes</p>
+                  <p className="text-sm font-medium text-primary mb-2">Competências Presentes</p>
                   <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2">
-                    {relevantHardSkillChips.map(skill => (
+                    {presentHardSkillChips.map(skill => (
                       <Button
                         key={skill.name}
                         onClick={() => handleToggleHardSkill(skill.name)}
@@ -279,7 +270,7 @@ export default function Compare() {
                           "h-7 px-2.5 text-xs", // Smaller size
                           selectedHardSkills.includes(skill.name)
                             ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
-                            : "border-primary text-primary bg-primary/10 hover:bg-primary/20" // Relevant, unselected
+                            : "border-primary text-primary bg-primary/10 hover:bg-primary/20" // Present, unselected
                         )}
                       >
                         {skill.name}
@@ -289,11 +280,11 @@ export default function Compare() {
                 </div>
               )}
 
-              {nonRelevantHardSkillChips.length > 0 && (
+              {absentHardSkillChips.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mt-4 mb-2">Outras Competências</p>
+                  <p className="text-sm font-medium text-muted-foreground mt-4 mb-2">Competências Ausentes</p>
                   <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2">
-                    {nonRelevantHardSkillChips.map(skill => (
+                    {absentHardSkillChips.map(skill => (
                       <Button
                         key={skill.name}
                         onClick={() => handleToggleHardSkill(skill.name)}
@@ -301,7 +292,7 @@ export default function Compare() {
                           "h-7 px-2.5 text-xs", // Smaller size
                           selectedHardSkills.includes(skill.name)
                             ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
-                            : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Non-relevant, unselected
+                            : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
                         )}
                       >
                         {skill.name}
@@ -367,23 +358,12 @@ export default function Compare() {
           {/* Soft Skills Chips (Right) */}
           <div className="lg:w-1/4 flex-shrink-0">
             <h3 className="font-semibold text-foreground mb-3">Soft Skills</h3>
-            <Select value={selectedSoftSkillCategory} onValueChange={setSelectedSoftSkillCategory}>
-              <SelectTrigger className="w-full mb-4">
-                <SelectValue placeholder="Soft Skills" />
-              </SelectTrigger>
-              <SelectContent>
-                {softSkillCategoriesForSelect.map(cat => (
-                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
             <div className="space-y-4">
-              {relevantSoftSkillChips.length > 0 && (
+              {presentSoftSkillChips.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-primary mb-2">Competências Relevantes</p>
+                  <p className="text-sm font-medium text-primary mb-2">Competências Presentes</p>
                   <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2">
-                    {relevantSoftSkillChips.map(skill => (
+                    {presentSoftSkillChips.map(skill => (
                       <Button
                         key={skill.name}
                         onClick={() => handleToggleSoftSkill(skill.name)}
@@ -391,7 +371,7 @@ export default function Compare() {
                           "h-7 px-2.5 text-xs", // Smaller size
                           selectedSoftSkills.includes(skill.name)
                             ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
-                            : "border-primary text-primary bg-primary/10 hover:bg-primary/20" // Relevant, unselected
+                            : "border-primary text-primary bg-primary/10 hover:bg-primary/20" // Present, unselected
                         )}
                       >
                         {skill.name}
@@ -401,11 +381,11 @@ export default function Compare() {
                 </div>
               )}
 
-              {nonRelevantSoftSkillChips.length > 0 && (
+              {absentSoftSkillChips.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mt-4 mb-2">Outras Competências</p>
+                  <p className="text-sm font-medium text-muted-foreground mt-4 mb-2">Competências Ausentes</p>
                   <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2">
-                    {nonRelevantSoftSkillChips.map(skill => (
+                    {absentSoftSkillChips.map(skill => (
                       <Button
                         key={skill.name}
                         onClick={() => handleToggleSoftSkill(skill.name)}
@@ -413,7 +393,7 @@ export default function Compare() {
                           "h-7 px-2.5 text-xs", // Smaller size
                           selectedSoftSkills.includes(skill.name)
                             ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
-                            : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Non-relevant, unselected
+                            : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Absent, unselected
                         )}
                       >
                         {skill.name}
