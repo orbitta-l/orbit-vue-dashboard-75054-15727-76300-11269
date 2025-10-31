@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo.png';
 import Features from "@/components/Features";
 import Solution from "@/components/Solution";
+import Navbars from "@/components/Navbar"
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -97,27 +98,29 @@ export default function Landing() {
   const nextEmployee = () => {
     setCurrentEmployeeIndex((prev) => (prev === employeeFeatures.length - 1 ? 0 : prev + 1));
   };
+const Navbar = () => {
+  const [activeSection, setActiveSection] = useState("inicio");
 
+  useEffect(() => {
+    const sections = document.querySelectorAll("section[id]");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.5 } // ativa quando 50% da seção aparece
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+};
   return (
     <div>
-      {/* Navbar */}
-      <header className={`navbar ${isScrolled ? 'navbar-scrolled' : 'navbar-default'}`} id="navbar">
-        <nav className="navbar-content">
-          <a href="#inicio" className="navbar-logo">
-            <img src={logo} alt="Orbitta Logo" />
-          </a>
-
-          <div className="navbar-links">
-            <a href="#inicio">Início</a>
-            <a href="#obstaculos">O problema</a>
-            <a href="#solucao">A solução</a>
-            <a href="#funcionalidades">Funcionalidades</a>
-            <a href="#leis">Nossa Órbita</a>
-          </div>
-
-          <button className="navbar-button" onClick={() => navigate('/login')}>Acessar Plataforma</button>
-        </nav>
-      </header>
+      <Navbars />
 
       {/* Hero Section */}
       <section id="inicio" className="hero">
@@ -333,8 +336,12 @@ export default function Landing() {
         }
 
         .navbar-logo img {
-          height: 32px;
+          position: absolute;
+          height: 128px;
           width: auto;
+          justify-content: center;
+          align-self: center;
+          margin-top: 40px;
         }
 
         .navbar-links {
@@ -360,6 +367,18 @@ export default function Landing() {
         }
 
         .navbar-links a::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 0;
+          height: 2px;
+          background: #EF9F7D;
+          transition: width 0.3s;
+        }
+
+        .active-nav {
+          color: #EF9F7D;
           content: '';
           position: absolute;
           bottom: 0;
