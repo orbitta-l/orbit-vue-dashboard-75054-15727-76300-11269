@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer } from "recharts";
 import { useState, useMemo } from "react";
-import { useAuth, Liderado } from "@/contexts/AuthContext";
+import { useAuth, Liderado } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { softSkillTemplates, technicalCategories } from "@/data/evaluationTemplates";
 import { cn } from "@/lib/utils";

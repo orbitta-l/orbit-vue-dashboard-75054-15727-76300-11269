@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from "@/components/ui/label";
 import { useNavigate, createSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";

@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [

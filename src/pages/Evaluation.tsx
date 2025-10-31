@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { useAuth, Liderado } from "@/contexts/AuthContext";
+import { useAuth, Liderado } from "@/context/AuthContext";
 import { softSkillTemplates, technicalCategories, SoftSkillTemplate } from "@/data/evaluationTemplates";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { calcularNivelMaturidade, LideradoPerformance, CompetenciaTipo } from "@/types/mer";
-import EvaluationRadarChart from "@/components/EvaluationRadarChart";
+import EvaluationRadarChart from "@/charts/EvaluationRadarChart";
 import SpecializationSelectionModal from "@/components/SpecializationSelectionModal";
 
 interface TechBlock {

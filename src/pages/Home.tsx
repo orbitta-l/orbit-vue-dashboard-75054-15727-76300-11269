@@ -3,12 +3,12 @@ import { UserPlus, Users, TrendingUp, ClipboardCheck, Calendar } from "lucide-re
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import CompetencyQuadrantChart from "@/components/CompetencyQuadrantChart";
-import DistributionPieChart from "@/components/DistributionPieChart";
-import KnowledgeGapsSection from "@/components/KnowledgeGapsSection";
-import RecentEvaluationsSection from "@/components/RecentEvaluationsSection";
-import CompetencyBarsChart from "@/components/CompetencyBarsChart";
+import { useAuth } from "@/context/AuthContext";
+import CompetencyQuadrantChart from "@/charts/CompetencyQuadrantChart";
+import DistributionPieChart from "@/charts/DistributionPieChart";
+import KnowledgeGapsSection from "@/charts/KnowledgeGapsSection";
+import RecentEvaluationsSection from "@/charts/RecentEvaluationsSection";
+import CompetencyBarsChart from "@/charts/CompetencyBarsChart";
 import { MOCK_PERFORMANCE } from "@/data/mockData";
 import { MetricCard } from "@/components/MetricCard";
 import { format, formatDistanceToNow } from "date-fns";
