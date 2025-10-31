@@ -1,15 +1,21 @@
-import { ArrowLeft, Filter, ChevronDown } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer } from "recharts";
 import { useState, useMemo } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, Liderado } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { softSkillTemplates, technicalCategories } from "@/data/evaluationTemplates";
 import { cn } from "@/lib/utils";
+
+// Interface para os dados de exibição dos chips de competência
+interface CompetencyChipDisplayData {
+  name: string;
+  hasRelevantScore: boolean;
+}
 
 export default function Compare() {
   const navigate = useNavigate();
@@ -17,9 +23,13 @@ export default function Compare() {
   const memberIds = searchParams.get("members")?.split(",") || [];
   const { liderados } = useAuth();
 
-  const [selectedMembersForComparison, setSelectedMembersForComparison] = useState<string[]>(memberIds.slice(0, 4));
+  const [selectedMembersForComparison] = useState<string[]>(memberIds.slice(0, 4));
   const [selectedSoftSkills, setSelectedSoftSkills] = useState<string[]>([]);
   const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>([]);
+
+  // Estados para controlar a categoria selecionada nos dropdowns de Hard Skills e Soft Skills
+  const [selectedHardSkillCategory, setSelectedHardSkillCategory] = useState<string>("all");
+  const [selectedSoftSkillCategory, setSelectedSoftSkillCategory] = useState<string>("soft-skills-category"); // Default para a única categoria de soft skills
 
   const selectedMembers = useMemo(() => 
     liderados.filter(m => selectedMembersForComparison.includes(m.id_liderado)), 
@@ -29,13 +39,13 @@ export default function Compare() {
   // Cores para os liderados no gráfico
   const colors = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
 
-  // Função para obter e ordenar competências
+  // Função para obter e ordenar competências com base na relevância
   const getSortedCompetencies = (
-    competencyTemplates: Array<{ name: string; type: 'COMPORTAMENTAL' | 'TECNICA' }>,
+    competencyList: Array<{ name: string; type: 'COMPORTAMENTAL' | 'TECNICA'; categoryId: string; categoryName: string; specializationId?: string; specializationName?: string }>,
     members: Liderado[],
     competencyType: 'COMPORTAMENTAL' | 'TECNICA'
-  ) => {
-    const competenciesWithRelevance = competencyTemplates.map(comp => {
+  ): CompetencyChipDisplayData[] => {
+    const competenciesWithRelevance = competencyList.map(comp => {
       const hasRelevantScore = members.some(member =>
         member.competencias.some(c =>
           c.nome_competencia === comp.name && c.media_pontuacao > 0 && c.tipo === competencyType
@@ -45,49 +55,94 @@ export default function Compare() {
     });
 
     return competenciesWithRelevance.sort((a, b) => {
-      if (a.hasRelevantScore && !b.hasRelevantScore) return -1;
+      if (a.hasRelevantScore && !b.hasRelevantScore) return -1; // Relevantes primeiro
       if (!a.hasRelevantScore && b.hasRelevantScore) return 1;
-      return a.name.localeCompare(b.name);
+      return a.name.localeCompare(b.name); // Depois, ordem alfabética
     });
   };
 
-  // Todas as Soft Skills únicas dos templates
-  const allUniqueSoftSkillTemplates = useMemo(() => {
-    const competencies = new Map<string, { name: string; type: 'COMPORTAMENTAL' | 'TECNICA' }>();
+  // Todas as Soft Skill competencies, achatadas e com categoria mock
+  const allSoftSkillCompetenciesFlat = useMemo(() => {
+    const competencies: Array<{ name: string; type: 'COMPORTAMENTAL'; categoryId: string; categoryName: string }> = [];
     softSkillTemplates.forEach(template => {
-      template.competencias.forEach(comp => competencies.set(comp.name, { name: comp.name, type: 'COMPORTAMENTAL' }));
-    });
-    return Array.from(competencies.values());
-  }, []);
-
-  // Todas as Hard Skills únicas dos templates
-  const allUniqueHardSkillTemplates = useMemo(() => {
-    const competencies = new Map<string, { name: string; type: 'COMPORTAMENTAL' | 'TECNICA' }>();
-    technicalCategories.forEach(category => {
-      category.especializacoes.forEach(spec => {
-        spec.competencias.forEach(comp => competencies.set(comp.name, { name: comp.name, type: 'TECNICA' }));
+      template.competencias.forEach(comp => {
+        if (!competencies.some(c => c.name === comp.name)) { // Garante unicidade
+          competencies.push({ name: comp.name, type: 'COMPORTAMENTAL', categoryId: "soft-skills-category", categoryName: "Soft Skills" });
+        }
       });
     });
-    return Array.from(competencies.values());
+    return competencies;
   }, []);
 
-  const sortedSoftSkillChips = useMemo(() => {
-    return getSortedCompetencies(allUniqueSoftSkillTemplates, selectedMembers, 'COMPORTAMENTAL');
-  }, [allUniqueSoftSkillTemplates, selectedMembers]);
+  // Todas as Hard Skill competencies, achatadas e com informações de categoria/especialização
+  const allHardSkillCompetenciesFlat = useMemo(() => {
+    return technicalCategories.flatMap(category =>
+      category.especializacoes.flatMap(spec =>
+        spec.competencias.map(comp => ({
+          name: comp.name,
+          type: 'TECNICA' as const,
+          categoryId: category.id,
+          categoryName: category.name,
+          specializationId: spec.id,
+          specializationName: spec.name,
+        }))
+      )
+    ).filter((comp, index, self) => // Garante unicidade entre todas as hard skills
+      index === self.findIndex((t) => t.name === comp.name)
+    );
+  }, []);
 
-  const sortedHardSkillChips = useMemo(() => {
-    return getSortedCompetencies(allUniqueHardSkillTemplates, selectedMembers, 'TECNICA');
-  }, [allUniqueHardSkillTemplates, selectedMembers]);
+  // Chips de Soft Skills ordenados por relevância
+  const sortedSoftSkillChipsData = useMemo(() => {
+    return getSortedCompetencies(allSoftSkillCompetenciesFlat, selectedMembers, 'COMPORTAMENTAL');
+  }, [allSoftSkillCompetenciesFlat, selectedMembers]);
 
-  const handleToggleSoftSkill = (skill: string) => {
+  // Chips de Hard Skills ordenados por relevância
+  const sortedHardSkillChipsData = useMemo(() => {
+    return getSortedCompetencies(allHardSkillCompetenciesFlat, selectedMembers, 'TECNICA');
+  }, [allHardSkillCompetenciesFlat, selectedMembers]);
+
+  // Categorias de Hard Skills para o dropdown
+  const hardSkillCategoriesForSelect = useMemo(() => {
+    return technicalCategories.map(cat => ({ id: cat.id, name: cat.name }));
+  }, []);
+
+  // Categoria de Soft Skills para o dropdown (única)
+  const softSkillCategoriesForSelect = [{ id: "soft-skills-category", name: "Soft Skills" }];
+
+  // Chips de Hard Skills filtrados pela categoria selecionada no dropdown
+  const filteredHardSkillChips = useMemo(() => {
+    if (selectedHardSkillCategory === "all") {
+      return sortedHardSkillChipsData;
+    }
+    const categoryCompetencies = allHardSkillCompetenciesFlat.filter(
+      chip => chip.categoryId === selectedHardSkillCategory
+    );
+    return getSortedCompetencies(categoryCompetencies, selectedMembers, 'TECNICA');
+  }, [sortedHardSkillChipsData, selectedHardSkillCategory, allHardSkillCompetenciesFlat, selectedMembers]);
+
+  // Chips de Soft Skills filtrados pela categoria selecionada (sempre a única)
+  const filteredSoftSkillChips = useMemo(() => {
+    return sortedSoftSkillChipsData; // Não há filtro de categoria real para soft skills
+  }, [sortedSoftSkillChipsData]);
+
+  // Separação de chips relevantes e não relevantes para Hard Skills
+  const relevantHardSkillChips = filteredHardSkillChips.filter(chip => chip.hasRelevantScore);
+  const nonRelevantHardSkillChips = filteredHardSkillChips.filter(chip => !chip.hasRelevantScore);
+
+  // Separação de chips relevantes e não relevantes para Soft Skills
+  const relevantSoftSkillChips = filteredSoftSkillChips.filter(chip => chip.hasRelevantScore);
+  const nonRelevantSoftSkillChips = filteredSoftSkillChips.filter(chip => !chip.hasRelevantScore);
+
+  const handleToggleSoftSkill = (skillName: string) => {
     setSelectedSoftSkills(prev =>
-      prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
+      prev.includes(skillName) ? prev.filter(s => s !== skillName) : [...prev, skillName]
     );
   };
 
-  const handleToggleHardSkill = (skill: string) => {
+  const handleToggleHardSkill = (skillName: string) => {
     setSelectedHardSkills(prev =>
-      prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
+      prev.includes(skillName) ? prev.filter(s => s !== skillName) : [...prev, skillName]
     );
   };
 
@@ -199,24 +254,62 @@ export default function Compare() {
           {/* Hard Skills Chips (Left) */}
           <div className="lg:w-1/4 flex-shrink-0">
             <h3 className="font-semibold text-foreground mb-3">Hard Skills</h3>
-            <div className="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto pr-2">
-              {sortedHardSkillChips.map(skill => (
-                <Button
-                  key={skill.name}
-                  onClick={() => handleToggleHardSkill(skill.name)}
-                  className={cn(
-                    "h-8 px-3 text-sm", // Smaller size
-                    "flex items-center gap-2",
-                    selectedHardSkills.includes(skill.name)
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
-                      : skill.hasRelevantScore
-                        ? "border-primary text-primary bg-primary/10 hover:bg-primary/20" // Relevant, unselected
-                        : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Non-relevant, unselected
-                  )}
-                >
-                  {skill.name}
-                </Button>
-              ))}
+            <Select value={selectedHardSkillCategory} onValueChange={setSelectedHardSkillCategory}>
+              <SelectTrigger className="w-full mb-4">
+                <SelectValue placeholder="Todas as Categorias" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Categorias</SelectItem>
+                {hardSkillCategoriesForSelect.map(cat => (
+                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="space-y-4">
+              {relevantHardSkillChips.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-primary mb-2">Competências Relevantes</p>
+                  <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2">
+                    {relevantHardSkillChips.map(skill => (
+                      <Button
+                        key={skill.name}
+                        onClick={() => handleToggleHardSkill(skill.name)}
+                        className={cn(
+                          "h-7 px-2.5 text-xs", // Smaller size
+                          selectedHardSkills.includes(skill.name)
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
+                            : "border-primary text-primary bg-primary/10 hover:bg-primary/20" // Relevant, unselected
+                        )}
+                      >
+                        {skill.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {nonRelevantHardSkillChips.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mt-4 mb-2">Outras Competências</p>
+                  <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2">
+                    {nonRelevantHardSkillChips.map(skill => (
+                      <Button
+                        key={skill.name}
+                        onClick={() => handleToggleHardSkill(skill.name)}
+                        className={cn(
+                          "h-7 px-2.5 text-xs", // Smaller size
+                          selectedHardSkills.includes(skill.name)
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
+                            : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Non-relevant, unselected
+                        )}
+                      >
+                        {skill.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -274,24 +367,61 @@ export default function Compare() {
           {/* Soft Skills Chips (Right) */}
           <div className="lg:w-1/4 flex-shrink-0">
             <h3 className="font-semibold text-foreground mb-3">Soft Skills</h3>
-            <div className="flex flex-wrap gap-2 max-h-[400px] overflow-y-auto pr-2">
-              {sortedSoftSkillChips.map(skill => (
-                <Button
-                  key={skill.name}
-                  onClick={() => handleToggleSoftSkill(skill.name)}
-                  className={cn(
-                    "h-8 px-3 text-sm", // Smaller size
-                    "flex items-center gap-2",
-                    selectedSoftSkills.includes(skill.name)
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
-                      : skill.hasRelevantScore
-                        ? "border-primary text-primary bg-primary/10 hover:bg-primary/20" // Relevant, unselected
-                        : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Non-relevant, unselected
-                  )}
-                >
-                  {skill.name}
-                </Button>
-              ))}
+            <Select value={selectedSoftSkillCategory} onValueChange={setSelectedSoftSkillCategory}>
+              <SelectTrigger className="w-full mb-4">
+                <SelectValue placeholder="Soft Skills" />
+              </SelectTrigger>
+              <SelectContent>
+                {softSkillCategoriesForSelect.map(cat => (
+                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="space-y-4">
+              {relevantSoftSkillChips.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-primary mb-2">Competências Relevantes</p>
+                  <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2">
+                    {relevantSoftSkillChips.map(skill => (
+                      <Button
+                        key={skill.name}
+                        onClick={() => handleToggleSoftSkill(skill.name)}
+                        className={cn(
+                          "h-7 px-2.5 text-xs", // Smaller size
+                          selectedSoftSkills.includes(skill.name)
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
+                            : "border-primary text-primary bg-primary/10 hover:bg-primary/20" // Relevant, unselected
+                        )}
+                      >
+                        {skill.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {nonRelevantSoftSkillChips.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mt-4 mb-2">Outras Competências</p>
+                  <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto pr-2">
+                    {nonRelevantSoftSkillChips.map(skill => (
+                      <Button
+                        key={skill.name}
+                        onClick={() => handleToggleSoftSkill(skill.name)}
+                        className={cn(
+                          "h-7 px-2.5 text-xs", // Smaller size
+                          selectedSoftSkills.includes(skill.name)
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90" // Selected
+                            : "border-muted-foreground/30 text-muted-foreground bg-muted/10 hover:bg-muted/20" // Non-relevant, unselected
+                        )}
+                      >
+                        {skill.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
