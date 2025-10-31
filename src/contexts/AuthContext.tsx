@@ -14,6 +14,7 @@ export interface Profile {
 // Liderado agora é a interface completa de LideradoPerformance
 export interface Liderado extends LideradoPerformance {
   lider_id: string; // Adiciona lider_id para consistência com Usuario
+  email: string; // Adicionado para resolver o erro de tipo
 }
 
 export interface Avaliacao {
@@ -36,7 +37,7 @@ interface AuthContextType {
   avaliacoes: Avaliacao[];
   setAvaliacoes: React.Dispatch<React.SetStateAction<Avaliacao[]>>;
   isPrimeiroAcesso: boolean;
-  addLiderado: (novo: Omit<Liderado, 'nivel_maturidade' | 'eixo_x_tecnico_geral' | 'eixo_y_comportamental' | 'categoria_dominante' | 'especializacao_dominante' | 'competencias' | 'idade' | 'lider_id'> & { lider_id: string }) => void;
+  addLiderado: (novo: Omit<Liderado, 'nivel_maturidade' | 'eixo_x_tecnico_geral' | 'eixo_y_comportamental' | 'categoria_dominante' | 'especializacao_dominante' | 'competencias' | 'idade'> & { lider_id: string; email: string; cargo: string; }) => void;
   addAvaliacao: (nova: Avaliacao) => void;
   updateLideradoPerformance: (lideradoId: string, performanceData: Partial<LideradoPerformance>) => void;
 }
@@ -79,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const lideradosCompletos: Liderado[] = MOCK_PERFORMANCE.map((p) => ({
       ...p,
       lider_id: liderId, // Associa ao líder mockado
+      email: MOCK_USERS_LIDERADOS.find(u => u.id_usuario === p.id_liderado)?.email || '', // Adiciona email
     }));
     setLiderados(lideradosCompletos);
 
@@ -121,9 +123,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('orbitta_profile');
   };
 
-  const addLiderado = (novo: Omit<Liderado, 'nivel_maturidade' | 'eixo_x_tecnico_geral' | 'eixo_y_comportamental' | 'categoria_dominante' | 'especializacao_dominante' | 'competencias' | 'idade'> & { lider_id: string }) => {
+  const addLiderado = (novo: Omit<Liderado, 'nivel_maturidade' | 'eixo_x_tecnico_geral' | 'eixo_y_comportamental' | 'categoria_dominante' | 'especializacao_dominante' | 'competencias' | 'idade'> & { lider_id: string; email: string; cargo: string; }) => {
     const newLiderado: Liderado = {
       ...novo,
+      id_liderado: novo.id_liderado, // Garantir que id_liderado está presente
+      nome_liderado: novo.nome_liderado, // Garantir que nome_liderado está presente
       nivel_maturidade: 'M1', // Default inicial
       eixo_x_tecnico_geral: 0,
       eixo_y_comportamental: 0,

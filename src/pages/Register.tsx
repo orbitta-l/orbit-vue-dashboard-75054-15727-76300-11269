@@ -70,10 +70,14 @@ export default function Register() {
     }
 
     const novoLiderado = {
-      id: `lid-${Date.now()}`,
-      nome: form.nome,
+      id_liderado: `lid-${Date.now()}`, // Corrigido para id_liderado
+      nome_liderado: form.nome, // Corrigido para nome_liderado
       email: form.email,
-      cargo_id: form.cargo_id,
+      cargo: form.cargo_id, // Corrigido para cargo (nome do cargo)
+      cargo_id: form.cargo_id, // Mantido para consistência
+      sexo: form.sexo,
+      data_nascimento: form.data_nascimento,
+      lider_id: "lider-001", // Mockado, assumindo um líder padrão
     };
 
     addLiderado(novoLiderado);

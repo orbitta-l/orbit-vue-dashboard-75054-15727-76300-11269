@@ -26,7 +26,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
 
   const availableCategories = useMemo(() => {
     if (empty) return [];
-    const categories = new Set(data.filter(d => d.tipo === 'TECNICA').map(d => d.categoria).filter(Boolean as (value: string | undefined) => value is string));
+    const categories = new Set(data.filter(d => d.tipo === 'TECNICA').map(d => d.categoria).filter(Boolean));
     return ["all", ...Array.from(categories)];
   }, [data, empty]);
 
@@ -35,7 +35,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
     const specializations = new Set(data
         .filter(d => d.tipo === 'TECNICA' && (selectedCategory === 'all' || d.categoria === selectedCategory))
         .map(d => d.especializacao)
-        .filter(Boolean as (value: string | null | undefined) => value is string)
+        .filter(Boolean)
     );
     return ["all", ...Array.from(specializations)];
   }, [data, empty, selectedCategory]);
