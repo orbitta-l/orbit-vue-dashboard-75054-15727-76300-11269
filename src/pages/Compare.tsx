@@ -6,13 +6,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer } from "recharts";
 import { useState, useMemo } from "react";
-import { useAuth, Liderado } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { softSkillTemplates, technicalCategories } from "@/data/evaluationTemplates";
+import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AbsentHardSkillsCollapsible } from "@/components/AbsentHardSkillsCollapsible";
 import { AbsentSoftSkillsCollapsible } from "@/components/AbsentSoftSkillsCollapsible";
+import { LideradoDashboard } from "@/types/mer";
 
 // Interface para os dados de exibição dos chips de competência
 export interface CompetencyChipDisplayData {
@@ -24,7 +25,7 @@ export default function Compare() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const memberIds = searchParams.get("members")?.split(",") || [];
-  const { liderados } = useAuth();
+  const { teamData } = useAuth();
 
   const [selectedMembersForComparison] = useState<string[]>(memberIds.slice(0, 4));
   const [selectedSoftSkills, setSelectedSoftSkills] = useState<string[]>([]);
@@ -38,8 +39,8 @@ export default function Compare() {
   const [isSoftSkillsAbsentCollapsed, setIsSoftSkillsAbsentCollapsed] = useState(false); // Alterado para false
 
   const selectedMembers = useMemo(() => 
-    liderados.filter(m => selectedMembersForComparison.includes(m.id_liderado)), 
-    [liderados, selectedMembersForComparison]
+    teamData.filter(m => selectedMembersForComparison.includes(m.id_usuario)), 
+    [teamData, selectedMembersForComparison]
   );
 
   // Cores para os liderados no gráfico, utilizando a paleta do projeto
@@ -47,14 +48,14 @@ export default function Compare() {
 
   // Função para obter e ordenar competências com base na relevância
   const getSortedCompetencies = (
-    competencyList: Array<{ name: string; type: 'COMPORTAMENTAL' | 'TECNICA'; categoryId?: string; categoryName?: string; specializationId?: string; specializationName?: string }>,
-    members: Liderado[],
-    competencyType: 'COMPORTAMENTAL' | 'TECNICA'
+    competencyList: Array<{ name: string; type: 'SOFT' | 'HARD'; categoryId?: string; categoryName?: string; specializationId?: string; specializationName?: string }>,
+    members: LideradoDashboard[],
+    competencyType: 'SOFT' | 'HARD'
   ): CompetencyChipDisplayData[] => {
     const competenciesWithRelevance = competencyList.map(comp => {
       const hasRelevantScore = members.some(member =>
         member.competencias.some(c =>
-          c.nome_competencia === comp.name && c.media_pontuacao > 0 && c.tipo === competencyType
+          c.nome_competencia === comp.name && c.pontuacao_1a4 > 0 && c.tipo === competencyType
         )
       );
       return { name: comp.name, hasRelevantScore };
@@ -69,11 +70,11 @@ export default function Compare() {
 
   // Todas as Soft Skill competencies, achatadas e com categoria mock
   const allSoftSkillCompetenciesFlat = useMemo(() => {
-    const competencies: Array<{ name: string; type: 'COMPORTAMENTAL'; categoryId: string; categoryName: string }> = [];
+    const competencies: Array<{ name: string; type: 'SOFT'; categoryId: string; categoryName: string }> = [];
     softSkillTemplates.forEach(template => {
       template.competencias.forEach(comp => {
-        if (!competencies.some(c => c.name === comp.name)) { // Garante unicidade
-          competencies.push({ name: comp.name, type: 'COMPORTAMENTAL', categoryId: "soft-skills-category", categoryName: "Soft Skills" });
+        if (!competencies.some(c => c.name === comp.id_competencia)) { // Garante unicidade
+          competencies.push({ name: comp.id_competencia, type: 'SOFT', categoryId: "soft-skills-category", categoryName: "Soft Skills" });
         }
       });
     });
@@ -82,15 +83,15 @@ export default function Compare() {
 
   // Todas as Hard Skill competencies, achatadas e com informações de categoria/especialização
   const allHardSkillCompetenciesFlat = useMemo(() => {
-    return technicalCategories.flatMap(category =>
+    return technicalTemplate.flatMap(category =>
       category.especializacoes.flatMap(spec =>
         spec.competencias.map(comp => ({
-          name: comp.name,
-          type: 'TECNICA' as const,
-          categoryId: category.id,
-          categoryName: category.name,
-          specializationId: spec.id,
-          specializationName: spec.name,
+          name: comp.nome_competencia,
+          type: 'HARD' as const,
+          categoryId: category.id_categoria,
+          categoryName: category.nome_categoria,
+          specializationId: spec.id_especializacao,
+          specializationName: spec.nome_especializacao,
         }))
       )
     ).filter((comp, index, self) => // Garante unicidade entre todas as hard skills
@@ -100,17 +101,17 @@ export default function Compare() {
 
   // Chips de Soft Skills ordenados por relevância
   const sortedSoftSkillChipsData = useMemo(() => {
-    return getSortedCompetencies(allSoftSkillCompetenciesFlat, selectedMembers, 'COMPORTAMENTAL');
+    return getSortedCompetencies(allSoftSkillCompetenciesFlat, selectedMembers, 'SOFT');
   }, [allSoftSkillCompetenciesFlat, selectedMembers]);
 
   // Chips de Hard Skills ordenados por relevância
   const sortedHardSkillChipsData = useMemo(() => {
-    return getSortedCompetencies(allHardSkillCompetenciesFlat, selectedMembers, 'TECNICA');
+    return getSortedCompetencies(allHardSkillCompetenciesFlat, selectedMembers, 'HARD');
   }, [allHardSkillCompetenciesFlat, selectedMembers]);
 
   // Categorias de Hard Skills para o dropdown
   const hardSkillCategoriesForSelect = useMemo(() => {
-    return technicalCategories.map(cat => ({ id: cat.id, name: cat.name }));
+    return technicalTemplate.map(cat => ({ id: cat.id_categoria, name: cat.nome_categoria }));
   }, []);
 
   // Chips de Hard Skills filtrados pela categoria selecionada no dropdown
@@ -121,7 +122,7 @@ export default function Compare() {
     const categoryCompetencies = allHardSkillCompetenciesFlat.filter(
       chip => chip.categoryId === selectedHardSkillCategory
     );
-    return getSortedCompetencies(categoryCompetencies, selectedMembers, 'TECNICA');
+    return getSortedCompetencies(categoryCompetencies, selectedMembers, 'HARD');
   }, [sortedHardSkillChipsData, selectedHardSkillCategory, allHardSkillCompetenciesFlat, selectedMembers]);
 
   // Separação de chips presentes e ausentes para Hard Skills
@@ -159,7 +160,7 @@ export default function Compare() {
 
       selectedMembers.forEach(member => {
         const memberCompetency = member.competencias.find(c => c.nome_competencia === compName);
-        radarDataMap[compName][member.nome_liderado] = memberCompetency ? parseFloat(memberCompetency.media_pontuacao.toFixed(1)) : 0;
+        radarDataMap[compName][member.nome] = memberCompetency ? parseFloat(memberCompetency.pontuacao_1a4.toFixed(1)) : 0;
       });
     });
 
@@ -210,19 +211,18 @@ export default function Compare() {
       {/* Cards de Informação dos Membros */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         {selectedMembers.map((member, index) => (
-          <Card key={member.id_liderado} className="p-4 border-l-4" style={{ borderColor: colors[index % colors.length] }}>
+          <Card key={member.id_usuario} className="p-4 border-l-4" style={{ borderColor: colors[index % colors.length] }}>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                <span className="text-md font-bold text-foreground">{getInitials(member.nome_liderado)}</span>
+                <span className="text-md font-bold text-foreground">{getInitials(member.nome)}</span>
               </div>
               <div>
-                <h3 className="text-md font-semibold text-foreground">{member.nome_liderado}</h3>
-                <Badge variant="secondary" className="text-xs">{member.cargo}</Badge>
+                <h3 className="text-md font-semibold text-foreground">{member.nome}</h3>
+                <Badge variant="secondary" className="text-xs">{member.cargo_nome}</Badge>
               </div>
             </div>
             <div className="mt-3 text-xs text-muted-foreground">
-              <p>Maturidade: <Badge className="bg-primary/10 text-primary hover:bg-primary/20">{member.nivel_maturidade}</Badge></p>
-              <p>Dominante: {member.categoria_dominante}</p>
+              <p>Maturidade: <Badge className="bg-primary/10 text-primary hover:bg-primary/20">{member.ultima_avaliacao?.maturidade_quadrante}</Badge></p>
             </div>
           </Card>
         ))}
@@ -330,9 +330,9 @@ export default function Compare() {
                 {/* Liderados Selecionados */}
                 {selectedMembers.map((member, index) => (
                   <Radar
-                    key={member.id_liderado}
-                    name={member.nome_liderado}
-                    dataKey={member.nome_liderado}
+                    key={member.id_usuario}
+                    name={member.nome}
+                    dataKey={member.nome}
                     stroke={colors[index % colors.length]}
                     fill={colors[index % colors.length]}
                     fillOpacity={0.4}

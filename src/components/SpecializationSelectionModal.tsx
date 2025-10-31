@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
-import { technicalCategories } from "@/data/evaluationTemplates";
+import { technicalTemplate } from "@/data/evaluationTemplates";
 
 interface SpecializationSelectionModalProps {
   isOpen: boolean;
@@ -34,23 +34,23 @@ export default function SpecializationSelectionModal({
         </DialogHeader>
         <div className="py-4 max-h-[60vh] overflow-y-auto">
           <Accordion type="single" collapsible className="w-full">
-            {technicalCategories.map(category => (
-              <AccordionItem value={category.id} key={category.id}>
-                <AccordionTrigger>{category.name}</AccordionTrigger>
+            {technicalTemplate.map(category => (
+              <AccordionItem value={category.id_categoria} key={category.id_categoria}>
+                <AccordionTrigger>{category.nome_categoria}</AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-2 pl-4">
                     {category.especializacoes.map(spec => {
-                      const isSelected = alreadySelected.includes(spec.id);
+                      const isSelected = alreadySelected.includes(spec.id_especializacao);
                       return (
                         <Button
-                          key={spec.id}
+                          key={spec.id_especializacao}
                           variant="ghost"
                           className="w-full justify-start gap-2"
                           disabled={isSelected}
-                          onClick={() => handleSelect(category.id, spec.id)}
+                          onClick={() => handleSelect(category.id_categoria, spec.id_especializacao)}
                         >
                           {isSelected && <Check className="w-4 h-4 text-primary" />}
-                          {spec.name}
+                          {spec.nome_especializacao}
                         </Button>
                       );
                     })}

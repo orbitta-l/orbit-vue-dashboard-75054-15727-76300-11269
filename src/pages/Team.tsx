@@ -15,9 +15,9 @@ import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SexoTipo, NivelMaturidade, LideradoPerformance } from "@/types/mer";
+import { SexoTipo, NivelMaturidade, LideradoDashboard } from "@/types/mer";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { technicalCategories } from "@/data/evaluationTemplates";
+import { technicalTemplate } from "@/data/evaluationTemplates";
 import { cargoMap } from "@/utils/cargoUtils";
 import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 import { cn } from "@/lib/utils"; // Import cn
@@ -78,7 +78,7 @@ type Step1Form = z.infer<typeof step1Schema>;
 
 export default function Team() {
   const navigate = useNavigate();
-  const { liderados, addLiderado, profile } = useAuth();
+  const { liderados, addLiderado, profile, teamData } = useAuth();
 
   const [searchName, setSearchName] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -137,13 +137,11 @@ export default function Team() {
     if (!provisionedData || !profile) return;
     
     const newLiderado = {
-      id_liderado: `lid-${Date.now()}`,
-      nome_liderado: provisionedData.nome,
+      nome: provisionedData.nome,
       email: provisionedData.email,
       sexo: provisionedData.sexo as SexoTipo,
       data_nascimento: provisionedData.data_nascimento,
-      cargo_id: provisionedData.cargo_id,
-      lider_id: profile.id,
+      id_cargo: provisionedData.cargo_id,
     };
     addLiderado(newLiderado);
     toast({ title: "Liderado provisionado!", description: "Complete o perfil do liderado antes de avaliar." });
@@ -172,47 +170,47 @@ export default function Team() {
     setFilterCompetency("all");
   };
 
-  const allTechnicalCategories = useMemo(() => technicalCategories.map(cat => ({ id: cat.id, name: cat.name })), []);
+  const allTechnicalCategories = useMemo(() => technicalTemplate.map(cat => ({ id: cat.id_categoria, name: cat.nome_categoria })), []);
   const availableSpecializations = useMemo(() => {
     if (filterArea === "all") return [];
-    const category = technicalCategories.find(cat => cat.id === filterArea);
-    return category ? category.especializacoes.map(spec => ({ id: spec.id, name: spec.name })) : [];
+    const category = technicalTemplate.find(cat => cat.id_categoria === filterArea);
+    return category ? category.especializacoes.map(spec => ({ id: spec.id_especializacao, name: spec.nome_especializacao })) : [];
   }, [filterArea]);
 
   const availableCompetencies = useMemo(() => {
     if (filterSpecialization === "all") return [];
-    const category = technicalCategories.find(cat => cat.id === filterArea);
-    const specialization = category?.especializacoes.find(spec => spec.id === filterSpecialization);
-    return specialization ? specialization.competencias.map(comp => ({ id: comp.id, name: comp.name })) : [];
+    const category = technicalTemplate.find(cat => cat.id_categoria === filterArea);
+    const specialization = category?.especializacoes.find(spec => spec.id_especializacao === filterSpecialization);
+    return specialization ? specialization.competencias.map(comp => ({ id: comp.id_competencia, name: comp.nome_competencia })) : [];
   }, [filterArea, filterSpecialization]);
 
-  const calculateMemberScoreInFilterContext = (member: LideradoPerformance) => {
+  const calculateMemberScoreInFilterContext = (member: LideradoDashboard) => {
     if (filterCompetency !== "all") {
-      return member.competencias.find(c => c.id_competencia === filterCompetency)?.media_pontuacao || 0;
+      return member.competencias.find(c => c.id_competencia === filterCompetency)?.pontuacao_1a4 || 0;
     }
     if (filterSpecialization !== "all") {
-      const relevantCompetencies = member.competencias.filter(c => c.id_especializacao === filterSpecialization);
+      const relevantCompetencies = member.competencias.filter(c => c.especializacao_nome === availableSpecializations.find(s => s.id === filterSpecialization)?.name);
       if (relevantCompetencies.length === 0) return 0;
-      const sum = relevantCompetencies.reduce((acc, c) => acc + c.media_pontuacao, 0);
+      const sum = relevantCompetencies.reduce((acc, c) => acc + c.pontuacao_1a4, 0);
       return sum / relevantCompetencies.length;
     }
     if (filterArea !== "all") {
-      const relevantCompetencies = member.competencias.filter(c => c.id_categoria === filterArea);
+      const relevantCompetencies = member.competencias.filter(c => c.categoria_nome === allTechnicalCategories.find(cat => cat.id === filterArea)?.name);
       if (relevantCompetencies.length === 0) return 0;
-      const sum = relevantCompetencies.reduce((acc, c) => acc + c.media_pontuacao, 0);
+      const sum = relevantCompetencies.reduce((acc, c) => acc + c.pontuacao_1a4, 0);
       return sum / relevantCompetencies.length;
     }
     return 0; // No specific filter, no talent score for this context
   };
 
   const sortedAndLimitedMembers = useMemo(() => {
-    let members = liderados.filter(member =>
-      member.nome_liderado.toLowerCase().includes(searchName.toLowerCase())
+    let members = teamData.filter(member =>
+      member.nome.toLowerCase().includes(searchName.toLowerCase())
     );
 
     // Apply other filters first
     if (filterMaturityLevel !== "all") {
-      members = members.filter(member => member.nivel_maturidade === filterMaturityLevel);
+      members = members.filter(member => member.ultima_avaliacao?.maturidade_quadrante === filterMaturityLevel);
     }
     if (AgeRanges[filterAgeRange]) {
       members = members.filter(member => {
@@ -226,7 +224,7 @@ export default function Team() {
     if (filterGender !== "all") {
       members = members.filter(member => {
         if (filterGender === "OUTRO") {
-          return member.sexo === "NAO_BINARIO" || member.sexo === "NAO_INFORMADO";
+          return member.sexo === "OUTRO";
         }
         return member.sexo === filterGender;
       });
@@ -234,10 +232,10 @@ export default function Team() {
 
     // Apply area/specialization/competency filters
     if (filterArea !== "all") {
-      members = members.filter(member => member.competencias?.some(comp => comp.id_categoria === filterArea));
+      members = members.filter(member => member.competencias?.some(comp => comp.categoria_nome === allTechnicalCategories.find(c => c.id === filterArea)?.name));
     }
     if (filterSpecialization !== "all") {
-      members = members.filter(member => member.competencias?.some(comp => comp.id_especializacao === filterSpecialization));
+      members = members.filter(member => member.competencias?.some(comp => comp.especializacao_nome === availableSpecializations.find(s => s.id === filterSpecialization)?.name));
     }
     if (filterCompetency !== "all") {
       members = members.filter(member => member.competencias?.some(c => c.id_competencia === filterCompetency));
@@ -254,12 +252,12 @@ export default function Team() {
     }
 
     return members; // If no talent filter, return all filtered members without special sorting/limiting
-  }, [liderados, searchName, filterMaturityLevel, filterAgeRange, filterGender, filterArea, filterSpecialization, filterCompetency]);
+  }, [teamData, searchName, filterMaturityLevel, filterAgeRange, filterGender, filterArea, filterSpecialization, filterCompetency]);
 
   const talentMemberId = useMemo(() => {
     const isTalentFilterActive = filterArea !== "all" || filterSpecialization !== "all" || filterCompetency !== "all";
     if (isTalentFilterActive && sortedAndLimitedMembers.length > 0) {
-      return sortedAndLimitedMembers[0].id_liderado;
+      return sortedAndLimitedMembers[0].id_usuario;
     }
     return null;
   }, [sortedAndLimitedMembers, filterArea, filterSpecialization, filterCompetency]);
@@ -486,33 +484,33 @@ export default function Team() {
           {sortedAndLimitedMembers.map((member) => {
             // Encontrar as 3 melhores competências TÉCNICAS
             const topTechnicalCompetencies = member.competencias
-              .filter(comp => comp.tipo === 'TECNICA') // Filtra apenas competências técnicas
-              .sort((a, b) => b.media_pontuacao - a.media_pontuacao)
+              .filter(comp => comp.tipo === 'HARD') // Filtra apenas competências técnicas
+              .sort((a, b) => b.pontuacao_1a4 - a.pontuacao_1a4)
               .slice(0, 3);
 
             return (
               <Card 
-                key={member.id_liderado} 
+                key={member.id_usuario} 
                 className={cn(
                   "relative overflow-hidden w-full max-w-[280px] mx-auto p-4 rounded-xl shadow-md transition-all duration-300 group",
-                  talentMemberId === member.id_liderado ? 'talent-glow' : '',
+                  talentMemberId === member.id_usuario ? 'talent-glow' : '',
                   isComparisonMode 
-                    ? `cursor-pointer border-2 ${selectedMembersForComparison.includes(member.id_liderado) ? 'border-primary' : 'border-transparent hover:border-muted'}`
+                    ? `cursor-pointer border-2 ${selectedMembersForComparison.includes(member.id_usuario) ? 'border-primary' : 'border-transparent hover:border-muted'}`
                     : 'cursor-pointer hover:shadow-lg hover:-translate-y-1'
                 )}
                 onClick={() => {
                     if (isComparisonMode) {
-                        handleToggleMemberForComparison(member.id_liderado);
+                        handleToggleMemberForComparison(member.id_usuario);
                     } else {
-                        navigate(`/team/${member.id_liderado}`);
+                        navigate(`/team/${member.id_usuario}`);
                     }
                 }}
               >
                 {isComparisonMode && (
                   <div className="absolute top-3 right-3 z-10">
                     <Checkbox
-                      checked={selectedMembersForComparison.includes(member.id_liderado)}
-                      onCheckedChange={() => handleToggleMemberForComparison(member.id_liderado)}
+                      checked={selectedMembersForComparison.includes(member.id_usuario)}
+                      onCheckedChange={() => handleToggleMemberForComparison(member.id_usuario)}
                       className="w-5 h-5"
                     />
                   </div>
@@ -520,20 +518,20 @@ export default function Team() {
                 <div className="flex flex-col items-center text-center mb-4">
                   <Avatar className="w-16 h-16 mb-3">
                     <AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">
-                      {getInitials(member.nome_liderado)}
+                      {getInitials(member.nome)}
                     </AvatarFallback>
                   </Avatar>
-                  <h3 className="font-semibold text-lg text-foreground">{member.nome_liderado}</h3>
+                  <h3 className="font-semibold text-lg text-foreground">{member.nome}</h3>
                   <p className="text-sm text-muted-foreground mb-2">{member.email}</p>
-                  {member.cargo_id && (
-                    <Badge className={`${cargoMap[member.cargo_id]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2 cursor-default`}>
-                      {member.cargo}
+                  {member.id_cargo && (
+                    <Badge className={`${cargoMap[member.id_cargo]?.colorClass || 'bg-gray-400'} text-white text-xs font-medium mb-2 cursor-default`}>
+                      {member.cargo_nome}
                     </Badge>
                   )}
                   <Badge className="bg-primary/10 text-primary text-sm font-semibold mb-2">
-                    {member.nivel_maturidade}
+                    {member.ultima_avaliacao?.maturidade_quadrante || 'N/A'}
                   </Badge>
-                  {talentMemberId === member.id_liderado && (
+                  {talentMemberId === member.id_usuario && (
                     <Badge 
                       className="mt-2 bg-transparent text-yellow-600 font-bold text-sm px-0 py-0 flex items-center gap-1
                                  border border-transparent hover:border-yellow-400 hover:shadow-md transition-all duration-200"
@@ -551,7 +549,7 @@ export default function Team() {
                           <span className="flex-1">{comp.nome_competencia}</span>
                         </div>
                         <span className="font-semibold text-foreground text-right flex-shrink-0">
-                          ({comp.media_pontuacao.toFixed(1)})
+                          ({comp.pontuacao_1a4.toFixed(1)})
                         </span>
                       </div>
                     ))

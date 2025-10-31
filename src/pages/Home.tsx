@@ -9,16 +9,15 @@ import DistributionPieChart from "@/charts/DistributionPieChart";
 import KnowledgeGapsSection from "@/charts/KnowledgeGapsSection";
 import RecentEvaluationsSection from "@/charts/RecentEvaluationsSection";
 import CompetencyBarsChart from "@/charts/CompetencyBarsChart";
-import { MOCK_PERFORMANCE } from "@/data/mockData";
 import { MetricCard } from "@/components/MetricCard";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { softSkillTemplates, technicalCategories } from "@/data/evaluationTemplates";
-import { calcularNivelMaturidade } from "@/types/mer";
+import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates";
+import { LideradoDashboard } from "@/types/mer";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { profile, isPrimeiroAcesso, liderados, avaliacoes } = useAuth();
+  const { profile, isPrimeiroAcesso, liderados, avaliacoes, teamData } = useAuth();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -40,19 +39,19 @@ export default function Home() {
     }
 
     const evalsThisMonth = avaliacoes.filter(av => {
-      const evalDate = new Date(av.data);
+      const evalDate = new Date(av.data_avaliacao);
       const today = new Date();
       return evalDate.getMonth() === today.getMonth() && evalDate.getFullYear() === today.getFullYear();
     }).length;
 
-    const sortedEvals = [...avaliacoes].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    const sortedEvals = [...avaliacoes].sort((a, b) => new Date(b.data_avaliacao).getTime() - new Date(a.data_avaliacao).getTime());
     const lastEval = sortedEvals.length > 0
-      ? formatDistanceToNow(new Date(sortedEvals[0].data), { addSuffix: true, locale: ptBR })
+      ? formatDistanceToNow(new Date(sortedEvals[0].data_avaliacao), { addSuffix: true, locale: ptBR })
       : "Nenhuma";
 
     const maturityMap: { [key: string]: number } = { M1: 1, M2: 2, M3: 3, M4: 4 };
-    const totalMaturity = avaliacoes.reduce((sum, av) => sum + (maturityMap[av.nivel] || 0), 0);
-    const avgMaturity = avaliacoes.length > 0 ? `M${(totalMaturity / avaliacoes.length).toFixed(1)}` : "N/A";
+    const totalMaturity = teamData.reduce((sum, liderado) => sum + (maturityMap[liderado.ultima_avaliacao?.maturidade_quadrante || ''] || 0), 0);
+    const avgMaturity = teamData.length > 0 ? `M${(totalMaturity / teamData.length).toFixed(1)}` : "N/A";
 
     return {
       teamMembers: liderados.length,
@@ -60,22 +59,19 @@ export default function Home() {
       evalsThisMonth,
       lastEval,
     };
-  }, [isPrimeiroAcesso, liderados, avaliacoes]);
+  }, [isPrimeiroAcesso, liderados, avaliacoes, teamData]);
 
   const dashboardData = useMemo(() => {
     if (isPrimeiroAcesso) return { quadrante: [], barras: [], pizza: [], gaps: undefined, recentes: [] };
 
-    const teamPerformance = liderados.map(liderado => {
-      // Liderado do AuthContext já contém todos os dados de performance
+    const teamPerformance = teamData.map(liderado => {
       return {
-        id_liderado: liderado.id_liderado,
-        nome_liderado: liderado.nome_liderado,
-        cargo: liderado.cargo,
-        nivel_maturidade: liderado.nivel_maturidade,
-        eixo_x_tecnico_geral: liderado.eixo_x_tecnico_geral,
-        eixo_y_comportamental: liderado.eixo_y_comportamental,
-        categoria_dominante: liderado.categoria_dominante,
-        especializacao_dominante: liderado.especializacao_dominante,
+        id_liderado: liderado.id_usuario,
+        nome_liderado: liderado.nome,
+        cargo: liderado.cargo_nome,
+        nivel_maturidade: liderado.ultima_avaliacao?.maturidade_quadrante || 'N/A',
+        eixo_x_tecnico_geral: liderado.ultima_avaliacao?.media_tecnica_1a4 || 0,
+        eixo_y_comportamental: liderado.ultima_avaliacao?.media_comportamental_1a4 || 0,
         competencias: liderado.competencias,
         sexo: liderado.sexo,
         idade: liderado.idade,
@@ -88,27 +84,27 @@ export default function Home() {
     allEvaluatedCompetencies.forEach(c => {
       const existing = competencyMap.get(c.nome_competencia);
       if (existing) {
-        existing.soma += c.media_pontuacao;
+        existing.soma += c.pontuacao_1a4;
         existing.count++;
       } else {
-        competencyMap.set(c.nome_competencia, { soma: c.media_pontuacao, count: 1 });
+        competencyMap.set(c.nome_competencia, { soma: c.pontuacao_1a4, count: 1 });
       }
     });
 
     const allTemplateCompetencies = [
       ...softSkillTemplates.flatMap(t => t.competencias.map(c => ({
-        competencia: c.name,
+        competencia: c.id_competencia,
         tipo: 'COMPORTAMENTAL' as const,
         categoria: 'Soft Skills',
         especializacao: null
       }))),
-      ...technicalCategories.flatMap(cat => 
+      ...technicalTemplate.flatMap(cat => 
         cat.especializacoes.flatMap(spec => 
           spec.competencias.map(comp => ({
-            competencia: comp.name,
+            competencia: comp.nome_competencia,
             tipo: 'TECNICA' as const,
-            categoria: cat.name,
-            especializacao: spec.name
+            categoria: cat.nome_categoria,
+            especializacao: spec.nome_especializacao
           }))
         )
       )
@@ -124,9 +120,9 @@ export default function Home() {
     });
 
     const recentes = avaliacoes.slice(-3).map(av => ({
-      id: av.id,
-      nome_liderado: liderados.find(l => l.id_liderado === av.id_liderado)?.nome_liderado ?? "Desconhecido",
-      data_avaliacao: new Date(av.data),
+      id: av.id_avaliacao,
+      nome_liderado: liderados.find(l => l.id_usuario === av.liderado_id)?.nome ?? "Desconhecido",
+      data_avaliacao: new Date(av.data_avaliacao),
     }));
 
     return {
@@ -136,14 +132,14 @@ export default function Home() {
       gaps: teamPerformance,
       recentes,
     };
-  }, [isPrimeiroAcesso, liderados, avaliacoes]);
+  }, [isPrimeiroAcesso, liderados, avaliacoes, teamData]);
 
   return (
     <div className="p-8">
       <div className="flex justify-between items-start mb-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            {getGreeting()}, {profile?.name || "Usuário"}!
+            {getGreeting()}, {profile?.nome || "Usuário"}!
           </h1>
           <p className="text-muted-foreground">Acompanhe a evolução das competências da sua equipe.</p>
         </div>
