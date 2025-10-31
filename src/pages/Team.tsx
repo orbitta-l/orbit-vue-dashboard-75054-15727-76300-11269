@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Plus, Search, ChevronDown, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, CalendarDays, HeartHandshake, PersonStanding, CircleUserRound } from "lucide-react";
+import { Plus, Search, ChevronDown, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, CalendarDays, HeartHandshake, PersonStanding, CircleUserRound, Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -339,7 +339,16 @@ export default function Team() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredMembers.map((member) => {
-            const MainIcon = categoryIcons[member.categoria_dominante] || categoryIcons["Não Avaliado"];
+            // Encontrar a melhor competência técnica
+            const topTechnicalCompetency = member.competencias
+              .filter(c => c.tipo === 'TECNICA')
+              .sort((a, b) => b.media_pontuacao - a.media_pontuacao)[0];
+
+            // Encontrar a melhor competência comportamental
+            const topBehavioralCompetency = member.competencias
+              .filter(c => c.tipo === 'COMPORTAMENTAL')
+              .sort((a, b) => b.media_pontuacao - a.media_pontuacao)[0];
+
             return (
               <Card 
                 key={member.id_liderado} 
@@ -374,17 +383,21 @@ export default function Team() {
                   </div>
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      <MainIcon className="w-4 h-4 text-accent" />
-                      <span>Área Dominante</span>
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <span>Melhor Comp. Técnica</span>
                     </div>
-                    <span className="font-semibold text-foreground truncate max-w-[120px]">{member.categoria_dominante || 'N/A'}</span>
+                    <span className="font-semibold text-foreground truncate max-w-[120px]">
+                      {topTechnicalCompetency ? `${topTechnicalCompetency.nome_competencia} (${topTechnicalCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      <HeartHandshake className="w-4 h-4 text-secondary-foreground" />
-                      <span>Média Comportamental</span>
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <span>Melhor Comp. Comportamental</span>
                     </div>
-                    <span className="font-semibold text-foreground">{member.eixo_y_comportamental?.toFixed(1) || 'N/A'}</span>
+                    <span className="font-semibold text-foreground truncate max-w-[120px]">
+                      {topBehavioralCompetency ? `${topBehavioralCompetency.nome_competencia} (${topBehavioralCompetency.media_pontuacao.toFixed(1)})` : 'N/A'}
+                    </span>
                   </div>
                 </div>
               </Card>
