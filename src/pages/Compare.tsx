@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, Liderado } from "@/contexts/AuthContext";
 import { CompetenciaTipo } from "@/types/mer";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CommandInputWithClear } from "@/components/CommandInputWithClear"; // Importa o novo componente
 
 type ComparisonLevel = "category" | "specialization" | "competency";
 
@@ -25,6 +26,7 @@ export default function Compare() {
   const [selectedSpecializationFilter, setSelectedSpecializationFilter] = useState<string>("all");
   const [customSelectedCompetencies, setCustomSelectedCompetencies] = useState<string[]>([]);
   const [isCompetencySelectOpen, setIsCompetencySelectOpen] = useState(false);
+  const [customCompetencySearch, setCustomCompetencySearch] = useState(""); // Novo estado para o termo de busca
 
   const selectedMembers = useMemo(() => 
     liderados.filter(m => memberIds.includes(m.id_liderado)), 
@@ -258,7 +260,11 @@ export default function Compare() {
                 </PopoverTrigger>
                 <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
                   <Command>
-                    <CommandInput placeholder="Buscar competência..." />
+                    <CommandInputWithClear // Usando o novo componente
+                      placeholder="Buscar competência..."
+                      value={customCompetencySearch}
+                      onValueChange={setCustomCompetencySearch}
+                    />
                     <CommandList>
                       <CommandEmpty>Nenhuma competência encontrada.</CommandEmpty>
                       <CommandGroup>

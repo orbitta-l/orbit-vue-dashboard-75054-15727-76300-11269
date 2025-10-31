@@ -283,6 +283,17 @@ export default function Team() {
             <div className="relative flex-1 md:flex-none">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input placeholder="Buscar liderado..." value={searchName} onChange={(e) => setSearchName(e.target.value)} className="pl-9 w-full md:w-64" />
+              {searchName && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-3 hover:bg-transparent"
+                  onClick={() => setSearchName("")}
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
             <Button variant="outline" onClick={() => setIsFilterSidebarOpen(true)} className="gap-2">
               <Filter className="w-4 h-4" />

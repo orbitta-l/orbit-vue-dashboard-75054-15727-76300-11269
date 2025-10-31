@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, ReferenceArea, Cell } from 'recharts';
 import { NivelMaturidade } from "@/types/mer";
+import { Button } from "@/components/ui/button"; // Import Button
 
 interface MemberData {
   id_liderado: string;
@@ -178,6 +179,17 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
+              {searchTerm && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-3 hover:bg-transparent"
+                  onClick={() => setSearchTerm("")}
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
             <div className="flex-1 overflow-y-auto space-y-1 pr-2">
               {filteredMembers.map(member => (

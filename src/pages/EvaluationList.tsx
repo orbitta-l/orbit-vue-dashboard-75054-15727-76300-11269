@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ClipboardCheck, Search } from "lucide-react";
+import { ClipboardCheck, Search, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -52,6 +52,17 @@ export default function EvaluationList() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 max-w-sm"
           />
+          {searchTerm && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-3 hover:bg-transparent"
+              onClick={() => setSearchTerm("")}
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          )}
         </div>
       </div>
 
