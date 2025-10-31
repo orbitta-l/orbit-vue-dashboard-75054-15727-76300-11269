@@ -34,8 +34,8 @@ export default function Compare() {
   const [selectedHardSkillCategory, setSelectedHardSkillCategory] = useState<string>("all");
 
   // Estados para controlar o estado de colapsar das seções de competências ausentes
-  const [isHardSkillsAbsentCollapsed, setIsHardSkillsAbsentCollapsed] = useState(true); // Inicia minimizado
-  const [isSoftSkillsAbsentCollapsed, setIsSoftSkillsAbsentCollapsed] = useState(true); // Inicia minimizado
+  const [isHardSkillsAbsentCollapsed, setIsHardSkillsAbsentCollapsed] = useState(false); // Alterado para false
+  const [isSoftSkillsAbsentCollapsed, setIsSoftSkillsAbsentCollapsed] = useState(false); // Alterado para false
 
   const selectedMembers = useMemo(() => 
     liderados.filter(m => selectedMembersForComparison.includes(m.id_liderado)), 
