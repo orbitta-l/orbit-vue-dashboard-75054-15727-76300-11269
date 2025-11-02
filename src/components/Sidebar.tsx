@@ -49,7 +49,7 @@ export const Sidebar = () => {
           </Avatar>
           <div className="flex-1 min-w-0 text-center transition-opacity duration-300">
             <p className="text-base font-medium text-sidebar-foreground truncate">
-              {profile?.name || 'Usuário'}
+              {profile?.nome || 'Usuário'}
             </p>
             <p className="text-sm text-sidebar-foreground/70 truncate">
               {profile?.role === 'LIDER' ? 'Tech Lead' : 'Desenvolvedor'}
