@@ -41,12 +41,12 @@ export const softSkillTemplates: TemplateCargo[] = [
 
 export const technicalTemplate = [
   {
-    id_categoria: "cat_dev_web",
+    id_categoria: "2",
     nome_categoria: "Desenvolvimento Web",
     especializacoes: [
       {
-        id_especializacao: "spec_frontend",
-        nome_especializacao: "Frontend",
+        id_especializacao: "1",
+        nome_especializacao: "Frontend Web",
         competencias: [
           { id_competencia: "hard_react", nome_competencia: "React" },
           { id_competencia: "hard_typescript", nome_competencia: "TypeScript" },
@@ -54,8 +54,8 @@ export const technicalTemplate = [
         ],
       },
       {
-        id_especializacao: "spec_backend",
-        nome_especializacao: "Backend",
+        id_especializacao: "2",
+        nome_especializacao: "Backend Web",
         competencias: [
           { id_competencia: "hard_nodejs", nome_competencia: "Node.js" },
           { id_competencia: "hard_api_rest", nome_competencia: "API REST" },
@@ -65,12 +65,12 @@ export const technicalTemplate = [
     ],
   },
   {
-    id_categoria: "cat_devops",
-    nome_categoria: "DevOps",
+    id_categoria: "5",
+    nome_categoria: "Cloud e DevOps",
     especializacoes: [
       {
-        id_especializacao: "spec_cloud_infra",
-        nome_especializacao: "Cloud & Infrastructure",
+        id_especializacao: "7",
+        nome_especializacao: "Infraestrutura e Containers",
         competencias: [
           { id_competencia: "hard_docker", nome_competencia: "Docker" },
           { id_competencia: "hard_kubernetes", nome_competencia: "Kubernetes" },
@@ -79,5 +79,5 @@ export const technicalTemplate = [
       },
     ],
   },
-  // Adicionar outras categorias aqui (Big Data, UI/UX, etc.)
+  // Adicionar outras categorias aqui (Mobile, Data/AI, etc.)
 ];

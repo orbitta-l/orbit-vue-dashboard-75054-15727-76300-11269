@@ -11,18 +11,27 @@ export const MOCK_CARGOS: Cargo[] = [
 
 export const MOCK_CATEGORIAS: Categoria[] = [
   { id_categoria: "cat_soft_skills", nome_categoria: "Soft Skills", tipo: "COMPORTAMENTAL", descricao: "Competências comportamentais" },
-  { id_categoria: "cat_dev_web", nome_categoria: "Desenvolvimento Web", tipo: "TECNICA", descricao: "Competências relacionadas ao desenvolvimento de aplicações web" },
-  { id_categoria: "cat_dev_mobile", nome_categoria: "Desenvolvimento Mobile", tipo: "TECNICA", descricao: "Competências relacionadas ao desenvolvimento de aplicações mobile" },
-  { id_categoria: "cat_data_ai", nome_categoria: "Ciência de Dados e IA", tipo: "TECNICA", descricao: "Competências relacionadas a dados e inteligência artificial" },
-  { id_categoria: "cat_cloud_devops", nome_categoria: "Cloud e DevOps", tipo: "TECNICA", descricao: "Competências relacionadas a infraestrutura e operações" },
-  { id_categoria: "cat_sec_info", nome_categoria: "Segurança da Informação", tipo: "TECNICA", descricao: "Competências relacionadas a segurança de sistemas" },
-  { id_categoria: "cat_ux_ui", nome_categoria: "UX/UI Design", tipo: "TECNICA", descricao: "Competências relacionadas a experiência do usuário e design de interface" },
+  { id_categoria: "2", nome_categoria: "Desenvolvimento Web", tipo: "TECNICA", descricao: "Competências relacionadas ao desenvolvimento de aplicações web" },
+  { id_categoria: "3", nome_categoria: "Desenvolvimento Mobile", tipo: "TECNICA", descricao: "Competências relacionadas ao desenvolvimento de aplicações mobile" },
+  { id_categoria: "4", nome_categoria: "Ciência de Dados e IA", tipo: "TECNICA", descricao: "Competências relacionadas a dados e inteligência artificial" },
+  { id_categoria: "5", nome_categoria: "Cloud e DevOps", tipo: "TECNICA", descricao: "Competências relacionadas a infraestrutura e operações" },
+  { id_categoria: "6", nome_categoria: "Segurança da Informação", tipo: "TECNICA", descricao: "Competências relacionadas a segurança de sistemas" },
+  { id_categoria: "7", nome_categoria: "UX/UI Design", tipo: "TECNICA", descricao: "Competências relacionadas a experiência do usuário e design de interface" },
 ];
 
 export const MOCK_ESPECIALIZACOES: Especializacao[] = [
-  { id_especializacao: "spec_frontend", id_categoria: "cat_dev_web", nome_especializacao: "Frontend", descricao: "Desenvolvimento de interfaces" },
-  { id_especializacao: "spec_backend", id_categoria: "cat_dev_web", nome_especializacao: "Backend", descricao: "Desenvolvimento de APIs e servidores" },
-  { id_especializacao: "spec_cloud_infra", id_categoria: "cat_cloud_devops", nome_especializacao: "Cloud & Infrastructure", descricao: "Infraestrutura em nuvem" },
+  { id_especializacao: "1", id_categoria: "2", nome_especializacao: "Frontend Web", descricao: "Desenvolvimento de interfaces de usuário" },
+  { id_especializacao: "2", id_categoria: "2", nome_especializacao: "Backend Web", descricao: "Desenvolvimento de lógica de servidor e APIs" },
+  { id_especializacao: "3", id_categoria: "3", nome_especializacao: "Desenvolvimento Nativo", descricao: "Desenvolvimento para iOS e Android" },
+  { id_especializacao: "4", id_categoria: "3", nome_especializacao: "Cross-Platform", descricao: "Desenvolvimento para múltiplas plataformas" },
+  { id_especializacao: "5", id_categoria: "4", nome_especializacao: "Análise e Visualização", descricao: "Análise e visualização de dados" },
+  { id_especializacao: "6", id_categoria: "4", nome_especializacao: "Machine Learning", descricao: "Modelos de aprendizado de máquina" },
+  { id_especializacao: "7", id_categoria: "5", nome_especializacao: "Infraestrutura e Containers", descricao: "Gerenciamento de infraestrutura e containers" },
+  { id_especializacao: "8", id_categoria: "5", nome_especializacao: "CI/CD e Automação", descricao: "Integração e entrega contínua" },
+  { id_especializacao: "9", id_categoria: "6", nome_especializacao: "AppSec", descricao: "Segurança de aplicações" },
+  { id_especializacao: "10", id_categoria: "6", nome_especializacao: "Infraestrutura Segura", descricao: "Segurança de infraestrutura" },
+  { id_especializacao: "11", id_categoria: "7", nome_especializacao: "UX Research", descricao: "Pesquisa com usuários" },
+  { id_especializacao: "12", id_categoria: "7", nome_especializacao: "UI Design", descricao: "Design de interfaces" },
 ];
 
 export const MOCK_COMPETENCIAS: Competencia[] = [
@@ -35,16 +44,16 @@ export const MOCK_COMPETENCIAS: Competencia[] = [
   { id_competencia: "soft_organizacao", nome_competencia: "Organização", tipo: "SOFT", id_especializacao: null, descricao: "..." },
   { id_competencia: "soft_foco_resultados", nome_competencia: "Foco em Resultados", tipo: "SOFT", id_especializacao: null, descricao: "..." },
   { id_competencia: "soft_proatividade", nome_competencia: "Proatividade", tipo: "SOFT", id_especializacao: null, descricao: "..." },
-  // Hard Skills
-  { id_competencia: "hard_react", nome_competencia: "React", tipo: "HARD", id_especializacao: "spec_frontend", descricao: "..." },
-  { id_competencia: "hard_typescript", nome_competencia: "TypeScript", tipo: "HARD", id_especializacao: "spec_frontend", descricao: "..." },
-  { id_competencia: "hard_css_tailwind", nome_competencia: "CSS/Tailwind", tipo: "HARD", id_especializacao: "spec_frontend", descricao: "..." },
-  { id_competencia: "hard_nodejs", nome_competencia: "Node.js", tipo: "HARD", id_especializacao: "spec_backend", descricao: "..." },
-  { id_competencia: "hard_api_rest", nome_competencia: "API REST", tipo: "HARD", id_especializacao: "spec_backend", descricao: "..." },
-  { id_competencia: "hard_sql", nome_competencia: "SQL", tipo: "HARD", id_especializacao: "spec_backend", descricao: "..." },
-  { id_competencia: "hard_docker", nome_competencia: "Docker", tipo: "HARD", id_especializacao: "spec_cloud_infra", descricao: "..." },
-  { id_competencia: "hard_kubernetes", nome_competencia: "Kubernetes", tipo: "HARD", id_especializacao: "spec_cloud_infra", descricao: "..." },
-  { id_competencia: "hard_aws_gcp", nome_competencia: "AWS/GCP", tipo: "HARD", id_especializacao: "spec_cloud_infra", descricao: "..." },
+  // Hard Skills (Atualizando IDs de especialização)
+  { id_competencia: "hard_react", nome_competencia: "React", tipo: "HARD", id_especializacao: "1", descricao: "..." },
+  { id_competencia: "hard_typescript", nome_competencia: "TypeScript", tipo: "HARD", id_especializacao: "1", descricao: "..." },
+  { id_competencia: "hard_css_tailwind", nome_competencia: "CSS/Tailwind", tipo: "HARD", id_especializacao: "1", descricao: "..." },
+  { id_competencia: "hard_nodejs", nome_competencia: "Node.js", tipo: "HARD", id_especializacao: "2", descricao: "..." },
+  { id_competencia: "hard_api_rest", nome_competencia: "API REST", tipo: "HARD", id_especializacao: "2", descricao: "..." },
+  { id_competencia: "hard_sql", nome_competencia: "SQL", tipo: "HARD", id_especializacao: "2", descricao: "..." },
+  { id_competencia: "hard_docker", nome_competencia: "Docker", tipo: "HARD", id_especializacao: "7", descricao: "..." },
+  { id_competencia: "hard_kubernetes", nome_competencia: "Kubernetes", tipo: "HARD", id_especializacao: "7", descricao: "..." },
+  { id_competencia: "hard_aws_gcp", nome_competencia: "AWS/GCP", tipo: "HARD", id_especializacao: "7", descricao: "..." },
 ];
 
 // ============ USUÁRIOS ============
