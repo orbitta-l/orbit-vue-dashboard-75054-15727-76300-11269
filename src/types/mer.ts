@@ -4,7 +4,7 @@
 
 export type UserRole = 'LIDER' | 'LIDERADO';
 export type SexoTipo = 'MASCULINO' | 'FEMININO' | 'OUTRO' | 'NAO_BINARIO' | 'NAO_INFORMADO';
-export type CompetenciaTipo = 'SOFT' | 'HARD';
+export type CompetenciaTipo = 'COMPORTAMENTAL' | 'TECNICA';
 export type AvaliacaoStatus = 'RASCUNHO' | 'CONCLUIDA';
 export type NivelMaturidade = 'M1' | 'M2' | 'M3' | 'M4';
 
