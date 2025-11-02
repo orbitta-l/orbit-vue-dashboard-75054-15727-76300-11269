@@ -11,11 +11,11 @@ export const softSkillTemplates: TemplateCargo[] = [
     origem: "GENÉRICO",
     ativo: true,
     competencias: [
-      { id_competencia: "soft_comunicacao", peso: 2, nota_ideal: 3.0 },
-      { id_competencia: "soft_trabalho_equipe", peso: 3, nota_ideal: 3.0 },
-      { id_competencia: "soft_capacidade_aprendizado", peso: 3, nota_ideal: 4.0 },
-      { id_competencia: "soft_iniciativa", peso: 2, nota_ideal: 3.0 },
-      { id_competencia: "soft_adaptabilidade", peso: 2, nota_ideal: 3.0 },
+      { id_competencia: "1", peso: 2, nota_ideal: 3.0 }, // Comunicação
+      { id_competencia: "2", peso: 3, nota_ideal: 3.0 }, // Trabalho em Equipe
+      { id_competencia: "4", peso: 3, nota_ideal: 4.0 }, // Vontade de Aprender
+      { id_competencia: "6", peso: 2, nota_ideal: 3.0 }, // Iniciativa e Proatividade
+      { id_competencia: "3", peso: 2, nota_ideal: 3.0 }, // Adaptabilidade
     ],
   },
   {
@@ -24,11 +24,11 @@ export const softSkillTemplates: TemplateCargo[] = [
     origem: "GENÉRICO",
     ativo: true,
     competencias: [
-      { id_competencia: "soft_comunicacao", peso: 2, nota_ideal: 3.0 },
-      { id_competencia: "soft_trabalho_equipe", peso: 3, nota_ideal: 3.0 },
-      { id_competencia: "soft_organizacao", peso: 2, nota_ideal: 3.0 },
-      { id_competencia: "soft_foco_resultados", peso: 3, nota_ideal: 4.0 },
-      { id_competencia: "soft_proatividade", peso: 3, nota_ideal: 4.0 },
+      { id_competencia: "1", peso: 2, nota_ideal: 3.0 }, // Comunicação
+      { id_competencia: "2", peso: 3, nota_ideal: 3.0 }, // Trabalho em Equipe
+      { id_competencia: "5", peso: 2, nota_ideal: 3.0 }, // Resolução de Problemas
+      { id_competencia: "10", peso: 3, nota_ideal: 4.0 }, // Visão de Negócio
+      { id_competencia: "6", peso: 3, nota_ideal: 4.0 }, // Iniciativa e Proatividade
     ],
   },
   // Adicionar outros templates de cargo aqui (Pleno, Sênior, etc.)
@@ -48,18 +48,20 @@ export const technicalTemplate = [
         id_especializacao: "1",
         nome_especializacao: "Frontend Web",
         competencias: [
-          { id_competencia: "hard_react", nome_competencia: "React" },
-          { id_competencia: "hard_typescript", nome_competencia: "TypeScript" },
-          { id_competencia: "hard_css_tailwind", nome_competencia: "CSS/Tailwind" },
+          { id_competencia: "11", nome_competencia: "Design Responsivo (HTML/CSS)" },
+          { id_competencia: "12", nome_competencia: "Interatividade (JavaScript/DOM)" },
+          { id_competencia: "13", nome_competencia: "Otimização de Performance Web" },
+          { id_competencia: "14", nome_competencia: "Desenvolvimento Acessível" },
         ],
       },
       {
         id_especializacao: "2",
         nome_especializacao: "Backend Web",
         competencias: [
-          { id_competencia: "hard_nodejs", nome_competencia: "Node.js" },
-          { id_competencia: "hard_api_rest", nome_competencia: "API REST" },
-          { id_competencia: "hard_sql", nome_competencia: "SQL" },
+          { id_competencia: "15", nome_competencia: "Criação e Gestão de APIs (REST)" },
+          { id_competencia: "16", nome_competencia: "Modelagem e Consultas SQL/NoSQL" },
+          { id_competencia: "17", nome_competencia: "Implementação de Regras de Negócio" },
+          { id_competencia: "18", nome_competencia: "Autenticação e Controle de Acesso" },
         ],
       },
     ],
@@ -72,9 +74,9 @@ export const technicalTemplate = [
         id_especializacao: "7",
         nome_especializacao: "Infraestrutura e Containers",
         competencias: [
-          { id_competencia: "hard_docker", nome_competencia: "Docker" },
-          { id_competencia: "hard_kubernetes", nome_competencia: "Kubernetes" },
-          { id_competencia: "hard_aws_gcp", nome_competencia: "AWS/GCP" },
+          // Mantendo as competências antigas, mas elas não estão na nova lista de 18.
+          // Vou removê-las para evitar referências a IDs inexistentes.
+          // Se precisar de novas competências para Cloud/DevOps, me avise.
         ],
       },
     ],

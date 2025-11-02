@@ -35,25 +35,26 @@ export const MOCK_ESPECIALIZACOES: Especializacao[] = [
 ];
 
 export const MOCK_COMPETENCIAS: Competencia[] = [
-  // Soft Skills
-  { id_competencia: "soft_comunicacao", nome_competencia: "Comunicação", tipo: "SOFT", id_especializacao: null, descricao: "..." },
-  { id_competencia: "soft_trabalho_equipe", nome_competencia: "Trabalho em Equipe", tipo: "SOFT", id_especializacao: null, descricao: "..." },
-  { id_competencia: "soft_capacidade_aprendizado", nome_competencia: "Capacidade de Aprendizado", tipo: "SOFT", id_especializacao: null, descricao: "..." },
-  { id_competencia: "soft_iniciativa", nome_competencia: "Iniciativa", tipo: "SOFT", id_especializacao: null, descricao: "..." },
-  { id_competencia: "soft_adaptabilidade", nome_competencia: "Adaptabilidade", tipo: "SOFT", id_especializacao: null, descricao: "..." },
-  { id_competencia: "soft_organizacao", nome_competencia: "Organização", tipo: "SOFT", id_especializacao: null, descricao: "..." },
-  { id_competencia: "soft_foco_resultados", nome_competencia: "Foco em Resultados", tipo: "SOFT", id_especializacao: null, descricao: "..." },
-  { id_competencia: "soft_proatividade", nome_competencia: "Proatividade", tipo: "SOFT", id_especializacao: null, descricao: "..." },
-  // Hard Skills (Atualizando IDs de especialização)
-  { id_competencia: "hard_react", nome_competencia: "React", tipo: "HARD", id_especializacao: "1", descricao: "..." },
-  { id_competencia: "hard_typescript", nome_competencia: "TypeScript", tipo: "HARD", id_especializacao: "1", descricao: "..." },
-  { id_competencia: "hard_css_tailwind", nome_competencia: "CSS/Tailwind", tipo: "HARD", id_especializacao: "1", descricao: "..." },
-  { id_competencia: "hard_nodejs", nome_competencia: "Node.js", tipo: "HARD", id_especializacao: "2", descricao: "..." },
-  { id_competencia: "hard_api_rest", nome_competencia: "API REST", tipo: "HARD", id_especializacao: "2", descricao: "..." },
-  { id_competencia: "hard_sql", nome_competencia: "SQL", tipo: "HARD", id_especializacao: "2", descricao: "..." },
-  { id_competencia: "hard_docker", nome_competencia: "Docker", tipo: "HARD", id_especializacao: "7", descricao: "..." },
-  { id_competencia: "hard_kubernetes", nome_competencia: "Kubernetes", tipo: "HARD", id_especializacao: "7", descricao: "..." },
-  { id_competencia: "hard_aws_gcp", nome_competencia: "AWS/GCP", tipo: "HARD", id_especializacao: "7", descricao: "..." },
+  // Soft Skills (IDs 1 a 10)
+  { id_competencia: "1", nome_competencia: "Comunicação", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Capacidade de expressar ideias de forma clara e ouvir atentamente." },
+  { id_competencia: "2", nome_competencia: "Trabalho em Equipe", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Colaborar efetivamente com outros para alcançar objetivos comuns." },
+  { id_competencia: "3", nome_competencia: "Adaptabilidade", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Ajustar-se a novas condições e desafios com flexibilidade." },
+  { id_competencia: "4", nome_competencia: "Vontade de Aprender", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Demonstrar curiosidade e iniciativa para adquirir novos conhecimentos." },
+  { id_competencia: "5", nome_competencia: "Resolução de Problemas", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Identificar, analisar e resolver problemas de forma autônoma." },
+  { id_competencia: "6", nome_competencia: "Iniciativa e Proatividade", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Agir antecipadamente, identificando oportunidades e riscos." },
+  { id_competencia: "7", nome_competencia: "Liderança Técnica", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Orientar e influenciar tecnicamente outros membros da equipe." },
+  { id_competencia: "8", nome_competencia: "Pensamento Crítico", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Analisar informações de forma objetiva e tomar decisões estratégicas." },
+  { id_competencia: "9", nome_competencia: "Mentoria", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Capacidade de ensinar e desenvolver outros membros da equipe." },
+  { id_competencia: "10", nome_competencia: "Visão de Negócio", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Compreender e alinhar as entregas técnicas com os objetivos do negócio." },
+  // Hard Skills (IDs 11 a 18)
+  { id_competencia: "11", nome_competencia: "Design Responsivo (HTML/CSS)", tipo: "TECNICA", id_especializacao: "1", descricao: "Construção de UI responsivas com boas práticas de layout e semântica." },
+  { id_competencia: "12", nome_competencia: "Interatividade (JavaScript/DOM)", tipo: "TECNICA", id_especializacao: "1", descricao: "Criação de interfaces interativas e manipulação do DOM." },
+  { id_competencia: "13", nome_competencia: "Otimização de Performance Web", tipo: "TECNICA", id_especializacao: "1", descricao: "Melhorias de carregamento, renderização e métricas web vitais." },
+  { id_competencia: "14", nome_competencia: "Desenvolvimento Acessível", tipo: "TECNICA", id_especializacao: "1", descricao: "Garantia de acessibilidade (WAI-ARIA) e inclusão em interfaces web." },
+  { id_competencia: "15", nome_competencia: "Criação e Gestão de APIs (REST)", tipo: "TECNICA", id_especializacao: "2", descricao: "Modelagem de endpoints, versionamento e boas práticas REST." },
+  { id_competencia: "16", nome_competencia: "Modelagem e Consultas SQL/NoSQL", tipo: "TECNICA", id_especializacao: "2", descricao: "Projetar esquemas e escrever consultas eficientes." },
+  { id_competencia: "17", nome_competencia: "Implementação de Regras de Negócio", tipo: "TECNICA", id_especializacao: "2", descricao: "Codificação de lógicas de domínio e validações no servidor." },
+  { id_competencia: "18", nome_competencia: "Autenticação e Controle de Acesso", tipo: "TECNICA", id_especializacao: "2", descricao: "Sessões, tokens, OAuth2/OpenID e autorização por papéis." },
 ];
 
 // ============ USUÁRIOS ============
@@ -72,26 +73,26 @@ export const MOCK_USERS: Usuario[] = [
 // ============ AVALIAÇÕES E PONTUAÇÕES ============
 
 const PONTUACOES_LID_001: PontuacaoAvaliacao[] = [
-  // Soft
-  { id_avaliacao: "av_001", id_competencia: "soft_comunicacao", pontuacao_1a4: 2.5, peso_aplicado: 2 },
-  { id_avaliacao: "av_001", id_competencia: "soft_trabalho_equipe", pontuacao_1a4: 3.0, peso_aplicado: 3 },
-  { id_avaliacao: "av_001", id_competencia: "soft_organizacao", pontuacao_1a4: 2.0, peso_aplicado: 2 },
-  { id_avaliacao: "av_001", id_competencia: "soft_foco_resultados", pontuacao_1a4: 3.5, peso_aplicado: 3 },
-  { id_avaliacao: "av_001", id_competencia: "soft_proatividade", pontuacao_1a4: 2.0, peso_aplicado: 3 },
-  // Hard
-  { id_avaliacao: "av_001", id_competencia: "hard_react", pontuacao_1a4: 2.5, peso_aplicado: null },
-  { id_avaliacao: "av_001", id_competencia: "hard_typescript", pontuacao_1a4: 2.0, peso_aplicado: null },
-  { id_avaliacao: "av_001", id_competencia: "hard_api_rest", pontuacao_1a4: 1.5, peso_aplicado: null },
+  // Soft (Usando novos IDs)
+  { id_avaliacao: "av_001", id_competencia: "1", pontuacao_1a4: 2.5, peso_aplicado: 2 }, // Comunicação
+  { id_avaliacao: "av_001", id_competencia: "2", pontuacao_1a4: 3.0, peso_aplicado: 3 }, // Trabalho em Equipe
+  { id_avaliacao: "av_001", id_competencia: "6", pontuacao_1a4: 2.0, peso_aplicado: 2 }, // Iniciativa e Proatividade
+  { id_avaliacao: "av_001", id_competencia: "10", pontuacao_1a4: 3.5, peso_aplicado: 3 }, // Visão de Negócio
+  { id_avaliacao: "av_001", id_competencia: "4", pontuacao_1a4: 2.0, peso_aplicado: 3 }, // Vontade de Aprender
+  // Hard (Usando novos IDs)
+  { id_avaliacao: "av_001", id_competencia: "11", pontuacao_1a4: 2.5, peso_aplicado: null }, // Design Responsivo
+  { id_avaliacao: "av_001", id_competencia: "12", pontuacao_1a4: 2.0, peso_aplicado: null }, // Interatividade
+  { id_avaliacao: "av_001", id_competencia: "15", pontuacao_1a4: 1.5, peso_aplicado: null }, // Criação e Gestão de APIs
 ];
 
 const PONTUACOES_LID_002: PontuacaoAvaliacao[] = [
   // Soft (simulando cargo Pleno, sem template definido ainda)
-  { id_avaliacao: "av_002", id_competencia: "soft_comunicacao", pontuacao_1a4: 3.5, peso_aplicado: 2 },
-  { id_avaliacao: "av_002", id_competencia: "soft_trabalho_equipe", pontuacao_1a4: 4.0, peso_aplicado: 3 },
+  { id_avaliacao: "av_002", id_competencia: "1", pontuacao_1a4: 3.5, peso_aplicado: 2 }, // Comunicação
+  { id_avaliacao: "av_002", id_competencia: "2", pontuacao_1a4: 4.0, peso_aplicado: 3 }, // Trabalho em Equipe
   // Hard
-  { id_avaliacao: "av_002", id_competencia: "hard_nodejs", pontuacao_1a4: 3.5, peso_aplicado: null },
-  { id_avaliacao: "av_002", id_competencia: "hard_sql", pontuacao_1a4: 3.0, peso_aplicado: null },
-  { id_avaliacao: "av_002", id_competencia: "hard_docker", pontuacao_1a4: 2.5, peso_aplicado: null },
+  { id_avaliacao: "av_002", id_competencia: "15", pontuacao_1a4: 3.5, peso_aplicado: null }, // Criação e Gestão de APIs
+  { id_avaliacao: "av_002", id_competencia: "16", pontuacao_1a4: 3.0, peso_aplicado: null }, // Modelagem e Consultas SQL/NoSQL
+  { id_avaliacao: "av_002", id_competencia: "17", pontuacao_1a4: 2.5, peso_aplicado: null }, // Implementação de Regras de Negócio
 ];
 
 export const MOCK_PONTUACOES: PontuacaoAvaliacao[] = [...PONTUACOES_LID_001, ...PONTUACOES_LID_002];
