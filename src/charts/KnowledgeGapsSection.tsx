@@ -34,7 +34,8 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
 
   const hasData = teamMembers.length > 0;
 
-  const calcularGaps = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
+  // Corrigido: Usando 'HARD' e 'SOFT' que são os tipos reais das competências
+  const calcularGaps = (tipo: 'HARD' | 'SOFT') => {
     if (!hasData) return [];
 
     const competenciasMap = new Map<string, { soma: number; count: number; competencia: any }>();
@@ -44,11 +45,11 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
         if (comp.tipo === tipo) {
           const existing = competenciasMap.get(comp.id_competencia);
           if (existing) {
-            existing.soma += comp.media_pontuacao;
+            existing.soma += comp.pontuacao_1a4; // Corrigido para usar pontuacao_1a4
             existing.count += 1;
           } else {
             competenciasMap.set(comp.id_competencia, {
-              soma: comp.media_pontuacao,
+              soma: comp.pontuacao_1a4, // Corrigido para usar pontuacao_1a4
               count: 1,
               competencia: comp,
             });
@@ -60,21 +61,21 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
     return Array.from(competenciasMap.values())
       .map(({ soma, count, competencia }) => ({
         nome_competencia: competencia.nome_competencia,
-        nome_categoria: competencia.nome_categoria,
-        nome_especializacao: competencia.nome_especializacao,
+        nome_categoria: competencia.categoria_nome, // Usando categoria_nome do LideradoDashboard
+        nome_especializacao: competencia.especializacao_nome, // Usando especializacao_nome do LideradoDashboard
         media_score: soma / count,
         tipo,
       }))
       .sort((a, b) => a.media_score - b.media_score);
   };
 
-  const gapsTecnicos = calcularGaps('TECNICA');
-  const gapsComportamentais = calcularGaps('COMPORTAMENTAL');
+  const gapsTecnicos = calcularGaps('HARD');
+  const gapsComportamentais = calcularGaps('SOFT');
 
-  const renderGapCard = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
-    const gaps = tipo === 'TECNICA' ? gapsTecnicos : gapsComportamentais;
-    const isExpanded = tipo === 'TECNICA' ? expandedTecnica : expandedComportamental;
-    const setExpanded = tipo === 'TECNICA' ? setExpandedTecnica : setExpandedComportamental;
+  const renderGapCard = (tipo: 'HARD' | 'SOFT') => {
+    const gaps = tipo === 'HARD' ? gapsTecnicos : gapsComportamentais;
+    const isExpanded = tipo === 'HARD' ? expandedTecnica : expandedComportamental;
+    const setExpanded = tipo === 'HARD' ? setExpandedTecnica : setExpandedComportamental;
 
     const pioresGaps = gaps.filter((g) => g.media_score < 2.5);
     const melhoresGaps = gaps.filter((g) => g.media_score >= 2.5);
@@ -83,7 +84,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
     return (
       <Card className="p-6">
         <h4 className="text-md font-semibold mb-4 text-foreground">
-          Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}
+          Competências {tipo === 'HARD' ? 'Técnicas' : 'Comportamentais'}
         </h4>
 
         {!hasData || top5.length === 0 ? (
@@ -205,8 +206,8 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
     <div className="mb-8">
       <h3 className="text-lg font-semibold mb-4 text-foreground">Gaps de Conhecimento</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {renderGapCard('COMPORTAMENTAL')}
-        {renderGapCard('TECNICA')}
+        {renderGapCard('SOFT')}
+        {renderGapCard('HARD')}
       </div>
     </div>
   );

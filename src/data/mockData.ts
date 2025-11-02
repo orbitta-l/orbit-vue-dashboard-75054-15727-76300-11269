@@ -11,14 +11,18 @@ export const MOCK_CARGOS: Cargo[] = [
 
 export const MOCK_CATEGORIAS: Categoria[] = [
   { id_categoria: "cat_soft_skills", nome_categoria: "Soft Skills", tipo: "COMPORTAMENTAL", descricao: "Competências comportamentais" },
-  { id_categoria: "cat_dev_web", nome_categoria: "Desenvolvimento Web", tipo: "TECNICA", descricao: "Desenvolvimento de aplicações web" },
-  { id_categoria: "cat_devops", nome_categoria: "DevOps", tipo: "TECNICA", descricao: "Infraestrutura e operações" },
+  { id_categoria: "cat_dev_web", nome_categoria: "Desenvolvimento Web", tipo: "TECNICA", descricao: "Competências relacionadas ao desenvolvimento de aplicações web" },
+  { id_categoria: "cat_dev_mobile", nome_categoria: "Desenvolvimento Mobile", tipo: "TECNICA", descricao: "Competências relacionadas ao desenvolvimento de aplicações mobile" },
+  { id_categoria: "cat_data_ai", nome_categoria: "Ciência de Dados e IA", tipo: "TECNICA", descricao: "Competências relacionadas a dados e inteligência artificial" },
+  { id_categoria: "cat_cloud_devops", nome_categoria: "Cloud e DevOps", tipo: "TECNICA", descricao: "Competências relacionadas a infraestrutura e operações" },
+  { id_categoria: "cat_sec_info", nome_categoria: "Segurança da Informação", tipo: "TECNICA", descricao: "Competências relacionadas a segurança de sistemas" },
+  { id_categoria: "cat_ux_ui", nome_categoria: "UX/UI Design", tipo: "TECNICA", descricao: "Competências relacionadas a experiência do usuário e design de interface" },
 ];
 
 export const MOCK_ESPECIALIZACOES: Especializacao[] = [
   { id_especializacao: "spec_frontend", id_categoria: "cat_dev_web", nome_especializacao: "Frontend", descricao: "Desenvolvimento de interfaces" },
   { id_especializacao: "spec_backend", id_categoria: "cat_dev_web", nome_especializacao: "Backend", descricao: "Desenvolvimento de APIs e servidores" },
-  { id_especializacao: "spec_cloud_infra", id_categoria: "cat_devops", nome_especializacao: "Cloud & Infrastructure", descricao: "Infraestrutura em nuvem" },
+  { id_especializacao: "spec_cloud_infra", id_categoria: "cat_cloud_devops", nome_especializacao: "Cloud & Infrastructure", descricao: "Infraestrutura em nuvem" },
 ];
 
 export const MOCK_COMPETENCIAS: Competencia[] = [
