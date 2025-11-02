@@ -55,6 +55,26 @@ export const MOCK_COMPETENCIAS: Competencia[] = [
   { id_competencia: "16", nome_competencia: "Modelagem e Consultas SQL/NoSQL", tipo: "TECNICA", id_especializacao: "2", descricao: "Projetar esquemas e escrever consultas eficientes." },
   { id_competencia: "17", nome_competencia: "Implementação de Regras de Negócio", tipo: "TECNICA", id_especializacao: "2", descricao: "Codificação de lógicas de domínio e validações no servidor." },
   { id_competencia: "18", nome_competencia: "Autenticação e Controle de Acesso", tipo: "TECNICA", id_especializacao: "2", descricao: "Sessões, tokens, OAuth2/OpenID e autorização por papéis." },
+  
+  // Novas Hard Skills para preencher o template completo (IDs 19+)
+  { id_competencia: "19", nome_competencia: "iOS Swift/Kotlin", tipo: "TECNICA", id_especializacao: "3", descricao: "Desenvolvimento nativo para iOS e Android." },
+  { id_competencia: "20", nome_competencia: "Flutter/React Native", tipo: "TECNICA", id_especializacao: "4", descricao: "Desenvolvimento cross-platform." },
+  { id_competencia: "21", nome_competencia: "Estatística Aplicada", tipo: "TECNICA", id_especializacao: "5", descricao: "Uso de métodos estatísticos para análise de dados." },
+  { id_competencia: "22", nome_competencia: "Visualização de Dados (D3/Tableau)", tipo: "TECNICA", id_especializacao: "5", descricao: "Criação de dashboards e relatórios visuais." },
+  { id_competencia: "23", nome_competencia: "Redes Neurais", tipo: "TECNICA", id_especializacao: "6", descricao: "Implementação de modelos de Machine Learning." },
+  { id_competencia: "24", nome_competencia: "Processamento de Linguagem Natural (NLP)", tipo: "TECNICA", id_especializacao: "6", descricao: "Tratamento de dados textuais." },
+  { id_competencia: "25", nome_competencia: "Docker e Kubernetes", tipo: "TECNICA", id_especializacao: "7", descricao: "Gerenciamento de containers e orquestração." },
+  { id_competencia: "26", nome_competencia: "Infraestrutura como Código (Terraform)", tipo: "TECNICA", id_especializacao: "7", descricao: "Provisionamento de infraestrutura via código." },
+  { id_competencia: "27", nome_competencia: "Pipelines CI/CD (GitLab/Jenkins)", tipo: "TECNICA", id_especializacao: "8", descricao: "Automação de build, teste e deploy." },
+  { id_competencia: "28", nome_competencia: "Monitoramento e Logging (Prometheus/ELK)", tipo: "TECNICA", id_especializacao: "8", descricao: "Observabilidade de sistemas." },
+  { id_competencia: "29", nome_competencia: "Análise de Vulnerabilidades", tipo: "TECNICA", id_especializacao: "9", descricao: "Identificação de falhas de segurança em aplicações." },
+  { id_competencia: "30", nome_competencia: "OWASP Top 10", tipo: "TECNICA", id_especializacao: "9", descricao: "Conhecimento e mitigação das principais falhas web." },
+  { id_competencia: "31", nome_competencia: "Hardening de Servidores", tipo: "TECNICA", id_especializacao: "10", descricao: "Configuração segura de sistemas operacionais e redes." },
+  { id_competencia: "32", nome_competencia: "Gestão de Identidade e Acesso (IAM)", tipo: "TECNICA", id_especializacao: "10", descricao: "Controle de acesso em ambientes cloud." },
+  { id_competencia: "33", nome_competencia: "Entrevistas e Testes de Usabilidade", tipo: "TECNICA", id_especializacao: "11", descricao: "Condução de pesquisa qualitativa e quantitativa." },
+  { id_competencia: "34", nome_competencia: "Criação de Personas e Jornadas", tipo: "TECNICA", id_especializacao: "11", descricao: "Mapeamento da experiência do usuário." },
+  { id_competencia: "35", nome_competencia: "Design System e Componentização", tipo: "TECNICA", id_especializacao: "12", descricao: "Criação e manutenção de bibliotecas de componentes." },
+  { id_competencia: "36", nome_competencia: "Prototipagem (Figma/Sketch)", tipo: "TECNICA", id_especializacao: "12", descricao: "Criação de protótipos de alta fidelidade." },
 ];
 
 // ============ USUÁRIOS ============
@@ -99,8 +119,8 @@ export const MOCK_PONTUACOES: PontuacaoAvaliacao[] = [...PONTUACOES_LID_001, ...
 
 // Função para calcular médias para uma avaliação
 const calcularMedias = (pontuacoes: PontuacaoAvaliacao[]) => {
-  const soft = pontuacoes.filter(p => MOCK_COMPETENCIAS.find(c => c.id_competencia === p.id_competencia)?.tipo === 'SOFT');
-  const hard = pontuacoes.filter(p => MOCK_COMPETENCIAS.find(c => c.id_competencia === p.id_competencia)?.tipo === 'HARD');
+  const soft = pontuacoes.filter(p => MOCK_COMPETENCIAS.find(c => c.id_competencia === p.id_competencia)?.tipo === 'COMPORTAMENTAL');
+  const hard = pontuacoes.filter(p => MOCK_COMPETENCIAS.find(c => c.id_competencia === p.id_competencia)?.tipo === 'TECNICA');
   
   const media_comportamental_1a4 = soft.length > 0 ? soft.reduce((acc, p) => acc + p.pontuacao_1a4, 0) / soft.length : 0;
   const media_tecnica_1a4 = hard.length > 0 ? hard.reduce((acc, p) => acc + p.pontuacao_1a4, 0) / hard.length : 0;

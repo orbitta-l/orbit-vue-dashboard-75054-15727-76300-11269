@@ -67,6 +67,48 @@ export const technicalTemplate = [
     ],
   },
   {
+    id_categoria: "3",
+    nome_categoria: "Desenvolvimento Mobile",
+    especializacoes: [
+      {
+        id_especializacao: "3",
+        nome_especializacao: "Desenvolvimento Nativo",
+        competencias: [
+          { id_competencia: "19", nome_competencia: "iOS Swift/Kotlin" },
+        ],
+      },
+      {
+        id_especializacao: "4",
+        nome_especializacao: "Cross-Platform",
+        competencias: [
+          { id_competencia: "20", nome_competencia: "Flutter/React Native" },
+        ],
+      },
+    ],
+  },
+  {
+    id_categoria: "4",
+    nome_categoria: "Ciência de Dados e IA",
+    especializacoes: [
+      {
+        id_especializacao: "5",
+        nome_especializacao: "Análise e Visualização",
+        competencias: [
+          { id_competencia: "21", nome_competencia: "Estatística Aplicada" },
+          { id_competencia: "22", nome_competencia: "Visualização de Dados (D3/Tableau)" },
+        ],
+      },
+      {
+        id_especializacao: "6",
+        nome_especializacao: "Machine Learning",
+        competencias: [
+          { id_competencia: "23", nome_competencia: "Redes Neurais" },
+          { id_competencia: "24", nome_competencia: "Processamento de Linguagem Natural (NLP)" },
+        ],
+      },
+    ],
+  },
+  {
     id_categoria: "5",
     nome_categoria: "Cloud e DevOps",
     especializacoes: [
@@ -74,12 +116,62 @@ export const technicalTemplate = [
         id_especializacao: "7",
         nome_especializacao: "Infraestrutura e Containers",
         competencias: [
-          // Mantendo as competências antigas, mas elas não estão na nova lista de 18.
-          // Vou removê-las para evitar referências a IDs inexistentes.
-          // Se precisar de novas competências para Cloud/DevOps, me avise.
+          { id_competencia: "25", nome_competencia: "Docker e Kubernetes" },
+          { id_competencia: "26", nome_competencia: "Infraestrutura como Código (Terraform)" },
+        ],
+      },
+      {
+        id_especializacao: "8",
+        nome_especializacao: "CI/CD e Automação",
+        competencias: [
+          { id_competencia: "27", nome_competencia: "Pipelines CI/CD (GitLab/Jenkins)" },
+          { id_competencia: "28", nome_competencia: "Monitoramento e Logging (Prometheus/ELK)" },
         ],
       },
     ],
   },
-  // Adicionar outras categorias aqui (Mobile, Data/AI, etc.)
+  {
+    id_categoria: "6",
+    nome_categoria: "Segurança da Informação",
+    especializacoes: [
+      {
+        id_especializacao: "9",
+        nome_especializacao: "AppSec",
+        competencias: [
+          { id_competencia: "29", nome_competencia: "Análise de Vulnerabilidades" },
+          { id_competencia: "30", nome_competencia: "OWASP Top 10" },
+        ],
+      },
+      {
+        id_especializacao: "10",
+        nome_especializacao: "Infraestrutura Segura",
+        competencias: [
+          { id_competencia: "31", nome_competencia: "Hardening de Servidores" },
+          { id_competencia: "32", nome_competencia: "Gestão de Identidade e Acesso (IAM)" },
+        ],
+      },
+    ],
+  },
+  {
+    id_categoria: "7",
+    nome_categoria: "UX/UI Design",
+    especializacoes: [
+      {
+        id_especializacao: "11",
+        nome_especializacao: "UX Research",
+        competencias: [
+          { id_competencia: "33", nome_competencia: "Entrevistas e Testes de Usabilidade" },
+          { id_competencia: "34", nome_competencia: "Criação de Personas e Jornadas" },
+        ],
+      },
+      {
+        id_especializacao: "12",
+        nome_especializacao: "UI Design",
+        competencias: [
+          { id_competencia: "35", nome_competencia: "Design System e Componentização" },
+          { id_competencia: "36", nome_competencia: "Prototipagem (Figma/Sketch)" },
+        ],
+      },
+    ],
+  },
 ];
