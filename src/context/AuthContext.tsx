@@ -24,7 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const ALWAYS_FIRST_ACCESS_EMAILS = ['thais.lider@gmail.com', 'ramon.p@gmail.com'];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [profile, setProfile] = useState<Usuario | null>(null);
+  const [profile, setProfile] = useState<Usuario.nome | null>(null);
   const [liderados, setLiderados] = useState<Usuario[]>([]);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [pontuacoes, setPontuacoes] = useState<PontuacaoAvaliacao[]>([]);
