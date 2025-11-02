@@ -44,7 +44,7 @@ export const Sidebar = () => {
           <Avatar className="mb-2 w-16 h-16">
             {/* Se houver avatar_url no profile, usar <AvatarImage src={profile.avatar_url} /> */}
             <AvatarFallback className="bg-accent text-accent-foreground font-semibold text-lg">
-              {profile ? getInitials(profile.name) : 'U'}
+              {profile ? getInitials(profile.nome) : 'U'}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0 text-center transition-opacity duration-300">
