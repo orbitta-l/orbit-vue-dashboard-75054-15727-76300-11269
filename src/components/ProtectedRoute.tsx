@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { useAuth } from '@/context/AuthContext';
+import { UserRole } from '@/types/mer';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -17,7 +18,7 @@ export function ProtectedRoute({ children, allowedRole }: ProtectedRouteProps) {
 
   // Usuário autenticado mas sem permissão → redirecionar para dashboard correto
   if (profile?.role !== allowedRole) {
-    const correctDashboard = profile?.role === 'lider' 
+    const correctDashboard = profile?.role === 'LIDER' 
       ? '/dashboard-lider' 
       : '/dashboard-liderado';
     return <Navigate to={correctDashboard} replace />;

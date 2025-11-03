@@ -6,11 +6,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function EvaluationList() {
   const navigate = useNavigate();
-  const { liderados } = useAuth();
+  const { teamData } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleEvaluate = (memberId: string) => {
@@ -27,8 +27,8 @@ export default function EvaluationList() {
       .slice(0, 2);
   };
 
-  const filteredLiderados = liderados.filter((member) =>
-    member.nome_liderado.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredLiderados = teamData.filter((member) =>
+    member.nome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -69,17 +69,17 @@ export default function EvaluationList() {
       {filteredLiderados.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredLiderados.map((member) => (
-            <Card key={member.id_liderado} className="p-6 hover:shadow-lg transition-all duration-300">
+            <Card key={member.id_usuario} className="p-6 hover:shadow-lg transition-all duration-300">
               <div className="flex items-start gap-4 mb-4">
                 <Avatar className="w-16 h-16">
                   <AvatarFallback className="bg-accent/20 text-accent-foreground text-lg font-semibold">
-                    {getInitials(member.nome_liderado)}
+                    {getInitials(member.nome)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg text-foreground mb-1">{member.nome_liderado}</h3>
+                  <h3 className="font-semibold text-lg text-foreground mb-1">{member.nome}</h3>
                   <Badge variant="secondary" className="mb-2 capitalize">
-                    {member.cargo || "Não definido"}
+                    {member.cargo_nome || "Não definido"}
                   </Badge>
                 </div>
               </div>
@@ -100,7 +100,7 @@ export default function EvaluationList() {
 
               <Button 
                 className="w-full gap-2"
-                onClick={() => handleEvaluate(member.id_liderado)}
+                onClick={() => handleEvaluate(member.id_usuario)}
               >
                 <ClipboardCheck className="w-4 h-4" />
                 Avaliar Competências
@@ -111,7 +111,7 @@ export default function EvaluationList() {
       ) : (
         <Card className="p-8 text-center bg-muted/20">
           <p className="text-muted-foreground">
-            {liderados.length === 0 
+            {teamData.length === 0 
               ? "Nenhum liderado cadastrado. Adicione um na tela de Liderados." 
               : "Nenhum liderado encontrado com o termo buscado."}
           </p>

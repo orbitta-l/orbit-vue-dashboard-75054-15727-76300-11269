@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Settings() {
   const { profile } = useAuth();
@@ -16,7 +16,7 @@ export default function Settings() {
   const mockUser = {
     email: profile?.email || "usuario@orbitta.com",
     name: profile?.name || "Usuário",
-    role: (profile?.role === 'lider' ? "LÍDER" : "LIDERADO") as "LÍDER" | "LIDERADO",
+    role: (profile?.role === 'LIDER' ? "LÍDER" : "LIDERADO") as "LÍDER" | "LIDERADO",
   };
 
   // Estado para alteração de senha

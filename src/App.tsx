@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { DashboardLayout } from "./components/DashboardLayout";
 import Home from "./pages/Home";
@@ -20,9 +20,15 @@ import DashboardLiderado from "./pages/DashboardLiderado";
 
 const queryClient = new QueryClient();
 
+const LiderDashboardWrapper = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute allowedRole="LIDER">
+    <DashboardLayout>{children}</DashboardLayout>
+  </ProtectedRoute>
+);
+
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
+  <AuthProvider>
+    <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -37,37 +43,33 @@ const App = () => (
             {/* Dashboards protegidos com RBAC */}
             <Route 
               path="/dashboard-lider" 
-              element={
-                <ProtectedRoute allowedRole="lider">
-                  <DashboardLayout><Home /></DashboardLayout>
-                </ProtectedRoute>
-              } 
+              element={<LiderDashboardWrapper><Home /></LiderDashboardWrapper>} 
             />
             <Route 
               path="/dashboard-liderado" 
               element={
-                <ProtectedRoute allowedRole="liderado">
+                <ProtectedRoute allowedRole="LIDERADO">
                   <DashboardLiderado />
                 </ProtectedRoute>
               } 
             />
             
-            {/* Rotas antigas do dashboard (manter compatibilidade) */}
-            <Route path="/home" element={<DashboardLayout><Home /></DashboardLayout>} />
-            <Route path="/team" element={<DashboardLayout><Team /></DashboardLayout>} />
-            <Route path="/team/:memberId" element={<DashboardLayout><MemberDetail /></DashboardLayout>} />
-            <Route path="/compare" element={<DashboardLayout><Compare /></DashboardLayout>} />
-            <Route path="/evaluation" element={<DashboardLayout><EvaluationList /></DashboardLayout>} />
-            <Route path="/evaluation/:memberId" element={<DashboardLayout><Evaluation /></DashboardLayout>} />
-            <Route path="/settings" element={<DashboardLayout><Settings /></DashboardLayout>} />
+            {/* Rotas antigas do dashboard (agora protegidas) */}
+            <Route path="/home" element={<LiderDashboardWrapper><Home /></LiderDashboardWrapper>} />
+            <Route path="/team" element={<LiderDashboardWrapper><Team /></LiderDashboardWrapper>} />
+            <Route path="/team/:memberId" element={<LiderDashboardWrapper><MemberDetail /></LiderDashboardWrapper>} />
+            <Route path="/compare" element={<LiderDashboardWrapper><Compare /></LiderDashboardWrapper>} />
+            <Route path="/evaluation" element={<LiderDashboardWrapper><EvaluationList /></LiderDashboardWrapper>} />
+            <Route path="/evaluation/:memberId" element={<LiderDashboardWrapper><Evaluation /></LiderDashboardWrapper>} />
+            <Route path="/settings" element={<LiderDashboardWrapper><Settings /></LiderDashboardWrapper>} />
             
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+    </QueryClientProvider>
+  </AuthProvider>
 );
 
 export default App;

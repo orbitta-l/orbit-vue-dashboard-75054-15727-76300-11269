@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { LideradoPerformance } from "@/types/mer";
+import { LideradoDashboard } from "@/types/mer"; // Usando LideradoDashboard
 import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
 
 interface KnowledgeGapsSectionProps {
-  teamMembers: LideradoPerformance[];
+  teamMembers: LideradoDashboard[]; // Usando o tipo correto
   empty?: boolean;
 }
 
@@ -34,21 +34,22 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
 
   const hasData = teamMembers.length > 0;
 
+  // Corrigido: Usando 'TECNICA' e 'COMPORTAMENTAL' que são os tipos reais das competências
   const calcularGaps = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
     if (!hasData) return [];
 
-    const competenciasMap = new Map<string, { soma: number; count: number; competencia: any }>();
+    const competenciasMap = new Map<string, { soma: number; count: number; competencia: LideradoDashboard['competencias'][0] }>();
 
     teamMembers.forEach((liderado) => {
       liderado.competencias.forEach((comp) => {
         if (comp.tipo === tipo) {
           const existing = competenciasMap.get(comp.id_competencia);
           if (existing) {
-            existing.soma += comp.media_pontuacao;
+            existing.soma += comp.pontuacao_1a4;
             existing.count += 1;
           } else {
             competenciasMap.set(comp.id_competencia, {
-              soma: comp.media_pontuacao,
+              soma: comp.pontuacao_1a4,
               count: 1,
               competencia: comp,
             });
@@ -60,8 +61,8 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
     return Array.from(competenciasMap.values())
       .map(({ soma, count, competencia }) => ({
         nome_competencia: competencia.nome_competencia,
-        nome_categoria: competencia.nome_categoria,
-        nome_especializacao: competencia.nome_especializacao,
+        nome_categoria: competencia.categoria_nome,
+        nome_especializacao: competencia.especializacao_nome,
         media_score: soma / count,
         tipo,
       }))
@@ -102,7 +103,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                       </span>
                       <span className="text-xs text-muted-foreground ml-2">
                         ({gap.nome_categoria}
-                        {gap.nome_especializacao ? ` › ${gap.nome_especializacao}` : ""})
+                        {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""})
                       </span>
                     </div>
                     <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
@@ -148,7 +149,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {gap.nome_categoria}
-                          {gap.nome_especializacao ? ` › ${gap.nome_especializacao}` : ""}
+                          {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""}
                         </p>
                       </div>
                       <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
@@ -174,7 +175,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {gap.nome_categoria}
-                          {gap.nome_especializacao ? ` › ${gap.nome_especializacao}` : ""}
+                          {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""}
                         </p>
                       </div>
                       <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>

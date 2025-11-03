@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
@@ -44,15 +44,15 @@ export const Sidebar = () => {
           <Avatar className="mb-2 w-16 h-16">
             {/* Se houver avatar_url no profile, usar <AvatarImage src={profile.avatar_url} /> */}
             <AvatarFallback className="bg-accent text-accent-foreground font-semibold text-lg">
-              {profile ? getInitials(profile.name) : 'U'}
+              {profile ? getInitials(profile.nome) : 'U'}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0 text-center transition-opacity duration-300">
             <p className="text-base font-medium text-sidebar-foreground truncate">
-              {profile?.name || 'Usuário'}
+              {profile?.nome || 'Usuário'}
             </p>
             <p className="text-sm text-sidebar-foreground/70 truncate">
-              {profile?.role === 'lider' ? 'Tech Lead' : 'Desenvolvedor'}
+              {profile?.role === 'LIDER' ? 'Tech Lead' : 'Desenvolvedor'}
             </p>
             <p className="text-sm text-sidebar-foreground/70 truncate">
               {profile?.email || 'email@exemplo.com'}

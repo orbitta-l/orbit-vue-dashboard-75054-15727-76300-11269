@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.svg";
 
@@ -14,7 +14,6 @@ function LeftPanel({ title }: { title: React.ReactNode }) {
   return (
     <div className="flex-1 flex items-start justify-start p-12 z-10">
       <div className="max-w-md text-left">
-        <img src={logo} alt="ORBITTA" className="h-12 mb-8" />
         <h1
           className="text-5xl font-bold leading-tight mb-4"
           style={{
@@ -44,7 +43,7 @@ function RightPanel() {
   // Redirecionar usuário já autenticado
   useEffect(() => {
     if (isAuthenticated && profile) {
-      const dashboard = profile.role === 'lider' ? '/dashboard-lider' : '/dashboard-liderado';
+      const dashboard = profile.role === 'LIDER' ? '/dashboard-lider' : '/dashboard-liderado';
       navigate(dashboard, { replace: true });
     }
   }, [isAuthenticated, profile, navigate]);
