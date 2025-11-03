@@ -4,9 +4,11 @@ import { Usuario, Cargo, Categoria, Especializacao, Competencia, Avaliacao, Pont
 
 export const MOCK_CARGOS: Cargo[] = [
   { id_cargo: "cargo_estagiario", nome_cargo: "Estagiário", descricao: "Nível inicial", ativo: true },
-  { id_cargo: "cargo_junior", nome_cargo: "Desenvolvedor Júnior", descricao: "Nível júnior", ativo: true },
-  { id_cargo: "cargo_pleno", nome_cargo: "Desenvolvedor Pleno", descricao: "Nível pleno", ativo: true },
-  { id_cargo: "cargo_senior", nome_cargo: "Desenvolvedor Sênior", descricao: "Nível sênior", ativo: true },
+  // Renomeando Sênior para Especialista I
+  { id_cargo: "cargo_especialista_i", nome_cargo: "Especialista I", descricao: "Nível especialista", ativo: true },
+  // Mantendo os IDs antigos para compatibilidade com usuários mockados existentes, mas não listando como "oficiais"
+  { id_cargo: "cargo_junior", nome_cargo: "Desenvolvedor Júnior", descricao: "Nível júnior", ativo: false },
+  { id_cargo: "cargo_pleno", nome_cargo: "Desenvolvedor Pleno", descricao: "Nível pleno", ativo: false },
 ];
 
 export const MOCK_CATEGORIAS: Categoria[] = [
@@ -46,7 +48,7 @@ export const MOCK_COMPETENCIAS: Competencia[] = [
   { id_competencia: "8", nome_competencia: "Pensamento Crítico", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Analisar informações de forma objetiva e tomar decisões estratégicas." },
   { id_competencia: "9", nome_competencia: "Mentoria", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Capacidade de ensinar e desenvolver outros membros da equipe." },
   { id_competencia: "10", nome_competencia: "Visão de Negócio", tipo: "COMPORTAMENTAL", id_especializacao: null, descricao: "Compreender e alinhar as entregas técnicas com os objetivos do negócio." },
-  // Hard Skills (IDs 11 a 18)
+  // Hard Skills (IDs 11 a 36)
   { id_competencia: "11", nome_competencia: "Design Responsivo (HTML/CSS)", tipo: "TECNICA", id_especializacao: "1", descricao: "Construção de UI responsivas com boas práticas de layout e semântica." },
   { id_competencia: "12", nome_competencia: "Interatividade (JavaScript/DOM)", tipo: "TECNICA", id_especializacao: "1", descricao: "Criação de interfaces interativas e manipulação do DOM." },
   { id_competencia: "13", nome_competencia: "Otimização de Performance Web", tipo: "TECNICA", id_especializacao: "1", descricao: "Melhorias de carregamento, renderização e métricas web vitais." },
@@ -81,9 +83,9 @@ export const MOCK_COMPETENCIAS: Competencia[] = [
 
 export const MOCK_USERS: Usuario[] = [
   // Líder com time
-  { id_usuario: 'lider-001', nome: 'Juliana Martins', email: 'juli.lider@gmail.com', senha_hash: 'juli@123', role: 'LIDER', id_cargo: 'cargo_senior', lider_id: null, sexo: 'FEMININO', data_nascimento: '1985-05-15', ativo: true },
+  { id_usuario: 'lider-001', nome: 'Juliana Martins', email: 'juli.lider@gmail.com', senha_hash: 'juli@123', role: 'LIDER', id_cargo: 'cargo_especialista_i', lider_id: null, sexo: 'FEMININO', data_nascimento: '1985-05-15', ativo: true },
   // Líder sem time
-  { id_usuario: 'lider-002', nome: 'Thais Costa', email: 'thais.lider@gmail.com', senha_hash: 'thais@123', role: 'LIDER', id_cargo: 'cargo_pleno', lider_id: null, sexo: 'FEMININO', data_nascimento: '1990-03-20', ativo: true },
+  { id_usuario: 'lider-002', nome: 'Thais Costa', email: 'thais.lider@gmail.com', senha_hash: 'thais@123', role: 'LIDER', id_cargo: 'cargo_especialista_i', lider_id: null, sexo: 'FEMININO', data_nascimento: '1990-03-20', ativo: true },
   // Liderados
   { id_usuario: 'lid-001', nome: 'Antonio Pereira', email: 'tone.p@gmail.com', senha_hash: 'tone@123', role: 'LIDERADO', id_cargo: 'cargo_junior', lider_id: 'lider-001', sexo: 'MASCULINO', data_nascimento: '2000-08-12', ativo: true },
   { id_usuario: 'lid-002', nome: 'Lara Mendes', email: 'lara.m@gmail.com', senha_hash: 'lara@123', role: 'LIDERADO', id_cargo: 'cargo_pleno', lider_id: 'lider-001', sexo: 'FEMININO', data_nascimento: '1993-11-25', ativo: true },

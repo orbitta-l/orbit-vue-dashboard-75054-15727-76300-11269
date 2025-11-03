@@ -58,11 +58,15 @@ export default function Evaluation() {
     }
     setMember(currentMember);
 
+    // Busca o template de soft skills baseado no id_cargo
     const template = softSkillTemplates.find(t => t.id_cargo === currentMember.id_cargo);
     setSoftTemplate(template || null);
+    
     if (template) {
       const initialScores = template.competencias.reduce((acc, skill) => ({ ...acc, [skill.id_competencia]: 1 }), {});
       setSoftScores(initialScores);
+    } else {
+      setSoftScores({}); // Garante que softScores está vazio se não houver template
     }
     setLoading(false);
   }, [memberId, liderados, navigate]);
@@ -120,6 +124,7 @@ export default function Evaluation() {
     toast({ title: "Bloco salvo!", description: "As notas desta especialização foram salvas localmente." });
   };
 
+  // A avaliação final só é habilitada se houver pelo menos um bloco técnico salvo.
   const isFinalSaveEnabled = techBlocks.length > 0 && techBlocks.every(b => b.completed);
 
   const handleSaveEvaluation = () => {
@@ -131,8 +136,15 @@ export default function Evaluation() {
     const allSoftScores = Object.values(softScores);
     const allTechScores = techBlocks.flatMap(b => Object.values(b.scores));
 
+    // Calcula médias, ignorando Soft Skills se não houver template (allSoftScores será vazio)
     const media_comportamental_1a4 = allSoftScores.length > 0 ? allSoftScores.reduce((a, b) => a + b, 0) / allSoftScores.length : 0;
     const media_tecnica_1a4 = allTechScores.length > 0 ? allTechScores.reduce((a, b) => a + b, 0) / allTechScores.length : 0;
+    
+    if (media_tecnica_1a4 === 0 && media_comportamental_1a4 === 0) {
+        toast({ variant: "destructive", title: "Dados insuficientes", description: "A avaliação deve conter pelo menos uma pontuação válida." });
+        return;
+    }
+
     const maturidade_quadrante = calcularNivelMaturidade(media_tecnica_1a4, media_comportamental_1a4);
 
     const newEvaluation: Avaliacao = {
@@ -148,14 +160,14 @@ export default function Evaluation() {
       observacoes: ''
     };
 
-    const newPontuacoes: PontuacaoAvaliacao[] = [
-      ...(softTemplate?.competencias.map(skill => ({
+    const softPontuacoes: PontuacaoAvaliacao[] = softTemplate ? softTemplate.competencias.map(skill => ({
         id_avaliacao: newEvaluation.id_avaliacao,
         id_competencia: skill.id_competencia,
         pontuacao_1a4: softScores[skill.id_competencia] || 0,
         peso_aplicado: skill.peso,
-      })) || []),
-      ...techBlocks.flatMap(block => {
+    })) : [];
+
+    const techPontuacoes: PontuacaoAvaliacao[] = techBlocks.flatMap(block => {
         const specialization = technicalTemplate
           .flatMap(c => c.especializacoes)
           .find(s => s.id_especializacao === block.especializacao_id);
@@ -165,10 +177,9 @@ export default function Evaluation() {
           pontuacao_1a4: block.scores[comp.id_competencia] || 0,
           peso_aplicado: null,
         })) || [];
-      }),
-    ];
+    });
 
-    addAvaliacao(newEvaluation, newPontuacoes);
+    addAvaliacao(newEvaluation, [...softPontuacoes, ...techPontuacoes]);
 
     toast({ title: "Avaliação completa salva!", description: `A avaliação de ${member?.nome} foi concluída com sucesso.` });
     navigate("/evaluation");
@@ -180,6 +191,8 @@ export default function Evaluation() {
   const activeBlock = techBlocks.find(b => b.especializacao_id === activeTab);
   const activeCategory = technicalTemplate.find(c => c.id_categoria === activeBlock?.categoria_id);
   const activeSpecialization = activeCategory?.especializacoes.find(s => s.id_especializacao === activeBlock?.especializacao_id);
+  
+  const cargoNome = MOCK_CARGOS.find(c => c.id_cargo === member.id_cargo)?.nome_cargo || "Não definido";
 
   return (
     <div className="p-8">
@@ -192,7 +205,7 @@ export default function Evaluation() {
         </div>
         <div className="flex items-center gap-2">
           <p className="text-xl font-semibold text-foreground">{member.nome}</p>
-          <Badge variant="secondary" className="capitalize">{MOCK_CARGOS.find(c => c.id_cargo === member.id_cargo)?.nome_cargo || "Não definido"}</Badge>
+          <Badge variant="secondary" className="capitalize">{cargoNome}</Badge>
           {lastEvaluation && <Badge className="bg-primary/10 text-primary">{lastEvaluation.maturidade_quadrante}</Badge>}
         </div>
       </Card>
@@ -205,28 +218,35 @@ export default function Evaluation() {
               <CardDescription>Avalie as habilidades de {member.nome}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {softTemplate?.competencias.map(skill => {
-                const competencyDetails = MOCK_COMPETENCIAS.find(c => c.id_competencia === skill.id_competencia);
-                return (
-                  <div key={skill.id_competencia}>
-                    <div className="flex justify-between items-center mb-2">
-                      <Tooltip delayDuration={300}>
-                        <TooltipTrigger asChild>
-                          <Label htmlFor={skill.id_competencia} className="cursor-help hover:text-primary transition-colors">
-                            {competencyDetails?.nome_competencia} (Peso {skill.peso})
-                          </Label>
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs">
-                          <p className="font-semibold mb-1">{competencyDetails?.nome_competencia}</p>
-                          <p className="text-sm">{getCompetencyDescription(skill.id_competencia)}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      <Badge variant="outline">{softScores[skill.id_competencia]}/4</Badge>
+              {softTemplate ? (
+                softTemplate.competencias.map(skill => {
+                  const competencyDetails = MOCK_COMPETENCIAS.find(c => c.id_competencia === skill.id_competencia);
+                  return (
+                    <div key={skill.id_competencia}>
+                      <div className="flex justify-between items-center mb-2">
+                        <Tooltip delayDuration={300}>
+                          <TooltipTrigger asChild>
+                            <Label htmlFor={skill.id_competencia} className="cursor-help hover:text-primary transition-colors">
+                              {competencyDetails?.nome_competencia} (Peso {skill.peso})
+                            </Label>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p className="font-semibold mb-1">{competencyDetails?.nome_competencia}</p>
+                            <p className="text-sm">{getCompetencyDescription(skill.id_competencia)}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <Badge variant="outline">{softScores[skill.id_competencia]}/4</Badge>
+                      </div>
+                      <Slider id={skill.id_competencia} min={1} max={4} step={0.5} value={[softScores[skill.id_competencia] || 1]} onValueChange={([val]) => setSoftScores(prev => ({ ...prev, [skill.id_competencia]: val }))} />
                     </div>
-                    <Slider id={skill.id_competencia} min={1} max={4} step={0.5} value={[softScores[skill.id_competencia] || 1]} onValueChange={([val]) => setSoftScores(prev => ({ ...prev, [skill.id_competencia]: val }))} />
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div className="p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-sm text-yellow-800">
+                  <p className="font-semibold mb-1">Template de Soft Skills Ausente</p>
+                  <p>Não há um template de competências comportamentais definido para o cargo "{cargoNome}". A avaliação de Soft Skills será ignorada nesta sessão.</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

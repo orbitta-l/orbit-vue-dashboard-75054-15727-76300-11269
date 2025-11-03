@@ -2,6 +2,7 @@ import { TemplateCargo } from "@/types/mer";
 
 // ==================================
 // TEMPLATES DE CARGO (SOFT SKILLS) - MER 5.0
+// Apenas Estagiário e Especialista I possuem templates definidos
 // ==================================
 
 export const softSkillTemplates: TemplateCargo[] = [
@@ -19,19 +20,18 @@ export const softSkillTemplates: TemplateCargo[] = [
     ],
   },
   {
-    id_template: "tpl_junior",
-    id_cargo: "cargo_junior",
+    id_template: "tpl_especialista_i",
+    id_cargo: "cargo_especialista_i",
     origem: "GENÉRICO",
     ativo: true,
     competencias: [
-      { id_competencia: "1", peso: 2, nota_ideal: 3.0 }, // Comunicação
-      { id_competencia: "2", peso: 3, nota_ideal: 3.0 }, // Trabalho em Equipe
-      { id_competencia: "5", peso: 2, nota_ideal: 3.0 }, // Resolução de Problemas
-      { id_competencia: "10", peso: 3, nota_ideal: 4.0 }, // Visão de Negócio
-      { id_competencia: "6", peso: 3, nota_ideal: 4.0 }, // Iniciativa e Proatividade
+      { id_competencia: "1", peso: 3, nota_ideal: 4.0 }, // Comunicação
+      { id_competencia: "5", peso: 3, nota_ideal: 4.0 }, // Resolução de Problemas
+      { id_competencia: "7", peso: 4, nota_ideal: 4.0 }, // Liderança Técnica
+      { id_competencia: "8", peso: 3, nota_ideal: 4.0 }, // Pensamento Crítico
+      { id_competencia: "10", peso: 4, nota_ideal: 4.0 }, // Visão de Negócio
     ],
   },
-  // Adicionar outros templates de cargo aqui (Pleno, Sênior, etc.)
 ];
 
 // ==================================
