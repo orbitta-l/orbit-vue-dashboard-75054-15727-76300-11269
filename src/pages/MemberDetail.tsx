@@ -35,8 +35,8 @@ export default function MemberDetail() {
     );
   }
 
-  const softSkills = liderado.competencias.filter(c => c.tipo === 'SOFT');
-  const hardSkills = liderado.competencias.filter(c => c.tipo === 'HARD');
+  const softSkills = liderado.competencias.filter(c => c.tipo === 'COMPORTAMENTAL');
+  const hardSkills = liderado.competencias.filter(c => c.tipo === 'TECNICA');
   
   const availableCategories = Array.from(new Set(hardSkills.map(c => c.categoria_nome).filter(Boolean))) as string[];
   const availableEspecializacoes = Array.from(
@@ -176,6 +176,16 @@ export default function MemberDetail() {
                 <Badge variant="default" className="text-sm">
                   {liderado.ultima_avaliacao?.maturidade_quadrante || 'N/A'}
                 </Badge>
+                {liderado.categoria_dominante && liderado.categoria_dominante !== "Não Avaliado" && (
+                  <Badge variant="secondary" className="text-sm bg-accent/20 text-accent-foreground">
+                    {liderado.categoria_dominante}
+                  </Badge>
+                )}
+                {liderado.especializacao_dominante && liderado.especializacao_dominante !== "Não Avaliado" && liderado.especializacao_dominante !== liderado.categoria_dominante && (
+                  <Badge variant="secondary" className="text-sm bg-accent/10 text-accent-foreground">
+                    {liderado.especializacao_dominante}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>

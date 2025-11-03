@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { LideradoPerformance } from "@/types/mer";
+import { LideradoDashboard } from "@/types/mer"; // Usando LideradoDashboard
 import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
 
 interface KnowledgeGapsSectionProps {
-  teamMembers: LideradoPerformance[];
+  teamMembers: LideradoDashboard[]; // Usando o tipo correto
   empty?: boolean;
 }
 
@@ -34,22 +34,22 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
 
   const hasData = teamMembers.length > 0;
 
-  // Corrigido: Usando 'HARD' e 'SOFT' que são os tipos reais das competências
-  const calcularGaps = (tipo: 'HARD' | 'SOFT') => {
+  // Corrigido: Usando 'TECNICA' e 'COMPORTAMENTAL' que são os tipos reais das competências
+  const calcularGaps = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
     if (!hasData) return [];
 
-    const competenciasMap = new Map<string, { soma: number; count: number; competencia: any }>();
+    const competenciasMap = new Map<string, { soma: number; count: number; competencia: LideradoDashboard['competencias'][0] }>();
 
     teamMembers.forEach((liderado) => {
       liderado.competencias.forEach((comp) => {
         if (comp.tipo === tipo) {
           const existing = competenciasMap.get(comp.id_competencia);
           if (existing) {
-            existing.soma += comp.pontuacao_1a4; // Corrigido para usar pontuacao_1a4
+            existing.soma += comp.pontuacao_1a4;
             existing.count += 1;
           } else {
             competenciasMap.set(comp.id_competencia, {
-              soma: comp.pontuacao_1a4, // Corrigido para usar pontuacao_1a4
+              soma: comp.pontuacao_1a4,
               count: 1,
               competencia: comp,
             });
@@ -61,21 +61,21 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
     return Array.from(competenciasMap.values())
       .map(({ soma, count, competencia }) => ({
         nome_competencia: competencia.nome_competencia,
-        nome_categoria: competencia.categoria_nome, // Usando categoria_nome do LideradoDashboard
-        nome_especializacao: competencia.especializacao_nome, // Usando especializacao_nome do LideradoDashboard
+        nome_categoria: competencia.categoria_nome,
+        nome_especializacao: competencia.especializacao_nome,
         media_score: soma / count,
         tipo,
       }))
       .sort((a, b) => a.media_score - b.media_score);
   };
 
-  const gapsTecnicos = calcularGaps('HARD');
-  const gapsComportamentais = calcularGaps('SOFT');
+  const gapsTecnicos = calcularGaps('TECNICA');
+  const gapsComportamentais = calcularGaps('COMPORTAMENTAL');
 
-  const renderGapCard = (tipo: 'HARD' | 'SOFT') => {
-    const gaps = tipo === 'HARD' ? gapsTecnicos : gapsComportamentais;
-    const isExpanded = tipo === 'HARD' ? expandedTecnica : expandedComportamental;
-    const setExpanded = tipo === 'HARD' ? setExpandedTecnica : setExpandedComportamental;
+  const renderGapCard = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
+    const gaps = tipo === 'TECNICA' ? gapsTecnicos : gapsComportamentais;
+    const isExpanded = tipo === 'TECNICA' ? expandedTecnica : expandedComportamental;
+    const setExpanded = tipo === 'TECNICA' ? setExpandedTecnica : setExpandedComportamental;
 
     const pioresGaps = gaps.filter((g) => g.media_score < 2.5);
     const melhoresGaps = gaps.filter((g) => g.media_score >= 2.5);
@@ -84,7 +84,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
     return (
       <Card className="p-6">
         <h4 className="text-md font-semibold mb-4 text-foreground">
-          Competências {tipo === 'HARD' ? 'Técnicas' : 'Comportamentais'}
+          Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}
         </h4>
 
         {!hasData || top5.length === 0 ? (
@@ -103,7 +103,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                       </span>
                       <span className="text-xs text-muted-foreground ml-2">
                         ({gap.nome_categoria}
-                        {gap.nome_especializacao ? ` › ${gap.nome_especializacao}` : ""})
+                        {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""})
                       </span>
                     </div>
                     <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
@@ -149,7 +149,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {gap.nome_categoria}
-                          {gap.nome_especializacao ? ` › ${gap.nome_especializacao}` : ""}
+                          {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""}
                         </p>
                       </div>
                       <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
@@ -175,7 +175,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {gap.nome_categoria}
-                          {gap.nome_especializacao ? ` › ${gap.nome_especializacao}` : ""}
+                          {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""}
                         </p>
                       </div>
                       <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
@@ -206,8 +206,8 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
     <div className="mb-8">
       <h3 className="text-lg font-semibold mb-4 text-foreground">Gaps de Conhecimento</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {renderGapCard('SOFT')}
-        {renderGapCard('HARD')}
+        {renderGapCard('COMPORTAMENTAL')}
+        {renderGapCard('TECNICA')}
       </div>
     </div>
   );

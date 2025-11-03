@@ -24,7 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const ALWAYS_FIRST_ACCESS_EMAILS = ['thais.lider@gmail.com', 'ramon.p@gmail.com'];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [profile, setProfile] = useState<Usuario.nome | null>(null);
+  const [profile, setProfile] = useState<Usuario | null>(null);
   const [liderados, setLiderados] = useState<Usuario[]>([]);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [pontuacoes, setPontuacoes] = useState<PontuacaoAvaliacao[]>([]);
@@ -135,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let especializacao_dominante = "Não Avaliado";
 
       if (competenciasDaUltimaAvaliacao.length > 0) {
-        const techCompetencies = competenciasDaUltimaAvaliacao.filter(c => c.tipo === 'HARD' && c.categoria_nome);
+        const techCompetencies = competenciasDaUltimaAvaliacao.filter(c => c.tipo === 'TECNICA' && c.categoria_nome);
         
         if (techCompetencies.length > 0) {
           const categories = new Map<string, { soma: number; count: number; especializacoes: Map<string, { soma: number; count: number }> }>();
@@ -178,6 +178,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             let maxSpecAvg = 0;
             let topSpec: string | null = null;
+            
+            // Encontrar a especialização dominante dentro da categoria dominante
             topCategoryData.especializacoes.forEach((data, name) => {
               const avg = data.soma / data.count;
               if (avg > maxSpecAvg) {
@@ -185,10 +187,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 topSpec = name;
               }
             });
+            
             if (topSpec) {
               especializacao_dominante = topSpec;
             } else {
-              especializacao_dominante = "N/A";
+              // Se a categoria dominante não tiver especializações (o que é raro para HARD, mas possível), use o nome da categoria.
+              especializacao_dominante = topCategory; 
             }
           }
         }

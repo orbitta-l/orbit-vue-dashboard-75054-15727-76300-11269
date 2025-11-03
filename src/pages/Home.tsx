@@ -14,6 +14,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates";
 import { LideradoDashboard } from "@/types/mer";
+import { MOCK_COMPETENCIAS } from "@/data/mockData"; // Importar MOCK_COMPETENCIAS
 
 export default function Home() {
   const navigate = useNavigate();
@@ -75,10 +76,13 @@ export default function Home() {
         competencias: liderado.competencias,
         sexo: liderado.sexo,
         idade: liderado.idade,
+        categoria_dominante: liderado.categoria_dominante, // Garantindo que o dado está aqui para o PieChart
       };
     });
 
     const allEvaluatedCompetencies = teamPerformance.flatMap(p => p.competencias);
+    
+    // 1. Agregação de médias por NOME da competência
     const competencyMap = new Map<string, { soma: number; count: number; }>();
     
     allEvaluatedCompetencies.forEach(c => {
@@ -91,13 +95,17 @@ export default function Home() {
       }
     });
 
+    // 2. Mapeamento de todas as competências possíveis (do template) para a média calculada
     const allTemplateCompetencies = [
-      ...softSkillTemplates.flatMap(t => t.competencias.map(c => ({
-        competencia: c.id_competencia,
-        tipo: 'COMPORTAMENTAL' as const,
-        categoria: 'Soft Skills',
-        especializacao: null
-      }))),
+      ...softSkillTemplates.flatMap(t => t.competencias.map(c => {
+        const compDetails = MOCK_COMPETENCIAS.find(mc => mc.id_competencia === c.id_competencia);
+        return {
+          competencia: compDetails?.nome_competencia || c.id_competencia,
+          tipo: 'COMPORTAMENTAL' as const,
+          categoria: 'Soft Skills',
+          especializacao: null
+        };
+      })),
       ...technicalTemplate.flatMap(cat => 
         cat.especializacoes.flatMap(spec => 
           spec.competencias.map(comp => ({
@@ -110,18 +118,25 @@ export default function Home() {
       )
     ];
     
+    // Garante unicidade pelo nome da competência
     const uniqueTemplateCompetencies = Array.from(new Map(allTemplateCompetencies.map(item => [item.competencia, item])).values());
 
     const barras = uniqueTemplateCompetencies.map(templateComp => {
       const evaluatedData = competencyMap.get(templateComp.competencia);
       const media = evaluatedData ? evaluatedData.soma / evaluatedData.count : 0;
       
-      return { ...templateComp, media };
-    });
+      return { 
+        competencia: templateComp.competencia,
+        media,
+        tipo: templateComp.tipo,
+        categoria: templateComp.categoria,
+        especializacao: templateComp.especializacao
+      };
+    }).filter(b => b.media > 0); // Filtra apenas competências que foram avaliadas (media > 0)
 
     const recentes = avaliacoes.slice(-3).map(av => ({
       evaluationId: av.id_avaliacao,
-      lideradoId: av.liderado_id, // Adicionado o ID do liderado
+      lideradoId: av.liderado_id,
       nome_liderado: liderados.find(l => l.id_usuario === av.liderado_id)?.nome ?? "Desconhecido",
       data_avaliacao: new Date(av.data_avaliacao),
     }));
@@ -191,7 +206,7 @@ export default function Home() {
       <RecentEvaluationsSection
         empty={isPrimeiroAcesso}
         evaluations={dashboardData.recentes}
-        onEvaluationClick={(lideradoId) => navigate(`/team/${lideradoId}`)} // Navega para o perfil do liderado
+        onEvaluationClick={(lideradoId) => navigate(`/team/${lideradoId}`)}
       />
     </div>
   );
