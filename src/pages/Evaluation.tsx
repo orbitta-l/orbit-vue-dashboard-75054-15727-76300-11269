@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { calcularNivelMaturidade, PontuacaoAvaliacao, Avaliacao, Usuario } from "@/types/mer";
 import EvaluationRadarChart from "@/charts/EvaluationRadarChart";
 import SpecializationSelectionModal from "@/components/SpecializationSelectionModal";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TechBlock {
   categoria_id: string;
@@ -22,6 +23,11 @@ interface TechBlock {
   scores: Record<string, number>;
   completed: boolean;
 }
+
+// Helper para buscar a descrição da competência
+const getCompetencyDescription = (id: string) => {
+  return MOCK_COMPETENCIAS.find(c => c.id_competencia === id)?.descricao || "Descrição não disponível.";
+};
 
 export default function Evaluation() {
   const { memberId } = useParams<{ memberId: string }>();
@@ -204,7 +210,17 @@ export default function Evaluation() {
                 return (
                   <div key={skill.id_competencia}>
                     <div className="flex justify-between items-center mb-2">
-                      <Label htmlFor={skill.id_competencia}>{competencyDetails?.nome_competencia} (Peso {skill.peso})</Label>
+                      <Tooltip delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          <Label htmlFor={skill.id_competencia} className="cursor-help hover:text-primary transition-colors">
+                            {competencyDetails?.nome_competencia} (Peso {skill.peso})
+                          </Label>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="font-semibold mb-1">{competencyDetails?.nome_competencia}</p>
+                          <p className="text-sm">{getCompetencyDescription(skill.id_competencia)}</p>
+                        </TooltipContent>
+                      </Tooltip>
                       <Badge variant="outline">{softScores[skill.id_competencia]}/4</Badge>
                     </div>
                     <Slider id={skill.id_competencia} min={1} max={4} step={0.5} value={[softScores[skill.id_competencia] || 1]} onValueChange={([val]) => setSoftScores(prev => ({ ...prev, [skill.id_competencia]: val }))} />
@@ -263,7 +279,17 @@ export default function Evaluation() {
                       {activeSpecialization.competencias.map(comp => (
                         <div key={comp.id_competencia}>
                           <div className="flex justify-between items-center mb-2">
-                            <Label>{comp.nome_competencia}</Label>
+                            <Tooltip delayDuration={300}>
+                              <TooltipTrigger asChild>
+                                <Label className="cursor-help hover:text-primary transition-colors">
+                                  {comp.nome_competencia}
+                                </Label>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <p className="font-semibold mb-1">{comp.nome_competencia}</p>
+                                <p className="text-sm">{getCompetencyDescription(comp.id_competencia)}</p>
+                              </TooltipContent>
+                            </Tooltip>
                             <Badge variant="outline">{block.scores[comp.id_competencia] || "N/A"}/4</Badge>
                           </div>
                           <Slider min={1} max={4} step={0.5} value={[block.scores[comp.id_competencia] || 1]} onValueChange={([val]) => handleScoreChange(block.especializacao_id, comp.id_competencia, val)} />
