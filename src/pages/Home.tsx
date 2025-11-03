@@ -120,7 +120,8 @@ export default function Home() {
     });
 
     const recentes = avaliacoes.slice(-3).map(av => ({
-      id: av.id_avaliacao,
+      evaluationId: av.id_avaliacao,
+      lideradoId: av.liderado_id, // Adicionado o ID do liderado
       nome_liderado: liderados.find(l => l.id_usuario === av.liderado_id)?.nome ?? "Desconhecido",
       data_avaliacao: new Date(av.data_avaliacao),
     }));
@@ -190,7 +191,7 @@ export default function Home() {
       <RecentEvaluationsSection
         empty={isPrimeiroAcesso}
         evaluations={dashboardData.recentes}
-        onEvaluationClick={(id) => navigate(`/evaluation/${id}`)}
+        onEvaluationClick={(lideradoId) => navigate(`/team/${lideradoId}`)} // Navega para o perfil do liderado
       />
     </div>
   );

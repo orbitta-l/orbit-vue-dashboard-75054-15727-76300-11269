@@ -5,7 +5,8 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface RecentEvaluation {
-  id: string;
+  evaluationId: string;
+  lideradoId: string; // Adicionado o ID do liderado
   nome_liderado: string;
   data_avaliacao: Date;
   avatar_url?: string | null;
@@ -13,7 +14,7 @@ interface RecentEvaluation {
 
 interface RecentEvaluationsSectionProps {
   evaluations: RecentEvaluation[];
-  onEvaluationClick?: (id: string) => void;
+  onEvaluationClick?: (lideradoId: string) => void; // Agora espera o ID do liderado
   empty?: boolean;
 }
 
@@ -71,8 +72,8 @@ export default function RecentEvaluationsSection({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {evaluations.slice(0, 3).map((evaluation) => (
             <div
-              key={evaluation.id}
-              onClick={() => onEvaluationClick?.(evaluation.id)}
+              key={evaluation.evaluationId}
+              onClick={() => onEvaluationClick?.(evaluation.lideradoId)}
               className="flex items-center gap-4 p-4 rounded-lg border border-border hover:border-primary/50 hover:shadow-md transition-all duration-200 cursor-pointer"
             >
               <Avatar className="w-12 h-12">
