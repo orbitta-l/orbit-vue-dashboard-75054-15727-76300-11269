@@ -14,7 +14,6 @@ function LeftPanel({ title }: { title: React.ReactNode }) {
   return (
     <div className="flex-1 flex items-start justify-start p-12 z-10">
       <div className="max-w-md text-left">
-        <img src={logo} alt="ORBITTA" className="h-12 mb-8" />
         <h1
           className="text-5xl font-bold leading-tight mb-4"
           style={{
