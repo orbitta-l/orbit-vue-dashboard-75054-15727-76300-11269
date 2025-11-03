@@ -239,3 +239,64 @@ body {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-20px); }
         }
+
+        /* Aumentar tamanho e largura do container de login */
+.form-container {
+    width: 100%;
+    max-width: 480px; /* antes era 380px */
+    display: flex;
+    flex-direction: column;
+    padding: 2.5rem; /* novo: mais espaçamento interno */
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Espaçamento maior entre texto e caixa de texto */
+.form-container label {
+    font-size: 1rem;
+    color: #6B7280;
+    margin-bottom: 12px; /* antes era 8px */
+    font-weight: 600;
+}
+
+/* Inputs mais espaçados e visualmente equilibrados */
+.form-container input {
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid #D1D5DB;
+    padding: 14px 0;
+    margin-bottom: 35px; /* antes era 25px */
+    font-size: 1.05rem;
+    background-color: transparent;
+    transition: border-bottom-color 0.3s ease;
+    color: #333;
+}
+
+/* Título centralizado e espaçamento maior */
+.form-container h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #1A2A46;
+    margin-bottom: 45px; /* antes era 35px */
+    text-align: center;
+}
+
+.form-container input {
+    width: 100%;
+    border: none;
+    border-bottom: 2px solid #D1D5DB;
+    padding: 14px 12px; /* antes era 14px 0 → agora tem espaçamento lateral */
+    margin-bottom: 35px;
+    font-size: 1.05rem;
+    background-color: #F5F8FF; /* cor suave opcional */
+    border-radius: 8px; /* dá um toque moderno */
+    transition: all 0.3s ease;
+    color: #333;
+}
+
+.form-container input:focus {
+    outline: none;
+    border-bottom-color: #1A2A46;
+    background-color: #EEF3FD; /* leve destaque ao focar */
+}
