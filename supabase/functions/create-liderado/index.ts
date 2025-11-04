@@ -58,12 +58,14 @@ serve(async (req) => {
 
     const newUserId = authData.user.id;
 
-    // O trigger `handle_new_user` já deve ter criado o perfil em `public.usuario`.
-    // Agora, atualizamos o `lider_id` e `auth_user_id` nesse perfil.
+    // O trigger `handle_new_user` já criou o perfil em `public.usuario`
+    // e preencheu a coluna `auth_user_id`.
+    // Agora, precisamos apenas atualizar o `lider_id` para associar
+    // este novo liderado ao líder correto.
     const { error: profileError } = await supabaseAdmin
       .from("usuario")
-      .update({ lider_id: lider_id, auth_user_id: newUserId })
-      .eq("id", authData.user.id); // O trigger usa o mesmo ID
+      .update({ lider_id: lider_id })
+      .eq("auth_user_id", newUserId);
 
     if (profileError) {
       console.error("Erro ao atualizar perfil do usuário:", profileError);
