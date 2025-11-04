@@ -58,35 +58,36 @@ function StarsBackground() {
 // === Painel direito com formulário de login ===
 function RightPanel() {
   const navigate = useNavigate();
-  const { login, isAuthenticated, profile } = useAuth();
+  const { login, profile } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redireciona se já estiver logado
+  // Redireciona se o perfil for carregado (o que implica autenticação)
   useEffect(() => {
-    if (isAuthenticated && profile) {
+    if (profile) {
       const dashboard =
         profile.role === "LIDER"
           ? "/dashboard-lider"
           : "/dashboard-liderado";
       navigate(dashboard, { replace: true });
     }
-  }, [isAuthenticated, profile, navigate]);
+  }, [profile, navigate]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
+      const { success } = await login(email, password);
 
       if (success) {
         toast({
           title: "Login realizado com sucesso!",
           description: "Redirecionando para seu dashboard...",
         });
+        // O useEffect cuidará do redirecionamento quando o perfil for carregado
       } else {
         toast({
           variant: "destructive",
