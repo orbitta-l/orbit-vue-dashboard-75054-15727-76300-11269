@@ -28,6 +28,7 @@ serve(async (req) => {
 
     const temporaryPassword = Math.random().toString(36).slice(-8);
 
+    // 1. Cria o usuário no sistema de autenticação
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: temporaryPassword,
@@ -51,17 +52,39 @@ serve(async (req) => {
       throw authError;
     }
 
-    const newUserId = authData.user.id;
+    const newAuthUserId = authData.user.id;
 
-    const { error: profileError } = await supabaseAdmin
-      .from("usuario")
-      .update({ lider_id: lider_id })
-      .eq("auth_user_id", newUserId);
+    // 2. O gatilho `handle_new_user` cria o perfil na tabela `usuario`.
+    // Agora, precisamos buscar o ID numérico desse perfil recém-criado.
+    // Adicionamos uma pequena espera para garantir que o gatilho tenha sido executado.
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    if (profileError) {
-      console.error("Erro ao atualizar perfil do usuário:", profileError);
-      await supabaseAdmin.auth.admin.deleteUser(newUserId);
-      throw profileError;
+    const { data: newProfileData, error: newProfileError } = await supabaseAdmin
+      .from('usuario')
+      .select('id')
+      .eq('auth_user_id', newAuthUserId)
+      .single();
+
+    if (newProfileError || !newProfileData) {
+      console.error("Erro ao buscar o perfil recém-criado:", newProfileError);
+      await supabaseAdmin.auth.admin.deleteUser(newAuthUserId); // Rollback
+      throw new Error("Não foi possível encontrar o perfil do novo usuário após a criação.");
+    }
+
+    const newLideradoId = newProfileData.id;
+
+    // 3. Cria a relação na tabela `lider_liderado`
+    const { error: relationError } = await supabaseAdmin
+      .from('lider_liderado')
+      .insert({
+        lider_id: lider_id,
+        liderado_id: newLideradoId
+      });
+
+    if (relationError) {
+      console.error("Erro ao criar a relação líder-liderado:", relationError);
+      await supabaseAdmin.auth.admin.deleteUser(newAuthUserId); // Rollback
+      throw relationError;
     }
 
     return new Response(JSON.stringify({ temporaryPassword }), {
