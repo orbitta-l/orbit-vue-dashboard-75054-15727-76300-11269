@@ -80,7 +80,7 @@ serve(async (req) => {
     const { error: relationError } = await supabaseAdmin
       .from('lider_liderado')
       .insert({
-        lider_id: lider_id,
+        lider_id: Number(lider_id), // CORREÇÃO: Convertendo para número
         liderado_id: newLideradoId
       });
 
