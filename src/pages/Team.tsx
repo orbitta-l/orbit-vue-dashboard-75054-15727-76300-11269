@@ -44,6 +44,20 @@ const step1Schema = z.object({
   email: z.string().email('E-mail inválido').min(1, "E-mail é obrigatório"),
   id_cargo: z.string().min(1, "Cargo é obrigatório"),
   sexo: z.enum(["FEMININO", "MASCULINO", "NAO_BINARIO", "NAO_INFORMADO"], { required_error: "Sexo é obrigatório" }),
+  data_nascimento: z.string().min(1, "Data de nascimento é obrigatória").refine((val) => {
+    const birthDate = new Date(val);
+    const today = new Date();
+    // Adjust for timezone offset to prevent future date errors
+    birthDate.setMinutes(birthDate.getMinutes() + birthDate.getTimezoneOffset());
+    if (birthDate > today) return false;
+    
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 14;
+  }, "Data inválida ou idade mínima de 14 anos não atingida."),
 });
 
 type Step1Form = z.infer<typeof step1Schema>;
@@ -209,6 +223,11 @@ export default function Team() {
                         {errors.sexo && <p className="text-sm text-destructive mt-1">{errors.sexo.message}</p>}
                       </div>
                     </div>
+                    <div>
+                      <Label htmlFor="data_nascimento">Data de Nascimento</Label>
+                      <Input id="data_nascimento" type="date" {...register("data_nascimento")} />
+                      {errors.data_nascimento && <p className="text-sm text-destructive mt-1">{errors.data_nascimento.message}</p>}
+                    </div>
                     <Button onClick={handleNextStep} className="w-full gap-2">Avançar <ArrowRight className="w-4 h-4" /></Button>
                   </div>
                 )}
@@ -219,6 +238,7 @@ export default function Team() {
                       <p><strong>Nome:</strong> {provisionedData.nome}</p>
                       <p><strong>Email:</strong> {provisionedData.email}</p>
                       <p><strong>Cargo:</strong> {MOCK_CARGOS.find(c => c.id_cargo === provisionedData.id_cargo)?.nome_cargo}</p>
+                      <p><strong>Data de Nascimento:</strong> {new Date(provisionedData.data_nascimento).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</p>
                     </div>
                     <div className="flex justify-between">
                       <Button variant="outline" onClick={() => setModalStep(1)} className="gap-2"><ArrowLeft className="w-4 h-4" /> Voltar</Button>

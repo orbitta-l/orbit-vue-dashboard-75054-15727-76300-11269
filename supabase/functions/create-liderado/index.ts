@@ -7,49 +7,44 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Trata a requisição OPTIONS (preflight) para CORS
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { nome, email, id_cargo, sexo, lider_id } = await req.json();
+    const { nome, email, id_cargo, sexo, lider_id, data_nascimento } = await req.json();
 
-    // Validação básica dos dados recebidos
-    if (!nome || !email || !id_cargo || !sexo || !lider_id) {
+    if (!nome || !email || !id_cargo || !sexo || !lider_id || !data_nascimento) {
       return new Response(JSON.stringify({ error: "Dados incompletos fornecidos." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Inicializa o cliente Supabase com a role de serviço para ter privilégios de admin
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Gera uma senha temporária para o novo liderado
     const temporaryPassword = Math.random().toString(36).slice(-8);
 
-    // Cria o usuário no sistema de autenticação do Supabase (auth.users)
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: temporaryPassword,
-      email_confirm: true, // O usuário já é considerado confirmado
+      email_confirm: true,
       user_metadata: {
         nome: nome,
         id_cargo: id_cargo,
         sexo: sexo,
+        data_nascimento: data_nascimento,
       },
     });
 
     if (authError) {
       console.error("Erro ao criar usuário de autenticação:", authError);
-      // Trata o erro de e-mail já existente de forma amigável
       if (authError.message.includes("already registered")) {
         return new Response(JSON.stringify({ error: "Este e-mail já está em uso." }), {
-          status: 409, // Conflict
+          status: 409,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -58,10 +53,6 @@ serve(async (req) => {
 
     const newUserId = authData.user.id;
 
-    // O trigger `handle_new_user` já criou o perfil em `public.usuario`
-    // e preencheu a coluna `auth_user_id`.
-    // Agora, precisamos apenas atualizar o `lider_id` para associar
-    // este novo liderado ao líder correto.
     const { error: profileError } = await supabaseAdmin
       .from("usuario")
       .update({ lider_id: lider_id })
@@ -69,12 +60,10 @@ serve(async (req) => {
 
     if (profileError) {
       console.error("Erro ao atualizar perfil do usuário:", profileError);
-      // Se a atualização do perfil falhar, é uma boa prática deletar o usuário de autenticação criado
       await supabaseAdmin.auth.admin.deleteUser(newUserId);
       throw profileError;
     }
 
-    // Retorna a senha temporária para o frontend
     return new Response(JSON.stringify({ temporaryPassword }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
