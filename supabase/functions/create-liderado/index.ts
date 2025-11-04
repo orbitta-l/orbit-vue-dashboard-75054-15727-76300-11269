@@ -11,6 +11,8 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  let newAuthUserId: string | null = null;
+
   try {
     const { nome, email, id_cargo, sexo, lider_id, data_nascimento } = await req.json();
 
@@ -28,21 +30,15 @@ serve(async (req) => {
 
     const temporaryPassword = Math.random().toString(36).slice(-8);
 
-    // 1. Cria o usuário no sistema de autenticação
+    // Etapa 1: Criar o usuário no sistema de autenticação (sem metadados, pois não usamos mais o gatilho)
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: temporaryPassword,
       email_confirm: true,
-      user_metadata: {
-        nome: nome,
-        id_cargo: id_cargo,
-        sexo: sexo,
-        data_nascimento: data_nascimento,
-      },
     });
 
     if (authError) {
-      console.error("Erro ao criar usuário de autenticação:", authError);
+      console.error("Erro na Etapa 1 (Auth):", authError);
       if (authError.message.includes("already registered")) {
         return new Response(JSON.stringify({ error: "Este e-mail já está em uso." }), {
           status: 409,
@@ -52,28 +48,35 @@ serve(async (req) => {
       throw authError;
     }
 
-    const newAuthUserId = authData.user.id;
+    newAuthUserId = authData.user.id;
 
-    // 2. O gatilho `handle_new_user` cria o perfil na tabela `usuario`.
-    // Agora, precisamos buscar o ID numérico desse perfil recém-criado.
-    // Adicionamos uma pequena espera para garantir que o gatilho tenha sido executado.
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const { data: newProfileData, error: newProfileError } = await supabaseAdmin
+    // Etapa 2: Inserir o perfil diretamente na tabela 'usuario'
+    const { data: profileData, error: profileError } = await supabaseAdmin
       .from('usuario')
+      .insert({
+        auth_user_id: newAuthUserId,
+        nome,
+        email,
+        id_cargo,
+        sexo,
+        data_nascimento,
+        role: 'LIDERADO',
+      })
       .select('id')
-      .eq('auth_user_id', newAuthUserId)
       .single();
 
-    if (newProfileError || !newProfileData) {
-      console.error("Erro ao buscar o perfil recém-criado:", newProfileError);
-      await supabaseAdmin.auth.admin.deleteUser(newAuthUserId); // Rollback
-      throw new Error("Não foi possível encontrar o perfil do novo usuário após a criação.");
+    if (profileError || !profileData) {
+      console.error("Erro na Etapa 2 (Profile):", profileError);
+      // Rollback: Se a criação do perfil falhar, exclua o usuário de autenticação
+      if (newAuthUserId) {
+        await supabaseAdmin.auth.admin.deleteUser(newAuthUserId);
+      }
+      throw profileError || new Error("Falha ao criar o perfil do usuário.");
     }
 
-    const newLideradoId = newProfileData.id;
+    const newLideradoId = profileData.id;
 
-    // 3. Cria a relação na tabela `lider_liderado`
+    // Etapa 3: Criar a relação na tabela 'lider_liderado'
     const { error: relationError } = await supabaseAdmin
       .from('lider_liderado')
       .insert({
@@ -82,8 +85,12 @@ serve(async (req) => {
       });
 
     if (relationError) {
-      console.error("Erro ao criar a relação líder-liderado:", relationError);
-      await supabaseAdmin.auth.admin.deleteUser(newAuthUserId); // Rollback
+      console.error("Erro na Etapa 3 (Relation):", relationError);
+      // Rollback: Se a relação falhar, exclua o usuário de autenticação e o perfil
+      if (newAuthUserId) {
+        await supabaseAdmin.auth.admin.deleteUser(newAuthUserId);
+      }
+      // A exclusão do usuário em auth deve remover o perfil em 'usuario' via CASCADE
       throw relationError;
     }
 
@@ -94,7 +101,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Erro inesperado na Edge Function:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error.message || "Ocorreu um erro interno." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

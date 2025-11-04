@@ -108,7 +108,9 @@ export default function Team() {
       });
 
       if (error) {
-        throw new Error(error.message);
+        // O erro da Edge Function agora é um objeto com uma propriedade 'error'
+        const errorMessage = error.error || "Ocorreu um erro desconhecido.";
+        throw new Error(errorMessage);
       }
       
       setTempPassword(data.temporaryPassword);
@@ -117,10 +119,7 @@ export default function Team() {
       setModalStep(3); // Avança para a tela de sucesso com a senha
 
     } catch (err: any) {
-      const errorMessage = err.message.includes("already registered") 
-        ? "Este e-mail já está em uso."
-        : "Ocorreu um erro ao criar o liderado.";
-      toast({ variant: "destructive", title: "Erro no cadastro", description: errorMessage });
+      toast({ variant: "destructive", title: "Erro no cadastro", description: err.message });
     } finally {
       setIsSubmitting(false);
     }
