@@ -68,7 +68,7 @@ function RightPanel() {
   useEffect(() => {
     if (isAuthenticated && profile) {
       const dashboard =
-        String(profile.role) === "lider"
+        profile.role === "LIDER"
           ? "/dashboard-lider"
           : "/dashboard-liderado";
       navigate(dashboard, { replace: true });

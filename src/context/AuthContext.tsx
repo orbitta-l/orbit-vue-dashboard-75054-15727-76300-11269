@@ -83,13 +83,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const id = liderId || profile?.id;
     if (!id) return;
 
-    const { data: lideradosData, error: lideradosError } = await supabase
-      .from('usuario')
-      .select('*')
+    // 1. Buscar os IDs dos liderados na tabela de relação
+    const { data: relacaoData, error: relacaoError } = await supabase
+      .from('lider_liderado')
+      .select('liderado_id')
       .eq('lider_id', id);
-    
-    if (lideradosError) console.error("Erro ao buscar liderados:", lideradosError);
-    else setLiderados(lideradosData as Usuario[]);
+
+    if (relacaoError) {
+      console.error("Erro ao buscar relação líder-liderado:", relacaoError);
+      setLiderados([]);
+    } else {
+      const lideradoIds = relacaoData.map(r => r.liderado_id);
+      if (lideradoIds.length > 0) {
+        // 2. Buscar os perfis completos dos liderados
+        const { data: lideradosData, error: lideradosError } = await supabase
+          .from('usuario')
+          .select('*')
+          .in('id', lideradoIds);
+        
+        if (lideradosError) console.error("Erro ao buscar liderados:", lideradosError);
+        else setLiderados(lideradosData as Usuario[]);
+      } else {
+        setLiderados([]);
+      }
+    }
 
     const { data: avaliacoesData, error: avaliacoesError } = await supabase
       .from('avaliacao')
