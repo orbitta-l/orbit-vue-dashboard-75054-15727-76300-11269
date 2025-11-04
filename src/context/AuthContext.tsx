@@ -70,20 +70,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Erro ao buscar perfil:", profileError);
       setProfile(null);
     } else {
-      const typedProfile = profileData as Usuario;
-      setProfile(typedProfile);
-      if (typedProfile.role === 'LIDER') {
-        await fetchTeamData(typedProfile.id);
+      const dbProfile = profileData as any;
+      const appProfile: Usuario = {
+        ...dbProfile,
+        id_usuario: String(dbProfile.id),
+        lider_id: dbProfile.lider_id ? String(dbProfile.lider_id) : null,
+      };
+      setProfile(appProfile);
+      if (appProfile.role === 'LIDER') {
+        await fetchTeamData(dbProfile.id);
       }
     }
     setLoading(false);
   };
 
   const fetchTeamData = async (liderId?: number) => {
-    const id = liderId || profile?.id;
+    const id = liderId || (profile ? Number(profile.id_usuario) : undefined);
     if (!id) return;
 
-    // 1. Buscar os IDs dos liderados na tabela de relação
     const { data: relacaoData, error: relacaoError } = await supabase
       .from('lider_liderado')
       .select('liderado_id')
@@ -95,14 +99,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       const lideradoIds = relacaoData.map(r => r.liderado_id);
       if (lideradoIds.length > 0) {
-        // 2. Buscar os perfis completos dos liderados
         const { data: lideradosData, error: lideradosError } = await supabase
           .from('usuario')
           .select('*')
           .in('id', lideradoIds);
         
-        if (lideradosError) console.error("Erro ao buscar liderados:", lideradosError);
-        else setLiderados(lideradosData as Usuario[]);
+        if (lideradosError) {
+          console.error("Erro ao buscar liderados:", lideradosError);
+        } else {
+          const formattedLiderados = lideradosData.map((l: any) => ({
+            ...l,
+            id_usuario: String(l.id),
+            lider_id: l.lider_id ? String(l.lider_id) : null,
+          })) as Usuario[];
+          setLiderados(formattedLiderados);
+        }
       } else {
         setLiderados([]);
       }
@@ -113,19 +124,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select('*')
       .eq('id_lider', id);
 
-    if (avaliacoesError) console.error("Erro ao buscar avaliações:", avaliacoesError);
-    else setAvaliacoes(avaliacoesData as Avaliacao[]);
+    if (avaliacoesError) {
+      console.error("Erro ao buscar avaliações:", avaliacoesError);
+    } else {
+      const formattedAvaliacoes = avaliacoesData.map((a: any) => ({
+        ...a,
+        id_avaliacao: String(a.id),
+        lider_id: String(a.id_lider),
+        liderado_id: String(a.id_liderado),
+        id_cargo: String(a.cargo_referenciado),
+      })) as Avaliacao[];
+      setAvaliacoes(formattedAvaliacoes);
 
-    if (avaliacoesData) {
-      const avaliacaoIds = avaliacoesData.map(a => a.id);
-      if (avaliacaoIds.length > 0) {
+      if (formattedAvaliacoes.length > 0) {
+        const avaliacaoIds = formattedAvaliacoes.map(a => Number(a.id_avaliacao));
         const { data: pontuacoesData, error: pontuacoesError } = await supabase
           .from('pontuacao_avaliacao')
           .select('*')
           .in('id_avaliacao', avaliacaoIds);
         
-        if (pontuacoesError) console.error("Erro ao buscar pontuações:", pontuacoesError);
-        else setPontuacoes(pontuacoesData as PontuacaoAvaliacao[]);
+        if (pontuacoesError) {
+          console.error("Erro ao buscar pontuações:", pontuacoesError);
+        } else {
+          const formattedPontuacoes = pontuacoesData.map((p: any) => ({
+            ...p,
+            id_avaliacao: String(p.id_avaliacao),
+            id_competencia: String(p.id_competencia),
+          })) as PontuacaoAvaliacao[];
+          setPontuacoes(formattedPontuacoes);
+        }
       }
     }
   };
@@ -153,7 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     return liderados.map(liderado => {
       const lideradoAvaliacoes = avaliacoes
-        .filter(a => a.id_liderado === liderado.id)
+        .filter(a => a.liderado_id === liderado.id_usuario)
         .sort((a, b) => new Date(b.data_avaliacao).getTime() - new Date(a.data_avaliacao).getTime());
       
       const ultimaAvaliacao = lideradoAvaliacoes[0];
