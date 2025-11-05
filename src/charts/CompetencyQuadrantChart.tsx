@@ -5,7 +5,7 @@ import { Search, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, ReferenceArea, Cell } from 'recharts';
 import { NivelMaturidade } from "@/types/mer";
-import { Button } from "@/components/ui/button"; // Import Button
+import { Button } from "@/components/ui/button"; 
 
 interface MemberData {
   id_liderado: string;
