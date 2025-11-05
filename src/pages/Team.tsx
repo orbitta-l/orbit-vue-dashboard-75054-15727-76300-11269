@@ -86,7 +86,6 @@ export default function Team() {
     const isValid = await trigger();
     if (isValid) {
       const values = getValues();
-      // A verificação de email duplicado agora é feita na Edge Function, mas mantemos a validação local para UX
       setProvisionedData(values);
       setModalStep(2);
     }
@@ -100,7 +99,6 @@ export default function Team() {
       const { data, error } = await supabase.functions.invoke('create-liderado', {
         body: {
           ...provisionedData,
-          // O lider_id é inferido pela Edge Function a partir do JWT do líder
         },
       });
 
@@ -110,11 +108,18 @@ export default function Team() {
         throw new Error(errorMessage);
       }
       
-      // CORREÇÃO: A Edge Function retorna 'temporaryPassword'
-      setTempPassword(data.temporaryPassword); 
-      toast({ title: "Liderado provisionado!", description: "Compartilhe a senha temporária com o novo membro." });
-      await fetchTeamData(); // Atualiza a lista de liderados
-      setModalStep(3); // Avança para a tela de sucesso com a senha
+      // CORREÇÃO CRÍTICA: A resposta da Edge Function está aninhada em 'data'
+      // Tipagem da resposta da Edge Function
+      const responseData = data as { temporaryPassword: string, email: string, liderado_id: number, ok: boolean };
+
+      if (responseData && responseData.temporaryPassword) {
+          setTempPassword(responseData.temporaryPassword); 
+          toast({ title: "Liderado provisionado!", description: "Compartilhe a senha temporária com o novo membro." });
+          await fetchTeamData(); // Atualiza a lista de liderados
+          setModalStep(3); // Avança para a tela de sucesso com a senha
+      } else {
+          throw new Error("Resposta da função incompleta ou sem senha.");
+      }
 
     } catch (err: any) {
       // Captura o erro da Edge Function (que pode ser 409 - email duplicado)
