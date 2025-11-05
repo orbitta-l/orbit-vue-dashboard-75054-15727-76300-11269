@@ -18,6 +18,7 @@ interface SaveEvaluationInput {
 
 // Variáveis de ambiente
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
@@ -52,17 +53,23 @@ serve(async (req) => {
       return new Response("Unauthorized", { status: 401, headers: corsHeaders });
     }
 
-    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+    // Cliente para autenticação (usa ANON_KEY + JWT do usuário)
+    const supabaseClient = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
+    
+    // Cliente Admin para operações privilegiadas (usa SERVICE_ROLE_KEY)
+    const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    const { data: { user }, error: authErr } = await supabase.auth.getUser();
+
+    const { data: { user }, error: authErr } = await supabaseClient.auth.getUser();
     if (authErr || !user) {
-      return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+      console.error("Auth validation failed:", authErr);
+      return new Response("Unauthorized: Invalid or expired token", { status: 401, headers: corsHeaders });
     }
 
-    // Obter o ID interno do líder
-    const { data: leaderIdData, error: leaderIdErr } = await supabase.rpc('get_user_id_by_auth_uid', { p_auth_uid: user.id });
+    // Obter o ID interno do líder (usando o cliente autenticado)
+    const { data: leaderIdData, error: leaderIdErr } = await supabaseClient.rpc('get_user_id_by_auth_uid', { p_auth_uid: user.id });
     if (leaderIdErr || !leaderIdData) {
         console.error("Leader ID lookup error:", leaderIdErr);
         return Response.json({ error: "Líder não encontrado ou sem permissão." }, { status: 403, headers: corsHeaders });
@@ -71,7 +78,8 @@ serve(async (req) => {
     const liderado_id = parseInt(body.liderado_id);
 
     // 2. Validação de Permissão (O líder pode avaliar este liderado?)
-    const { count: linkCount, error: linkErr } = await supabase
+    // Usamos o adminClient para ignorar RLS na tabela de vínculo
+    const { count: linkCount, error: linkErr } = await adminClient
         .from('lider_liderado')
         .select('*', { count: 'exact', head: true })
         .eq('lider_id', lider_id)
@@ -82,7 +90,8 @@ serve(async (req) => {
     }
 
     // 3. Cálculo das Médias
-    const { data: competenciasData, error: compErr } = await supabase
+    // Usamos o adminClient para buscar tipos de competência (ignora RLS)
+    const { data: competenciasData, error: compErr } = await adminClient
         .from('competencia')
         .select('id, tipo')
         .in('id', body.pontuacoes.map(p => parseInt(p.id_competencia)));
@@ -109,8 +118,8 @@ serve(async (req) => {
 
     // 4. Inserção Transacional (Avaliação e Pontuações)
     
-    // Inserir na tabela 'avaliacao'
-    const { data: newEvaluation, error: evalErr } = await supabase
+    // Inserir na tabela 'avaliacao' (Usamos adminClient para ignorar RLS na escrita)
+    const { data: newEvaluation, error: evalErr } = await adminClient
         .from('avaliacao')
         .insert({
             id_lider: lider_id,
@@ -119,7 +128,6 @@ serve(async (req) => {
             media_comportamental: parseFloat(media_comportamental_1a4.toFixed(2)),
             media_tecnica: parseFloat(media_tecnica_1a4.toFixed(2)),
             nivel_maturidade: maturidade_quadrante,
-            // data_avaliacao e criado_em usam default NOW()
         })
         .select('id')
         .single();
@@ -139,8 +147,8 @@ serve(async (req) => {
         peso: p.peso_aplicado,
     }));
 
-    // Inserir na tabela 'pontuacao_avaliacao'
-    const { error: pontuacaoErr } = await supabase
+    // Inserir na tabela 'pontuacao_avaliacao' (Usamos adminClient para ignorar RLS na escrita)
+    const { error: pontuacaoErr } = await adminClient
         .from('pontuacao_avaliacao')
         .insert(pontuacoesToInsert);
 

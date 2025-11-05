@@ -56,8 +56,13 @@ serve(async (req) => {
     // Cliente Admin para operações privilegiadas (ignora RLS)
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
     
+    // Cliente para autenticação (usa ANON_KEY + JWT do usuário)
+    const supabaseClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
     // Decodificar o JWT para obter o UID do líder
-    const { data: { user }, error: authErr } = await admin.auth.getUser(authHeader.replace('Bearer ', ''));
+    const { data: { user }, error: authErr } = await supabaseClient.auth.getUser();
     
     if (authErr || !user) {
       return Response.json({ error: "Token inválido ou expirado" }, { status: 401, headers: corsHeaders });
