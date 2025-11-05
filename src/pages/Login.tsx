@@ -154,20 +154,6 @@ function RightPanel() {
             {isLoading ? "Entrando..." : "Entrar"}
           </Button>
         </form>
-
-        {/* Credenciais de teste */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg text-xs text-gray-600 space-y-3">
-          <div>
-            <p className="font-semibold mb-1">Com dados:</p>
-            <p>Líder: juli.lider@gmail.com / juli@123</p>
-            <p>Liderado: tone.p@gmail.com / tone@123</p>
-          </div>
-          <div>
-            <p className="font-semibold mb-1">Sem dados:</p>
-            <p>Líder: thais.lider@gmail.com / thais@123</p>
-            <p>Liderado: ramon.p@gmail.com / ramon@123</p>
-          </div>
-        </div>
       </div>
     </section>
   );
