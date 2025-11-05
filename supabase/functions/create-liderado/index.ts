@@ -149,7 +149,8 @@ serve(async (req) => {
       ok: true,
       liderado_id: (newUser as Usuario).id,
       email: body.email,
-      temp_password: tempPassword,
+      // Corrigido: Usando o nome de campo que o frontend espera
+      temporaryPassword: tempPassword, 
     });
 
   } catch (e: any) {

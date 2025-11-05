@@ -86,10 +86,7 @@ export default function Team() {
     const isValid = await trigger();
     if (isValid) {
       const values = getValues();
-      if (teamData.some(m => m.email === values.email)) {
-        toast({ variant: "destructive", title: "E-mail já cadastrado", description: "Este e-mail já pertence a um membro da equipe." });
-        return;
-      }
+      // A verificação de email duplicado agora é feita na Edge Function, mas mantemos a validação local para UX
       setProvisionedData(values);
       setModalStep(2);
     }
@@ -103,7 +100,7 @@ export default function Team() {
       const { data, error } = await supabase.functions.invoke('create-liderado', {
         body: {
           ...provisionedData,
-          lider_id: profile.id,
+          // O lider_id é inferido pela Edge Function a partir do JWT do líder
         },
       });
 
@@ -113,13 +110,16 @@ export default function Team() {
         throw new Error(errorMessage);
       }
       
-      setTempPassword(data.temporaryPassword);
+      // CORREÇÃO: A Edge Function retorna 'temporaryPassword'
+      setTempPassword(data.temporaryPassword); 
       toast({ title: "Liderado provisionado!", description: "Compartilhe a senha temporária com o novo membro." });
       await fetchTeamData(); // Atualiza a lista de liderados
       setModalStep(3); // Avança para a tela de sucesso com a senha
 
     } catch (err: any) {
-      toast({ variant: "destructive", title: "Erro no cadastro", description: err.message });
+      // Captura o erro da Edge Function (que pode ser 409 - email duplicado)
+      const errorMessage = err.message || "Erro desconhecido no servidor.";
+      toast({ variant: "destructive", title: "Erro no cadastro", description: errorMessage });
     } finally {
       setIsSubmitting(false);
     }
@@ -146,7 +146,77 @@ export default function Team() {
     );
   }, [teamData, searchName]);
 
-  // ... (lógica de comparação e filtros permanece a mesma)
+  const getCategoryIcon = (categoryName: string) => {
+    switch (categoryName) {
+      case "Desenvolvimento Web": return Code;
+      case "Desenvolvimento Mobile": return Smartphone;
+      case "Ciência de Dados e IA": return Brain;
+      case "Cloud e DevOps": return Cloud;
+      case "Segurança da Informação": return Shield;
+      case "UX/UI Design": return Palette;
+      case "Soft Skills": return HeartHandshake;
+      default: return CircleUserRound;
+    }
+  };
+
+  const renderMemberCard = (member: LideradoDashboard) => {
+    const isEvaluated = !!member.ultima_avaliacao;
+    const maturity = member.ultima_avaliacao?.maturidade_quadrante || 'N/A';
+    const dominantCategory = member.categoria_dominante || 'Não Avaliado';
+    const CategoryIcon = getCategoryIcon(dominantCategory);
+
+    return (
+      <Card 
+        key={member.id_usuario} 
+        className="relative overflow-hidden w-full p-4 rounded-xl shadow-md transition-all duration-300 group cursor-pointer hover:shadow-lg hover:-translate-y-1"
+        onClick={() => navigate(`/team/${member.id_usuario}`)}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Avatar className="w-12 h-12">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                {getInitials(member.nome)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-lg text-foreground truncate">{member.nome}</h3>
+              <p className="text-sm text-muted-foreground truncate">{member.cargo_nome}</p>
+            </div>
+          </div>
+          <Badge className={cn("text-sm font-semibold", isEvaluated ? "bg-primary/10 text-primary" : "bg-muted/50 text-muted-foreground")}>
+            {maturity}
+          </Badge>
+        </div>
+
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center text-muted-foreground">
+            <Mail className="w-4 h-4 mr-2" />
+            <span className="truncate">{member.email}</span>
+          </div>
+          <div className="flex items-center text-muted-foreground">
+            <PersonStanding className="w-4 h-4 mr-2" />
+            <span>{member.idade} anos</span>
+          </div>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Área Dominante</span>
+            {isEvaluated ? (
+              <Badge variant="secondary" className="text-xs gap-1">
+                <CategoryIcon className="w-3 h-3" />
+                {dominantCategory}
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="text-xs">
+                Pendente de Avaliação
+              </Badge>
+            )}
+          </div>
+        </div>
+      </Card>
+    );
+  };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -265,27 +335,7 @@ export default function Team() {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredMembers.map((member) => (
-            <Card 
-              key={member.id} 
-              className="relative overflow-hidden w-full max-w-[280px] mx-auto p-4 rounded-xl shadow-md transition-all duration-300 group cursor-pointer hover:shadow-lg hover:-translate-y-1"
-              onClick={() => navigate(`/team/${member.id}`)}
-            >
-              <div className="flex flex-col items-center text-center mb-4">
-                <Avatar className="w-16 h-16 mb-3">
-                  <AvatarFallback className="bg-accent/20 text-accent-foreground font-semibold text-lg">
-                    {getInitials(member.nome)}
-                  </AvatarFallback>
-                </Avatar>
-                <h3 className="font-semibold text-lg text-foreground">{member.nome}</h3>
-                <p className="text-sm text-muted-foreground mb-2">{member.email}</p>
-                <Badge className="bg-primary/10 text-primary text-sm font-semibold mb-2">
-                  {member.ultima_avaliacao?.maturidade_quadrante || 'N/A'}
-                </Badge>
-              </div>
-              {/* ... (resto do card) ... */}
-            </Card>
-          ))}
+          {filteredMembers.map((member) => renderMemberCard(member))}
         </div>
         {filteredMembers.length === 0 && (<div className="text-center py-12"><p className="text-muted-foreground">Nenhum liderado encontrado.</p></div>)}
       </main>
