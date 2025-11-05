@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { calcularNivelMaturidade, PontuacaoAvaliacao, Avaliacao, Usuario } from "@/types/mer";
+import { PontuacaoAvaliacao, Usuario } from "@/types/mer";
 import EvaluationRadarChart from "@/charts/EvaluationRadarChart";
 import SpecializationSelectionModal from "@/components/SpecializationSelectionModal";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -32,12 +32,13 @@ const getCompetencyDescription = (id: string) => {
 export default function Evaluation() {
   const { memberId } = useParams<{ memberId: string }>();
   const navigate = useNavigate();
-  const { profile, liderados, addAvaliacao, avaliacoes } = useAuth();
+  const { liderados, avaliacoes, saveEvaluation } = useAuth();
 
   const [member, setMember] = useState<Usuario | undefined>(undefined);
   const [softTemplate, setSoftTemplate] = useState<(typeof softSkillTemplates)[0] | null>(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [softScores, setSoftScores] = useState<Record<string, number>>({});
   const [techBlocks, setTechBlocks] = useState<TechBlock[]>([]);
@@ -63,10 +64,11 @@ export default function Evaluation() {
     setSoftTemplate(template || null);
     
     if (template) {
+      // Inicializa scores com 1.0 (nota mínima)
       const initialScores = template.competencias.reduce((acc, skill) => ({ ...acc, [skill.id_competencia]: 1 }), {});
       setSoftScores(initialScores);
     } else {
-      setSoftScores({}); // Garante que softScores está vazio se não houver template
+      setSoftScores({});
     }
     setLoading(false);
   }, [memberId, liderados, navigate]);
@@ -100,6 +102,8 @@ export default function Evaluation() {
   const handleAddSpecialization = (categoryId: string, specializationId: string) => {
     const category = technicalTemplate.find(c => c.id_categoria === categoryId);
     const specialization = category?.especializacoes.find(s => s.id_especializacao === specializationId);
+    
+    // Inicializa scores com 1.0 (nota mínima)
     const initialScores = specialization?.competencias.reduce((acc, comp) => ({ ...acc, [comp.id_competencia]: 1 }), {}) || {};
 
     setTechBlocks(prev => [...prev, { 
@@ -127,62 +131,66 @@ export default function Evaluation() {
   // A avaliação final só é habilitada se houver pelo menos um bloco técnico salvo.
   const isFinalSaveEnabled = techBlocks.length > 0 && techBlocks.every(b => b.completed);
 
-  const handleSaveEvaluation = () => {
+  const handleSaveEvaluation = async () => {
     if (!isFinalSaveEnabled || !member) {
       toast({ variant: "destructive", title: "Ação necessária", description: "Adicione e salve pelo menos uma avaliação técnica." });
       return;
     }
-
-    const allSoftScores = Object.values(softScores);
-    const allTechScores = techBlocks.flatMap(b => Object.values(b.scores));
-
-    // Calcula médias, ignorando Soft Skills se não houver template (allSoftScores será vazio)
-    const media_comportamental_1a4 = allSoftScores.length > 0 ? allSoftScores.reduce((a, b) => a + b, 0) / allSoftScores.length : 0;
-    const media_tecnica_1a4 = allTechScores.length > 0 ? allTechScores.reduce((a, b) => a + b, 0) / allTechScores.length : 0;
     
-    if (media_tecnica_1a4 === 0 && media_comportamental_1a4 === 0) {
-        toast({ variant: "destructive", title: "Dados insuficientes", description: "A avaliação deve conter pelo menos uma pontuação válida." });
-        return;
-    }
+    setIsSaving(true);
 
-    const maturidade_quadrante = calcularNivelMaturidade(media_tecnica_1a4, media_comportamental_1a4);
-
-    const newEvaluation: Avaliacao = {
-      id_avaliacao: `av-${Date.now()}`,
-      lider_id: profile!.id_usuario,
-      liderado_id: memberId!,
-      id_cargo: member.id_cargo,
-      media_tecnica_1a4: parseFloat(media_tecnica_1a4.toFixed(2)),
-      media_comportamental_1a4: parseFloat(media_comportamental_1a4.toFixed(2)),
-      maturidade_quadrante,
-      data_avaliacao: new Date().toISOString(),
-      status: 'CONCLUIDA',
-      observacoes: ''
-    };
-
-    const softPontuacoes: PontuacaoAvaliacao[] = softTemplate ? softTemplate.competencias.map(skill => ({
-        id_avaliacao: newEvaluation.id_avaliacao,
+    // 1. Consolidar todas as pontuações
+    const softPontuacoes = softTemplate ? softTemplate.competencias.map(skill => ({
         id_competencia: skill.id_competencia,
         pontuacao_1a4: softScores[skill.id_competencia] || 0,
         peso_aplicado: skill.peso,
     })) : [];
 
-    const techPontuacoes: PontuacaoAvaliacao[] = techBlocks.flatMap(block => {
+    const techPontuacoes = techBlocks.flatMap(block => {
         const specialization = technicalTemplate
           .flatMap(c => c.especializacoes)
           .find(s => s.id_especializacao === block.especializacao_id);
+        
         return specialization?.competencias.map(comp => ({
-          id_avaliacao: newEvaluation.id_avaliacao,
           id_competencia: comp.id_competencia,
           pontuacao_1a4: block.scores[comp.id_competencia] || 0,
           peso_aplicado: null,
         })) || [];
     });
 
-    addAvaliacao(newEvaluation, [...softPontuacoes, ...techPontuacoes]);
+    const allPontuacoes = [...softPontuacoes, ...techPontuacoes];
 
-    toast({ title: "Avaliação completa salva!", description: `A avaliação de ${member?.nome} foi concluída com sucesso.` });
-    navigate("/evaluation");
+    if (allPontuacoes.length === 0) {
+        toast({ variant: "destructive", title: "Dados insuficientes", description: "A avaliação deve conter pelo menos uma pontuação válida." });
+        setIsSaving(false);
+        return;
+    }
+
+    const evaluationInput = {
+      liderado_id: memberId!,
+      id_cargo: member.id_cargo,
+      observacoes: null, // Observações não implementadas no formulário, enviando null
+      pontuacoes: allPontuacoes,
+    };
+
+    // 2. Chamar a Edge Function
+    const result = await saveEvaluation(evaluationInput);
+
+    if (result.success) {
+      toast({ 
+        title: "Avaliação completa salva!", 
+        description: `${member?.nome} foi avaliado com maturidade ${result.maturidade}.` 
+      });
+      navigate("/evaluation");
+    } else {
+      toast({ 
+        variant: "destructive", 
+        title: "Falha ao salvar avaliação", 
+        description: result.error || "Verifique a conexão e tente novamente." 
+      });
+    }
+    
+    setIsSaving(false);
   };
 
   if (loading) return <div className="p-8 space-y-4"><Skeleton className="h-24 w-full" /><Skeleton className="h-96 w-full" /></div>;
@@ -330,8 +338,8 @@ export default function Evaluation() {
       </Card>
 
       <div className="mt-6 flex justify-end">
-        <Button size="lg" onClick={handleSaveEvaluation} disabled={!isFinalSaveEnabled} className="gap-2">
-          <Save className="w-4 h-4" /> Salvar Avaliação Completa
+        <Button size="lg" onClick={handleSaveEvaluation} disabled={!isFinalSaveEnabled || isSaving} className="gap-2">
+          {isSaving ? "Salvando..." : <><Save className="w-4 h-4" /> Salvar Avaliação Completa</>}
         </Button>
       </div>
 

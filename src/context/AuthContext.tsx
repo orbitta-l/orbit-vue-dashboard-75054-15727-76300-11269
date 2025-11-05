@@ -1,8 +1,21 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
-import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade } from '@/types/mer';
+import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade } from '@/types/mer';
 import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
+
+interface PontuacaoInput {
+  id_competencia: string;
+  pontuacao_1a4: number;
+  peso_aplicado: number | null;
+}
+
+interface SaveEvaluationInput {
+  liderado_id: string;
+  id_cargo: string;
+  observacoes: string | null;
+  pontuacoes: PontuacaoInput[];
+}
 
 interface AuthContextType {
   session: Session | null;
@@ -17,6 +30,7 @@ interface AuthContextType {
   isPrimeiroAcesso: boolean;
   loading: boolean;
   fetchTeamData: () => Promise<void>;
+  saveEvaluation: (input: SaveEvaluationInput) => Promise<{ success: boolean; maturidade?: NivelMaturidade; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -88,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const id = liderId || (profile ? Number(profile.id_usuario) : undefined);
     if (!id) return;
 
+    // 1. Buscar IDs dos liderados
     const { data: relacaoData, error: relacaoError } = await supabase
       .from('lider_liderado')
       .select('liderado_id')
@@ -96,29 +111,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (relacaoError) {
       console.error("Erro ao buscar relação líder-liderado:", relacaoError);
       setLiderados([]);
-    } else {
-      const lideradoIds = relacaoData.map(r => r.liderado_id);
-      if (lideradoIds.length > 0) {
-        const { data: lideradosData, error: lideradosError } = await supabase
-          .from('usuario')
-          .select('*')
-          .in('id', lideradoIds);
-        
-        if (lideradosError) {
-          console.error("Erro ao buscar liderados:", lideradosError);
-        } else {
-          const formattedLiderados = lideradosData.map((l: any) => ({
-            ...l,
-            id_usuario: String(l.id),
-            lider_id: l.lider_id ? String(l.lider_id) : null,
-          })) as Usuario[];
-          setLiderados(formattedLiderados);
-        }
+      return;
+    }
+    
+    const lideradoIds = relacaoData.map(r => r.liderado_id);
+    
+    // 2. Buscar perfis dos liderados
+    if (lideradoIds.length > 0) {
+      const { data: lideradosData, error: lideradosError } = await supabase
+        .from('usuario')
+        .select('*')
+        .in('id', lideradoIds);
+      
+      if (lideradosError) {
+        console.error("Erro ao buscar liderados:", lideradosError);
       } else {
-        setLiderados([]);
+        const formattedLiderados = lideradosData.map((l: any) => ({
+          ...l,
+          id_usuario: String(l.id),
+          lider_id: l.lider_id ? String(l.lider_id) : null,
+        })) as Usuario[];
+        setLiderados(formattedLiderados);
       }
+    } else {
+      setLiderados([]);
     }
 
+    // 3. Buscar avaliações do líder
     const { data: avaliacoesData, error: avaliacoesError } = await supabase
       .from('avaliacao')
       .select('*')
@@ -133,9 +152,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         lider_id: String(a.id_lider),
         liderado_id: String(a.id_liderado),
         id_cargo: String(a.cargo_referenciado),
+        media_comportamental_1a4: a.media_comportamental,
+        media_tecnica_1a4: a.media_tecnica,
+        maturidade_quadrante: a.nivel_maturidade,
       })) as Avaliacao[];
       setAvaliacoes(formattedAvaliacoes);
 
+      // 4. Buscar pontuações
       if (formattedAvaliacoes.length > 0) {
         const avaliacaoIds = formattedAvaliacoes.map(a => Number(a.id_avaliacao));
         const { data: pontuacoesData, error: pontuacoesError } = await supabase
@@ -150,10 +173,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             ...p,
             id_avaliacao: String(p.id_avaliacao),
             id_competencia: String(p.id_competencia),
+            pontuacao_1a4: p.pontuacao,
+            peso_aplicado: p.peso,
           })) as PontuacaoAvaliacao[];
           setPontuacoes(formattedPontuacoes);
         }
+      } else {
+        setPontuacoes([]);
       }
+    }
+  };
+
+  const saveEvaluation = async (input: SaveEvaluationInput) => {
+    if (!session) {
+      return { success: false, error: "Usuário não autenticado." };
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('save-evaluation', {
+        body: input,
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error("Edge Function Error:", error);
+        return { success: false, error: error.message };
+      }
+      
+      if (data.error) {
+        return { success: false, error: data.error };
+      }
+
+      // Se a inserção for bem-sucedida, atualiza os dados do time
+      await fetchTeamData(); 
+
+      return { success: true, maturidade: data.maturidade };
+
+    } catch (e: any) {
+      console.error("Unexpected save error:", e);
+      return { success: false, error: e.message || "Erro desconhecido ao salvar avaliação." };
     }
   };
 
@@ -259,6 +319,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isPrimeiroAcesso,
     loading,
     fetchTeamData: () => fetchTeamData(),
+    saveEvaluation,
   };
 
   return (
