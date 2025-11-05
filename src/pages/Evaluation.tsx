@@ -32,8 +32,8 @@ const getCompetencyDescription = (id: string) => {
 export default function Evaluation() {
   const { memberId } = useParams<{ memberId: string }>();
   const navigate = useNavigate();
-  const { liderados, avaliacoes, saveEvaluation } = useAuth();
-
+  const { liderados, avaliacoes, saveEvaluation, profile } = useAuth(); // Adicionado 'profile'
+  
   const [member, setMember] = useState<Usuario | undefined>(undefined);
   const [softTemplate, setSoftTemplate] = useState<(typeof softSkillTemplates)[0] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -132,48 +132,47 @@ export default function Evaluation() {
   const isFinalSaveEnabled = techBlocks.length > 0 && techBlocks.every(b => b.completed);
 
   const handleSaveEvaluation = async () => {
-    if (!isFinalSaveEnabled || !member) {
+    if (!isFinalSaveEnabled || !member || !profile) {
       toast({ variant: "destructive", title: "Ação necessária", description: "Adicione e salve pelo menos uma avaliação técnica." });
       return;
     }
     
     setIsSaving(true);
 
-    // 1. Consolidar todas as pontuações
-    const softPontuacoes = softTemplate ? softTemplate.competencias.map(skill => ({
-        id_competencia: skill.id_competencia,
-        pontuacao_1a4: softScores[skill.id_competencia] || 0,
-        peso_aplicado: skill.peso,
+    // 1. Mapeamento Comportamental (para o RPC)
+    const comportamentais = softTemplate ? softTemplate.competencias.map(skill => ({
+        competenciaId: skill.id_competencia,
+        nota: softScores[skill.id_competencia] || 0,
     })) : [];
 
-    const techPontuacoes = techBlocks.flatMap(block => {
-        const specialization = technicalTemplate
-          .flatMap(c => c.especializacoes)
-          .find(s => s.id_especializacao === block.especializacao_id);
+    // 2. Mapeamento Técnico (para o RPC)
+    const tecnicas = techBlocks.map(block => {
+        const category = technicalTemplate.find(c => c.id_categoria === block.categoria_id);
         
-        return specialization?.competencias.map(comp => ({
-          id_competencia: comp.id_competencia,
-          pontuacao_1a4: block.scores[comp.id_competencia] || 0,
-          peso_aplicado: null,
-        })) || [];
+        const competencias = category?.especializacoes
+            .find(s => s.id_especializacao === block.especializacao_id)
+            ?.competencias.map(comp => ({
+                competenciaId: comp.id_competencia,
+                nota: block.scores[comp.id_competencia] || 0,
+            })) || [];
+
+        return {
+            categoriaId: block.categoria_id,
+            especializacaoId: block.especializacao_id,
+            competencias: competencias,
+        };
     });
 
-    const allPontuacoes = [...softPontuacoes, ...techPontuacoes];
-
-    if (allPontuacoes.length === 0) {
-        toast({ variant: "destructive", title: "Dados insuficientes", description: "A avaliação deve conter pelo menos uma pontuação válida." });
-        setIsSaving(false);
-        return;
-    }
-
     const evaluationInput = {
-      liderado_id: memberId!,
-      id_cargo: member.id_cargo,
-      observacoes: null, // Observações não implementadas no formulário, enviando null
-      pontuacoes: allPontuacoes,
+      liderId: profile.id_usuario,
+      lideradoId: memberId!,
+      cargoReferenciado: member.id_cargo,
+      comportamentais,
+      tecnicas,
+      dataAvaliacao: new Date().toISOString(),
     };
 
-    // 2. Chamar a Edge Function
+    // 3. Chamar o RPC
     const result = await saveEvaluation(evaluationInput);
 
     if (result.success) {

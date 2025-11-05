@@ -4,17 +4,33 @@ import { Session, User } from '@supabase/supabase-js';
 import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade } from '@/types/mer';
 import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
 
-interface PontuacaoInput {
-  id_competencia: string;
-  pontuacao_1a4: number;
-  peso_aplicado: number | null;
+// Novo Contrato de Input para o RPC
+interface CompetenciaScore {
+  competenciaId: string;
+  nota: number;
+}
+
+interface TechBlockInput {
+  categoriaId: string;
+  especializacaoId: string;
+  competencias: CompetenciaScore[];
 }
 
 interface SaveEvaluationInput {
-  liderado_id: string;
-  id_cargo: string;
-  observacoes: string | null;
-  pontuacoes: PontuacaoInput[];
+  liderId: string;
+  lideradoId: string;
+  cargoReferenciado: string;
+  comportamentais: CompetenciaScore[];
+  tecnicas: TechBlockInput[];
+  dataAvaliacao: string;
+}
+
+// Tipo para dados consolidados da view v_member_xy
+interface MemberXYData {
+  liderado_id: number;
+  x_tecnico: number | null;
+  y_comp: number | null;
+  quadrante: NivelMaturidade | 'N/A';
 }
 
 interface AuthContextType {
@@ -30,7 +46,7 @@ interface AuthContextType {
   isPrimeiroAcesso: boolean;
   loading: boolean;
   fetchTeamData: () => Promise<void>;
-  saveEvaluation: (input: SaveEvaluationInput) => Promise<{ success: boolean; maturidade?: NivelMaturidade; error?: string }>;
+  saveEvaluation: (input: SaveEvaluationInput) => Promise<{ success: boolean; maturidade?: NivelMaturidade | 'N/A'; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [liderados, setLiderados] = useState<Usuario[]>([]);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [pontuacoes, setPontuacoes] = useState<PontuacaoAvaliacao[]>([]);
+  const [memberXYData, setMemberXYData] = useState<MemberXYData[]>([]); // Novo estado para dados consolidados
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -64,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLiderados([]);
         setAvaliacoes([]);
         setPontuacoes([]);
+        setMemberXYData([]);
       }
     });
 
@@ -117,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const lideradoIds = relacaoData.map(r => r.liderado_id);
     
     // 2. Buscar perfis dos liderados
+    let currentLiderados: Usuario[] = [];
     if (lideradoIds.length > 0) {
       const { data: lideradosData, error: lideradosError } = await supabase
         .from('usuario')
@@ -126,18 +145,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (lideradosError) {
         console.error("Erro ao buscar liderados:", lideradosError);
       } else {
-        const formattedLiderados = lideradosData.map((l: any) => ({
+        currentLiderados = lideradosData.map((l: any) => ({
           ...l,
           id_usuario: String(l.id),
           lider_id: l.lider_id ? String(l.lider_id) : null,
         })) as Usuario[];
-        setLiderados(formattedLiderados);
+        setLiderados(currentLiderados);
       }
     } else {
       setLiderados([]);
     }
 
-    // 3. Buscar avaliações do líder
+    // 3. Buscar dados consolidados (XY)
+    if (lideradoIds.length > 0) {
+        const { data: xyData, error: xyError } = await supabase
+            .from('v_member_xy')
+            .select('*')
+            .in('liderado_id', lideradoIds);
+        
+        if (xyError) {
+            console.error("Erro ao buscar v_member_xy:", xyError);
+            setMemberXYData([]);
+        } else {
+            setMemberXYData(xyData as MemberXYData[]);
+        }
+    } else {
+        setMemberXYData([]);
+    }
+
+    // 4. Buscar avaliações e pontuações (para detalhes e recentes)
     const { data: avaliacoesData, error: avaliacoesError } = await supabase
       .from('avaliacao')
       .select('*')
@@ -158,7 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })) as Avaliacao[];
       setAvaliacoes(formattedAvaliacoes);
 
-      // 4. Buscar pontuações
+      // 5. Buscar pontuações
       if (formattedAvaliacoes.length > 0) {
         const avaliacaoIds = formattedAvaliacoes.map(a => Number(a.id_avaliacao));
         const { data: pontuacoesData, error: pontuacoesError } = await supabase
@@ -190,26 +226,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('save-evaluation', {
-        body: input,
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+      // Chamada RPC para salvar a avaliação transacionalmente
+      const { data, error } = await supabase.rpc('save_evaluation', {
+          p_lider_id: Number(input.liderId),
+          p_liderado_id: Number(input.lideradoId),
+          p_cargo_ref: input.cargoReferenciado,
+          p_payload: input, // O objeto JSON completo é passado como payload
       });
 
       if (error) {
-        console.error("Edge Function Error:", error);
+        console.error("RPC Save Evaluation Error:", error);
         return { success: false, error: error.message };
       }
       
-      if (data.error) {
-        return { success: false, error: data.error };
-      }
+      // O RPC retorna um array de objetos { avaliacao_id, maturidade }
+      const maturidade = data[0]?.maturidade as NivelMaturidade | 'N/A';
 
       // Se a inserção for bem-sucedida, atualiza os dados do time
       await fetchTeamData(); 
 
-      return { success: true, maturidade: data.maturidade };
+      return { success: true, maturidade };
 
     } catch (e: any) {
       console.error("Unexpected save error:", e);
@@ -239,6 +275,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!profile || profile.role !== 'LIDER') return [];
     
     return liderados.map(liderado => {
+      const xyData = memberXYData.find(d => String(d.liderado_id) === liderado.id_usuario);
+      
       const lideradoAvaliacoes = avaliacoes
         .filter(a => a.liderado_id === liderado.id_usuario)
         .sort((a, b) => new Date(b.data_avaliacao).getTime() - new Date(a.data_avaliacao).getTime());
@@ -293,18 +331,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...liderado,
         idade: calcularIdade(liderado.data_nascimento),
         cargo_nome: cargo?.nome_cargo || 'Não definido',
-        ultima_avaliacao: ultimaAvaliacao ? {
-            media_comportamental_1a4: ultimaAvaliacao.media_comportamental_1a4,
-            media_tecnica_1a4: ultimaAvaliacao.media_tecnica_1a4,
-            maturidade_quadrante: ultimaAvaliacao.maturidade_quadrante,
-            data_avaliacao: ultimaAvaliacao.data_avaliacao,
+        ultima_avaliacao: xyData ? {
+            media_comportamental_1a4: xyData.y_comp || 0,
+            media_tecnica_1a4: xyData.x_tecnico || 0,
+            maturidade_quadrante: xyData.quadrante,
+            data_avaliacao: ultimaAvaliacao?.data_avaliacao || new Date().toISOString(), // Usar data da última avaliação bruta
         } : undefined,
         competencias: competenciasConsolidadas,
         categoria_dominante,
         especializacao_dominante,
       };
     });
-  }, [profile, liderados, avaliacoes, pontuacoes]);
+  }, [profile, liderados, avaliacoes, pontuacoes, memberXYData]);
 
   const value = {
     session,
