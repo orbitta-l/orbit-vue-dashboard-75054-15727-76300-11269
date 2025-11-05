@@ -227,7 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       // Chamada RPC para salvar a avaliação transacionalmente
-      const { data, error } = await supabase.rpc('api_save_evaluation', { // CORRIGIDO: Usando 'api_save_evaluation'
+      const { data, error } = await supabase.rpc('save_evaluation_transaction', { 
           p_lider_id: Number(input.liderId),
           p_liderado_id: Number(input.lideradoId),
           p_cargo_ref: input.cargoReferenciado,
