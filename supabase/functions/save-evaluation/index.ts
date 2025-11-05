@@ -68,13 +68,19 @@ serve(async (req) => {
       return new Response("Unauthorized: Invalid or expired token", { status: 401, headers: corsHeaders });
     }
 
-    // Obter o ID interno do líder (usando o cliente autenticado)
-    const { data: leaderIdData, error: leaderIdErr } = await supabaseClient.rpc('get_user_id_by_auth_uid', { p_auth_uid: user.id });
-    if (leaderIdErr || !leaderIdData) {
-        console.error("Leader ID lookup error:", leaderIdErr);
-        return Response.json({ error: "Líder não encontrado ou sem permissão." }, { status: 403, headers: corsHeaders });
+    // Obter o ID interno do líder (usando adminClient para ignorar RLS e garantir o ID)
+    const { data: leaderRow, error: leaderErr } = await adminClient
+      .from("usuario")
+      .select("id, role")
+      .eq("auth_user_id", user.id)
+      .single();
+
+    if (leaderErr || !leaderRow || leaderRow.role !== 'LIDER') {
+        console.error("Leader ID lookup error or role mismatch:", leaderErr);
+        return Response.json({ error: "Líder não encontrado ou sem permissão para avaliar." }, { status: 403, headers: corsHeaders });
     }
-    const lider_id = leaderIdData as number;
+    
+    const lider_id = leaderRow.id as number;
     const liderado_id = parseInt(body.liderado_id);
 
     // 2. Validação de Permissão (O líder pode avaliar este liderado?)
