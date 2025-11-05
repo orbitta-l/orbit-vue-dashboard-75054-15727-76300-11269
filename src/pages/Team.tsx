@@ -110,13 +110,16 @@ export default function Team() {
       
       // CORREÇÃO CRÍTICA: A resposta da Edge Function está aninhada em 'data'
       // Tipagem da resposta da Edge Function
-      const responseData = data as { temporaryPassword: string, email: string, liderado_id: number, ok: boolean };
+      const responseData = data as { temporaryPassword: string, email: string, liderado_id: number, ok: boolean, error?: string };
 
       if (responseData && responseData.temporaryPassword) {
           setTempPassword(responseData.temporaryPassword); 
           toast({ title: "Liderado provisionado!", description: "Compartilhe a senha temporária com o novo membro." });
           await fetchTeamData(); // Atualiza a lista de liderados
           setModalStep(3); // Avança para a tela de sucesso com a senha
+      } else if (responseData.error) {
+          // Captura erros de negócio retornados pela Edge Function (ex: email duplicado)
+          throw new Error(responseData.error);
       } else {
           throw new Error("Resposta da função incompleta ou sem senha.");
       }
