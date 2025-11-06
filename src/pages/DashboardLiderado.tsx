@@ -21,11 +21,12 @@ import {
   Tooltip
 } from "recharts";
 import { useState, useMemo, useEffect } from "react";
-import { softSkillTemplates } from "@/data/evaluationTemplates";
+import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates"; // Importar technicalTemplate
 import { MOCK_COMPETENCIAS } from "@/data/mockData";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { NivelMaturidade } from "@/types/mer";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; // Importar Tabs
 
 // Helper para obter o nome da competência
 const getCompetencyNameById = (id: string) => {
@@ -51,11 +52,11 @@ export default function DashboardLiderado() {
   
   const hasData = !!lideradoDashboardData && !!lideradoDashboardData.ultima_avaliacao;
   
-  const [radarViewMode, setRadarViewMode] = useState<"all" | "soft" | "custom">("all");
-  const [selectedHardCategories, setSelectedHardCategories] = useState<string[]>([]);
+  // Alterado para usar 'tab' para o filtro principal
+  const [activeSkillTab, setActiveSkillTab] = useState<"all" | "soft" | "hard">("all");
+  const [selectedHardCategory, setSelectedHardCategory] = useState<string>("all"); // Novo estado para categoria de hard skills
   const [selectedCategoryForBars, setSelectedCategoryForBars] = useState<string>("all");
 
-  // NOVO: useEffect para buscar dados do liderado quando o componente é montado ou o perfil muda
   useEffect(() => {
     if (profile && profile.role === 'LIDERADO' && profile.id_usuario) {
       fetchLideradoDashboardData(Number(profile.id_usuario));
@@ -88,15 +89,22 @@ export default function DashboardLiderado() {
         categoria: c.categoria_nome,
       }));
 
-    if (radarViewMode === "soft") return softSkillsData;
-    if (radarViewMode === "custom") {
-      const filteredHard = hardSkillsData.filter(hs => 
-        hs.categoria && selectedHardCategories.includes(hs.categoria)
-      );
-      return [...softSkillsData, ...filteredHard];
+    let filteredData: RadarDataPoint[] = [];
+
+    if (activeSkillTab === "soft") {
+      filteredData = softSkillsData;
+    } else if (activeSkillTab === "hard") {
+      filteredData = selectedHardCategory === "all"
+        ? hardSkillsData
+        : hardSkillsData.filter(hs => hs.categoria === selectedHardCategory);
+    } else { // "all"
+      filteredData = [...softSkillsData, ...hardSkillsData];
     }
-    return [...softSkillsData, ...hardSkillsData];
-  }, [hasData, lideradoDashboardData, radarViewMode, selectedHardCategories]);
+    
+    // Filtra competências com pontuação 0 para não aparecerem no radar, a menos que seja a única opção
+    return filteredData.filter(c => c.atual > 0 || filteredData.length === 1);
+
+  }, [hasData, lideradoDashboardData, activeSkillTab, selectedHardCategory]);
 
   // Dados para o Bar Chart de Desempenho por Categoria
   const categoryPerformanceData = useMemo(() => {
@@ -124,7 +132,16 @@ export default function DashboardLiderado() {
     }));
   }, [hasData, lideradoDashboardData]);
 
-  const availableHardCategories = useMemo(() => {
+  // Categorias de Hard Skills disponíveis para o filtro do Radar
+  const availableHardCategoriesForRadar = useMemo(() => {
+    if (!hasData || !lideradoDashboardData) return [];
+    return Array.from(new Set(lideradoDashboardData.competencias
+      .filter(c => c.tipo === 'TECNICA' && c.categoria_nome && c.categoria_nome !== 'N/A')
+      .map(c => c.categoria_nome!)));
+  }, [hasData, lideradoDashboardData]);
+
+  // Categorias de Hard Skills disponíveis para o filtro do Bar Chart
+  const availableHardCategoriesForBars = useMemo(() => {
     if (!hasData || !lideradoDashboardData) return [];
     return Array.from(new Set(lideradoDashboardData.competencias
       .filter(c => c.tipo === 'TECNICA' && c.categoria_nome && c.categoria_nome !== 'N/A')
@@ -134,12 +151,6 @@ export default function DashboardLiderado() {
   const filteredCategoryData = selectedCategoryForBars === "all" 
     ? categoryPerformanceData 
     : categoryPerformanceData.filter(d => d.category === selectedCategoryForBars);
-
-  const toggleHardCategory = (category: string) => {
-    setSelectedHardCategories(prev => 
-      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
-    );
-  };
 
   if (loading) {
     return (
@@ -268,7 +279,7 @@ export default function DashboardLiderado() {
         {/* Gráfico VERSUS - Atual vs Ideal (Principal Funcionalidade) */}
         <Card className="mb-8 hover:shadow-lg transition-shadow duration-300">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="w-5 h-5 text-primary" />
@@ -278,37 +289,34 @@ export default function DashboardLiderado() {
                   Comparação visual entre seu perfil atual e o perfil ideal do cargo
                 </CardDescription>
               </div>
-              <Select value={radarViewMode} onValueChange={(v: any) => setRadarViewMode(v)}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="soft">Soft Skills</SelectItem>
-                  <SelectItem value="custom">Personalizado</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col gap-2 w-full md:w-auto">
+                <Tabs value={activeSkillTab} onValueChange={(v: any) => {
+                  setActiveSkillTab(v);
+                  setSelectedHardCategory("all"); // Resetar categoria ao mudar de aba
+                }} className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="all">Todas</TabsTrigger>
+                    <TabsTrigger value="soft">Comportamentais</TabsTrigger>
+                    <TabsTrigger value="hard">Técnicas</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                {activeSkillTab === "hard" && availableHardCategoriesForRadar.length > 0 && (
+                  <Select value={selectedHardCategory} onValueChange={setSelectedHardCategory}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filtrar por Categoria Técnica" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as Categorias Técnicas</SelectItem>
+                      {availableHardCategoriesForRadar.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent>
-            {radarViewMode === "custom" && availableHardCategories.length > 0 && (
-              <div className="mb-4 p-3 border border-border rounded-lg bg-muted/20">
-                <p className="text-sm font-medium text-foreground mb-2">Categorias Técnicas:</p>
-                <div className="flex flex-wrap gap-2">
-                  {availableHardCategories.map((cat) => (
-                    <div key={cat} className="flex items-center gap-2">
-                      <Checkbox 
-                        checked={selectedHardCategories.includes(cat)}
-                        onCheckedChange={() => toggleHardCategory(cat)}
-                      />
-                      <label className="text-sm text-muted-foreground cursor-pointer">
-                        {cat}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
             <ResponsiveContainer width="100%" height={500}>
               {competenciasVersus.length === 0 ? (
                 <div className="flex items-center justify-center h-full bg-muted/30 rounded-lg">
@@ -357,6 +365,26 @@ export default function DashboardLiderado() {
                 A área entre os dois polígonos representa os <strong>gaps de conhecimento</strong> que precisam ser desenvolvidos. 
                 Quanto maior a diferença entre o perfil ideal (azul) e seu perfil atual (laranja), maior a oportunidade de crescimento naquela competência específica.
               </p>
+              {activeSkillTab === "soft" && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Você está vendo seu desempenho em **Soft Skills (Comportamentais)**. Pontos menores indicam áreas de desenvolvimento comportamental.
+                </p>
+              )}
+              {activeSkillTab === "hard" && selectedHardCategory !== "all" && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  O gráfico atual mostra apenas o seu desempenho (Perfil Atual) em Hard Skills relacionadas à categoria **{selectedHardCategory}**, comparado ao ideal para seu cargo.
+                </p>
+              )}
+              {activeSkillTab === "hard" && selectedHardCategory === "all" && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Você está vendo seu desempenho em **Hard Skills (Técnicas)** em todas as categorias. Use o filtro acima para focar em uma área específica.
+                </p>
+              )}
+              {activeSkillTab === "all" && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Este gráfico exibe todas as suas competências (comportamentais e técnicas). Use as abas para filtrar por tipo de skill.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -380,7 +408,7 @@ export default function DashboardLiderado() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas Categorias</SelectItem>
-                  {availableHardCategories.map((cat) => (
+                  {availableHardCategoriesForBars.map((cat) => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>
