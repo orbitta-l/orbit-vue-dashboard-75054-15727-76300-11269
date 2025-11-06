@@ -30,6 +30,8 @@ export default function Home() {
   const currentDate = format(new Date(), "d 'de' MMMM 'de' yyyy", { locale: ptBR });
 
   const metrics = useMemo(() => {
+    console.log("Recalculando metrics. avaliacoes:", avaliacoes);
+
     if (isPrimeiroAcesso) {
       return {
         teamMembers: 0,
