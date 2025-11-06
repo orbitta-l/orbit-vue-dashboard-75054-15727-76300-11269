@@ -137,8 +137,14 @@ export default function Team() {
   const handleConclude = async () => {
     if (!provisionedData || !profile) return;
     setIsSubmitting(true);
+    
+    console.log("Frontend: Chamando Edge Function 'create-liderado' com dados:", provisionedData); // Log de depuração
+    
     try {
-      const { data, error } = await supabase.functions.invoke('create-liderado', { body: { ...provisionedData } });
+      const { data, error } = await supabase.functions.invoke('create-liderado', { 
+        body: { ...provisionedData },
+        method: 'POST' // Força o método POST
+      });
       if (error) throw new Error(error.message || "Ocorreu um erro desconhecido.");
       const responseData = data as { temporaryPassword?: string, error?: string };
       if (responseData?.temporaryPassword) {
@@ -151,6 +157,7 @@ export default function Team() {
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Erro no cadastro", description: err.message || "Erro inesperado no servidor." });
+      console.error("Frontend: Erro ao invocar Edge Function:", err); // Log de erro no frontend
     } finally {
       setIsSubmitting(false);
     }
