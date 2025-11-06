@@ -1,4 +1,4 @@
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,6 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, 
 import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates";
-import { LideradoDashboard } from "@/types/mer";
 import { MOCK_COMPETENCIAS } from "@/data/mockData";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -26,8 +25,8 @@ export default function Compare() {
 
   const [selectedMembersForComparison] = useState<string[]>(memberIds.slice(0, 4));
   
-  // State for the new top-down filter
   const [selectedTheme, setSelectedTheme] = useState<string>("soft-skills");
+  const [selectedSpecializations, setSelectedSpecializations] = useState<string[]>([]);
   const [selectedCompetencies, setSelectedCompetencies] = useState<string[]>([]);
 
   const selectedMembers = useMemo(() => 
@@ -37,7 +36,6 @@ export default function Compare() {
 
   const colors = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
 
-  // Create a unified list of themes for the main dropdown
   const analysisThemes = useMemo(() => {
     const hardSkillThemes = technicalTemplate.map(category => ({
       id: category.id_categoria,
@@ -49,8 +47,13 @@ export default function Compare() {
     ];
   }, []);
 
-  // Get the list of competencies based on the selected theme
-  const competenciesForSelectedTheme = useMemo(() => {
+  const specializationsForSelectedTheme = useMemo(() => {
+    if (selectedTheme === 'soft-skills') return [];
+    const category = technicalTemplate.find(c => c.id_categoria === selectedTheme);
+    return category ? category.especializacoes.map(s => ({ id: s.id_especializacao, name: s.nome_especializacao })) : [];
+  }, [selectedTheme]);
+
+  const competenciesForSelectedFilters = useMemo(() => {
     if (selectedTheme === "soft-skills") {
       const allSoftSkills = new Set<string>();
       softSkillTemplates.forEach(template => {
@@ -64,20 +67,40 @@ export default function Compare() {
     const category = technicalTemplate.find(c => c.id_categoria === selectedTheme);
     if (!category) return [];
     
-    return category.especializacoes.flatMap(spec => 
-      spec.competencias.map(comp => ({ name: comp.nome_competencia }))
-    );
-  }, [selectedTheme]);
+    return category.especializacoes
+      .filter(spec => selectedSpecializations.includes(spec.id_especializacao))
+      .flatMap(spec => spec.competencias.map(comp => ({ name: comp.nome_competencia })));
+  }, [selectedTheme, selectedSpecializations]);
 
-  // EFFECT: Auto-populate the chart and checkboxes when the theme changes
   useEffect(() => {
-    const allCompetencyNames = competenciesForSelectedTheme.map(c => c.name);
-    setSelectedCompetencies(allCompetencyNames);
-  }, [competenciesForSelectedTheme]);
+    const allSpecIds = specializationsForSelectedTheme.map(s => s.id);
+    setSelectedSpecializations(allSpecIds);
+  }, [specializationsForSelectedTheme]);
+
+  useEffect(() => {
+    const allCompNames = competenciesForSelectedFilters.map(c => c.name);
+    setSelectedCompetencies(allCompNames);
+  }, [competenciesForSelectedFilters]);
+
+  const handleToggleAllSpecializations = (checked: boolean) => {
+    if (checked) {
+      setSelectedSpecializations(specializationsForSelectedTheme.map(s => s.id));
+    } else {
+      setSelectedSpecializations([]);
+    }
+  };
+
+  const handleToggleSpecialization = (specId: string) => {
+    setSelectedSpecializations(prev => 
+      prev.includes(specId) 
+        ? prev.filter(id => id !== specId) 
+        : [...prev, specId]
+    );
+  };
 
   const handleToggleAllCompetencies = (checked: boolean) => {
     if (checked) {
-      setSelectedCompetencies(competenciesForSelectedTheme.map(c => c.name));
+      setSelectedCompetencies(competenciesForSelectedFilters.map(c => c.name));
     } else {
       setSelectedCompetencies([]);
     }
@@ -121,7 +144,8 @@ export default function Compare() {
 
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
-  const areAllSelected = selectedCompetencies.length === competenciesForSelectedTheme.length && competenciesForSelectedTheme.length > 0;
+  const areAllSpecializationsSelected = selectedSpecializations.length === specializationsForSelectedTheme.length && specializationsForSelectedTheme.length > 0;
+  const areAllCompetenciesSelected = selectedCompetencies.length === competenciesForSelectedFilters.length && competenciesForSelectedFilters.length > 0;
 
   return (
     <div className="p-8">
@@ -155,56 +179,58 @@ export default function Compare() {
 
       <Card className="p-6 bg-gradient-to-br from-card to-card/50">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Coluna de Filtros Consolidada */}
-          <div className="lg:w-1/3 flex-shrink-0 space-y-6">
+          <div className="lg:w-1/3 flex-shrink-0 space-y-4">
             <div>
-              <Label className="font-semibold text-foreground mb-2 block">Analisar Competências de:</Label>
+              <Label className="font-semibold text-foreground mb-2 block">1. Selecione a Categoria</Label>
               <Select value={selectedTheme} onValueChange={setSelectedTheme}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecione um tema" />
-                </SelectTrigger>
-                <SelectContent>
-                  {analysisThemes.map(theme => (
-                    <SelectItem key={theme.id} value={theme.id}>{theme.name}</SelectItem>
-                  ))}
-                </SelectContent>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Selecione um tema" /></SelectTrigger>
+                <SelectContent>{analysisThemes.map(theme => <SelectItem key={theme.id} value={theme.id}>{theme.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>
 
-            <div className="border rounded-lg p-4">
-              <div className="flex items-center justify-between pb-3 border-b mb-3">
-                <Label htmlFor="select-all" className="font-semibold flex items-center gap-2">
-                  <Checkbox 
-                    id="select-all" 
-                    checked={areAllSelected}
-                    onCheckedChange={handleToggleAllCompetencies}
-                  />
-                  Competências ({selectedCompetencies.length}/{competenciesForSelectedTheme.length})
-                </Label>
-              </div>
-              <ScrollArea className="h-96">
-                <div className="space-y-2 pr-4">
-                  {competenciesForSelectedTheme.map(comp => (
-                    <div key={comp.name} className="flex items-center gap-2 p-2 rounded hover:bg-muted/50">
-                      <Checkbox 
-                        id={comp.name}
-                        checked={selectedCompetencies.includes(comp.name)}
-                        onCheckedChange={() => handleToggleCompetency(comp.name)}
-                      />
-                      <Label htmlFor={comp.name} className="flex-1 cursor-pointer">{comp.name}</Label>
+            {specializationsForSelectedTheme.length > 0 && (
+              <div className="border rounded-lg p-4">
+                <div className="flex items-center justify-between pb-3 border-b mb-3">
+                  <Label htmlFor="select-all-specs" className="font-semibold flex items-center gap-2">
+                    <Checkbox id="select-all-specs" checked={areAllSpecializationsSelected} onCheckedChange={handleToggleAllSpecializations} />
+                    2. Filtre por Especialização
+                  </Label>
+                </div>
+                <ScrollArea className="h-32"><div className="space-y-2 pr-4">
+                  {specializationsForSelectedTheme.map(spec => (
+                    <div key={spec.id} className="flex items-center gap-2 p-1 rounded hover:bg-muted/50">
+                      <Checkbox id={spec.id} checked={selectedSpecializations.includes(spec.id)} onCheckedChange={() => handleToggleSpecialization(spec.id)} />
+                      <Label htmlFor={spec.id} className="flex-1 cursor-pointer">{spec.name}</Label>
                     </div>
                   ))}
-                </div>
-              </ScrollArea>
+                </div></ScrollArea>
+              </div>
+            )}
+
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center justify-between pb-3 border-b mb-3">
+                <Label htmlFor="select-all-comps" className="font-semibold flex items-center gap-2">
+                  <Checkbox id="select-all-comps" checked={areAllCompetenciesSelected} onCheckedChange={handleToggleAllCompetencies} />
+                  3. Escolha as Competências
+                </Label>
+              </div>
+              <ScrollArea className="h-60"><div className="space-y-2 pr-4">
+                {competenciesForSelectedFilters.map(comp => (
+                  <div key={comp.name} className="flex items-center gap-2 p-1 rounded hover:bg-muted/50">
+                    <Checkbox id={comp.name} checked={selectedCompetencies.includes(comp.name)} onCheckedChange={() => handleToggleCompetency(comp.name)} />
+                    <Label htmlFor={comp.name} className="flex-1 cursor-pointer">{comp.name}</Label>
+                  </div>
+                ))}
+                {competenciesForSelectedFilters.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhuma competência para exibir. Selecione uma especialização.</p>}
+              </div></ScrollArea>
             </div>
           </div>
 
-          {/* Coluna do Gráfico */}
           <div className="lg:w-2/3">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
               <div>
                 <h2 className="text-2xl font-bold text-foreground mb-2">Análise de Gaps - VERSUS Ideal</h2>
-                <p className="text-sm text-muted-foreground">O polígono externo (Ideal) representa a nota máxima (4.0) esperada em cada competência.</p>
+                <p className="text-sm text-muted-foreground">O polígono externo (Ideal) representa a nota máxima (4.0) esperada.</p>
               </div>
             </div>
             {selectedCompetencies.length < 3 && hasAnyEvaluationData && (
