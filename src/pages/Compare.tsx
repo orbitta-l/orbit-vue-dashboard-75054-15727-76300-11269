@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer } from "recharts";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates";
@@ -14,12 +14,18 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { AbsentHardSkillsCollapsible } from "@/components/AbsentHardSkillsCollapsible";
 import { AbsentSoftSkillsCollapsible } from "@/components/AbsentSoftSkillsCollapsible";
 import { LideradoDashboard } from "@/types/mer";
+import { MOCK_COMPETENCIAS } from "@/data/mockData"; // Importar MOCK_COMPETENCIAS para obter nomes
 
 // Interface para os dados de exibição dos chips de competência
 export interface CompetencyChipDisplayData {
   name: string;
   hasRelevantScore: boolean;
 }
+
+// Helper para obter o nome da competência a partir do ID (necessário para Soft Skills)
+const getCompetencyNameById = (id: string) => {
+  return MOCK_COMPETENCIAS.find(c => c.id_competencia === id)?.nome_competencia || id;
+};
 
 export default function Compare() {
   const navigate = useNavigate();
@@ -28,15 +34,13 @@ export default function Compare() {
   const { teamData } = useAuth();
 
   const [selectedMembersForComparison] = useState<string[]>(memberIds.slice(0, 4));
-  const [selectedSoftSkills, setSelectedSoftSkills] = useState<string[]>([]);
-  const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>([]);
-
+  
   // Estado para controlar a categoria selecionada no dropdown de Hard Skills
   const [selectedHardSkillCategory, setSelectedHardSkillCategory] = useState<string>("all");
 
   // Estados para controlar o estado de colapsar das seções de competências ausentes
-  const [isHardSkillsAbsentCollapsed, setIsHardSkillsAbsentCollapsed] = useState(false); // Alterado para false
-  const [isSoftSkillsAbsentCollapsed, setIsSoftSkillsAbsentCollapsed] = useState(false); // Alterado para false
+  const [isHardSkillsAbsentCollapsed, setIsHardSkillsAbsentCollapsed] = useState(false);
+  const [isSoftSkillsAbsentCollapsed, setIsSoftSkillsAbsentCollapsed] = useState(false);
 
   const selectedMembers = useMemo(() => 
     teamData.filter(m => selectedMembersForComparison.includes(m.id_usuario)), 
@@ -46,35 +50,16 @@ export default function Compare() {
   // Cores para os liderados no gráfico, utilizando a paleta do projeto
   const colors = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
 
-  // Função para obter e ordenar competências com base na relevância
-  const getSortedCompetencies = (
-    competencyList: Array<{ name: string; type: 'SOFT' | 'HARD'; categoryId?: string; categoryName?: string; specializationId?: string; specializationName?: string }>,
-    members: LideradoDashboard[],
-    competencyType: 'SOFT' | 'HARD'
-  ): CompetencyChipDisplayData[] => {
-    const competenciesWithRelevance = competencyList.map(comp => {
-      const hasRelevantScore = members.some(member =>
-        member.competencias.some(c =>
-          c.nome_competencia === comp.name && c.pontuacao_1a4 > 0 && c.tipo === competencyType
-        )
-      );
-      return { name: comp.name, hasRelevantScore };
-    });
-
-    return competenciesWithRelevance.sort((a, b) => {
-      if (a.hasRelevantScore && !b.hasRelevantScore) return -1; // Relevantes primeiro
-      if (!a.hasRelevantScore && b.hasRelevantScore) return 1;
-      return a.name.localeCompare(b.name); // Depois, ordem alfabética
-    });
-  };
+  // --- Lógica de Geração de Chips e Inicialização ---
 
   // Todas as Soft Skill competencies, achatadas e com categoria mock
   const allSoftSkillCompetenciesFlat = useMemo(() => {
     const competencies: Array<{ name: string; type: 'SOFT'; categoryId: string; categoryName: string }> = [];
     softSkillTemplates.forEach(template => {
       template.competencias.forEach(comp => {
-        if (!competencies.some(c => c.name === comp.id_competencia)) { // Garante unicidade
-          competencies.push({ name: comp.id_competencia, type: 'SOFT', categoryId: "soft-skills-category", categoryName: "Soft Skills" });
+        const name = getCompetencyNameById(comp.id_competencia);
+        if (!competencies.some(c => c.name === name)) { // Garante unicidade
+          competencies.push({ name, type: 'SOFT', categoryId: "soft-skills-category", categoryName: "Soft Skills" });
         }
       });
     });
@@ -99,6 +84,28 @@ export default function Compare() {
     );
   }, []);
 
+  // Função para obter e ordenar competências com base na relevância
+  const getSortedCompetencies = (
+    competencyList: Array<{ name: string; type: 'SOFT' | 'HARD'; categoryId?: string; categoryName?: string; specializationId?: string; specializationName?: string }>,
+    members: LideradoDashboard[],
+    competencyType: 'SOFT' | 'HARD'
+  ): CompetencyChipDisplayData[] => {
+    const competenciesWithRelevance = competencyList.map(comp => {
+      const hasRelevantScore = members.some(member =>
+        member.competencias.some(c =>
+          c.nome_competencia === comp.name && c.pontuacao_1a4 > 0 && (competencyType === 'SOFT' ? c.tipo === 'COMPORTAMENTAL' : c.tipo === 'TECNICA')
+        )
+      );
+      return { name: comp.name, hasRelevantScore };
+    });
+
+    return competenciesWithRelevance.sort((a, b) => {
+      if (a.hasRelevantScore && !b.hasRelevantScore) return -1; // Relevantes primeiro
+      if (!a.hasRelevantScore && b.hasRelevantScore) return 1;
+      return a.name.localeCompare(b.name); // Depois, ordem alfabética
+    });
+  };
+
   // Chips de Soft Skills ordenados por relevância
   const sortedSoftSkillChipsData = useMemo(() => {
     return getSortedCompetencies(allSoftSkillCompetenciesFlat, selectedMembers, 'SOFT');
@@ -108,6 +115,33 @@ export default function Compare() {
   const sortedHardSkillChipsData = useMemo(() => {
     return getSortedCompetencies(allHardSkillCompetenciesFlat, selectedMembers, 'HARD');
   }, [allHardSkillCompetenciesFlat, selectedMembers]);
+
+  // Separação de chips presentes e ausentes para Hard Skills
+  const presentHardSkillChips = sortedHardSkillChipsData.filter(chip => chip.hasRelevantScore);
+  const absentHardSkillChips = sortedHardSkillChipsData.filter(chip => !chip.hasRelevantScore);
+
+  // Separação de chips presentes e ausentes para Soft Skills
+  const presentSoftSkillChips = sortedSoftSkillChipsData.filter(chip => chip.hasRelevantScore);
+  const absentSoftSkillChips = sortedSoftSkillChipsData.filter(chip => !chip.hasRelevantScore);
+
+  // Estados de seleção de competências
+  const [selectedSoftSkills, setSelectedSoftSkills] = useState<string[]>([]);
+  const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>([]);
+
+  // Efeito para inicializar as competências selecionadas
+  useEffect(() => {
+    if (selectedMembers.length > 0 && selectedSoftSkills.length === 0 && selectedHardSkills.length === 0) {
+      // Seleciona as 3 primeiras soft skills presentes
+      const initialSoft = presentSoftSkillChips.slice(0, 3).map(c => c.name);
+      
+      // Seleciona as 3 primeiras hard skills presentes
+      const initialHard = presentHardSkillChips.slice(0, 3).map(c => c.name);
+      
+      setSelectedSoftSkills(initialSoft);
+      setSelectedHardSkills(initialHard);
+    }
+  }, [selectedMembers, presentSoftSkillChips, presentHardSkillChips]);
+
 
   // Categorias de Hard Skills para o dropdown
   const hardSkillCategoriesForSelect = useMemo(() => {
@@ -125,13 +159,6 @@ export default function Compare() {
     return getSortedCompetencies(categoryCompetencies, selectedMembers, 'HARD');
   }, [sortedHardSkillChipsData, selectedHardSkillCategory, allHardSkillCompetenciesFlat, selectedMembers]);
 
-  // Separação de chips presentes e ausentes para Hard Skills
-  const presentHardSkillChips = filteredHardSkillChips.filter(chip => chip.hasRelevantScore);
-  const absentHardSkillChips = filteredHardSkillChips.filter(chip => !chip.hasRelevantScore);
-
-  // Separação de chips presentes e ausentes para Soft Skills
-  const presentSoftSkillChips = sortedSoftSkillChipsData.filter(chip => chip.hasRelevantScore);
-  const absentSoftSkillChips = sortedSoftSkillChipsData.filter(chip => !chip.hasRelevantScore);
 
   const handleToggleSoftSkill = (skillName: string) => {
     setSelectedSoftSkills(prev =>
@@ -159,7 +186,19 @@ export default function Compare() {
       radarDataMap[compName] = { subject: compName, PerfilIdeal: 4.0, fullMark: 4 };
 
       selectedMembers.forEach(member => {
+        // Busca a pontuação pelo nome da competência
         const memberCompetency = member.competencias.find(c => c.nome_competencia === compName);
+        
+        // Se for Soft Skill, o nome da competência pode estar vindo do template (ID), então tentamos buscar pelo ID também
+        if (!memberCompetency) {
+            const compId = MOCK_COMPETENCIAS.find(c => c.nome_competencia === compName)?.id_competencia;
+            const memberCompetencyById = member.competencias.find(c => c.id_competencia === compId);
+            if (memberCompetencyById) {
+                radarDataMap[compName][member.nome] = parseFloat(memberCompetencyById.pontuacao_1a4.toFixed(1));
+                return;
+            }
+        }
+
         radarDataMap[compName][member.nome] = memberCompetency ? parseFloat(memberCompetency.pontuacao_1a4.toFixed(1)) : 0;
       });
     });
@@ -169,6 +208,8 @@ export default function Compare() {
 
   const radarData = getRadarChartData();
   const totalSelectedCompetencies = selectedSoftSkills.length + selectedHardSkills.length;
+  
+  const hasAnyEvaluationData = selectedMembers.some(m => m.ultima_avaliacao);
 
   if (selectedMembers.length === 0) {
     return (
@@ -222,7 +263,7 @@ export default function Compare() {
               </div>
             </div>
             <div className="mt-3 text-xs text-muted-foreground">
-              <p>Maturidade: <Badge className="bg-primary/10 text-primary hover:bg-primary/20">{member.ultima_avaliacao?.maturidade_quadrante}</Badge></p>
+              <p>Maturidade: <Badge className="bg-primary/10 text-primary hover:bg-primary/20">{member.ultima_avaliacao?.maturidade_quadrante || 'N/A'}</Badge></p>
             </div>
           </Card>
         ))}
@@ -241,7 +282,7 @@ export default function Compare() {
           </div>
         </div>
 
-        {totalSelectedCompetencies < 3 && (
+        {totalSelectedCompetencies < 3 && hasAnyEvaluationData && (
           <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg text-sm">
             <p className="font-semibold">Atenção:</p>
             <p>Selecione pelo menos 3 competências (Soft ou Hard Skills) para uma visualização completa no gráfico de radar.</p>
@@ -300,51 +341,62 @@ export default function Compare() {
           {/* Radar Chart (Center) */}
           <div className="flex-1 min-w-0">
             <ResponsiveContainer width="100%" height={500}>
-              <RadarChart data={radarData}>
-                <PolarGrid 
-                  stroke="hsl(var(--muted-foreground) / 0.3)" 
-                  strokeWidth={1}
-                />
-                <PolarAngleAxis 
-                  dataKey="subject" 
-                  tick={{ fill: 'hsl(var(--foreground))', fontSize: 13, fontWeight: 500 }}
-                />
-                <PolarRadiusAxis 
-                  angle={90} 
-                  domain={[0, 4]} 
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
-                  stroke="hsl(var(--muted-foreground) / 0.3)"
-                />
-                
-                {/* Perfil Ideal (4.0) - Linha de Referência */}
-                <Radar
-                  name="Perfil Ideal"
-                  dataKey="PerfilIdeal"
-                  stroke="hsl(var(--primary-dark))"
-                  fill="hsl(var(--primary-dark))"
-                  fillOpacity={0}
-                  strokeWidth={3}
-                  strokeDasharray="5 5"
-                />
-
-                {/* Liderados Selecionados */}
-                {selectedMembers.map((member, index) => (
-                  <Radar
-                    key={member.id_usuario}
-                    name={member.nome}
-                    dataKey={member.nome}
-                    stroke={colors[index % colors.length]}
-                    fill={colors[index % colors.length]}
-                    fillOpacity={0.4}
-                    strokeWidth={2}
+              {radarData.length === 0 ? (
+                <div className="flex items-center justify-center h-full bg-muted/30 rounded-lg">
+                  <p className="text-muted-foreground text-center">
+                    {hasAnyEvaluationData 
+                      ? "Selecione competências nos painéis laterais para iniciar a comparação."
+                      : "Nenhum membro selecionado possui avaliações para comparação."
+                    }
+                  </p>
+                </div>
+              ) : (
+                <RadarChart data={radarData}>
+                  <PolarGrid 
+                    stroke="hsl(var(--muted-foreground) / 0.3)" 
+                    strokeWidth={1}
                   />
-                ))}
-                <Legend 
-                  wrapperStyle={{ paddingTop: '30px' }}
-                  iconType="circle"
-                  iconSize={12}
-                />
-              </RadarChart>
+                  <PolarAngleAxis 
+                    dataKey="subject" 
+                    tick={{ fill: 'hsl(var(--foreground))', fontSize: 13, fontWeight: 500 }}
+                  />
+                  <PolarRadiusAxis 
+                    angle={90} 
+                    domain={[0, 4]} 
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                    stroke="hsl(var(--muted-foreground) / 0.3)"
+                  />
+                  
+                  {/* Perfil Ideal (4.0) - Linha de Referência */}
+                  <Radar
+                    name="Perfil Ideal"
+                    dataKey="PerfilIdeal"
+                    stroke="hsl(var(--primary-dark))"
+                    fill="hsl(var(--primary-dark))"
+                    fillOpacity={0}
+                    strokeWidth={3}
+                    strokeDasharray="5 5"
+                  />
+
+                  {/* Liderados Selecionados */}
+                  {selectedMembers.map((member, index) => (
+                    <Radar
+                      key={member.id_usuario}
+                      name={member.nome}
+                      dataKey={member.nome}
+                      stroke={colors[index % colors.length]}
+                      fill={colors[index % colors.length]}
+                      fillOpacity={0.4}
+                      strokeWidth={2}
+                    />
+                  ))}
+                  <Legend 
+                    wrapperStyle={{ paddingTop: '30px' }}
+                    iconType="circle"
+                    iconSize={12}
+                  />
+                </RadarChart>
+              )}
             </ResponsiveContainer>
           </div>
 
