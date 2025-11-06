@@ -54,7 +54,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Usuario | null>(null);
   const [liderados, setLiderados] = useState<Usuario[]>([]);
@@ -97,15 +97,18 @@ export function AuthProvider({ children }: { ReactNode }) {
 
   const fetchProfileAndData = async (user: User) => {
     setLoading(true);
+    // MODIFICADO: Usa a função RPC 'get_my_profile' que ignora RLS
     const { data: profileData, error: profileError } = await supabase
-      .from('usuario')
-      .select('*')
-      .eq('auth_user_id', user.id)
+      .rpc('get_my_profile')
       .single();
 
-    if (profileError) {
-      console.error("Erro ao buscar perfil:", profileError);
+    if (profileError || !profileData) {
+      console.error("Erro ao buscar perfil via RPC ou perfil não encontrado:", profileError);
       setProfile(null);
+      // Se o perfil não for encontrado, deslogamos para evitar loops
+      if (!profileData) {
+        await supabase.auth.signOut();
+      }
     } else {
       const dbProfile = profileData as any;
       const appProfile: Usuario = {
