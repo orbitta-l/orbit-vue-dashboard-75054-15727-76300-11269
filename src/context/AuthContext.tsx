@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useMemo, use
 import { supabase } from '@/lib/supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
 import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade } from '@/types/mer';
-import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORias } from '@/data/mockData';
+import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
 
 // Contrato de Input para o RPC de salvar avaliação
 interface CompetenciaScore {
