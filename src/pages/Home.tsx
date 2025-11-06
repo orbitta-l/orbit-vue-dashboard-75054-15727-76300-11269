@@ -14,7 +14,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates";
 import { LideradoDashboard } from "@/types/mer";
-import { MOCK_COMPETENCIAS } from "@/data/mockData";
+import { MOCK_COMPETENCIAS } from "@/data/mockData"; // Importar MOCK_COMPETENCIAS
 
 export default function Home() {
   const navigate = useNavigate();
@@ -39,19 +39,15 @@ export default function Home() {
       };
     }
 
-    // Ordenar avaliações por data (mais recente primeiro) antes de processar
-    const sortedAvaliacoes = [...avaliacoes].sort((a, b) => 
-      new Date(b.data_avaliacao).getTime() - new Date(a.data_avaliacao).getTime()
-    );
-
-    const evalsThisMonth = sortedAvaliacoes.filter(av => {
+    const evalsThisMonth = avaliacoes.filter(av => {
       const evalDate = new Date(av.data_avaliacao);
       const today = new Date();
       return evalDate.getMonth() === today.getMonth() && evalDate.getFullYear() === today.getFullYear();
     }).length;
 
-    const lastEval = sortedAvaliacoes.length > 0
-      ? formatDistanceToNow(new Date(sortedAvaliacoes[0].data_avaliacao), { addSuffix: true, locale: ptBR })
+    const sortedEvals = [...avaliacoes].sort((a, b) => new Date(b.data_avaliacao).getTime() - new Date(a.data_avaliacao).getTime());
+    const lastEval = sortedEvals.length > 0
+      ? formatDistanceToNow(new Date(sortedEvals[0].data_avaliacao), { addSuffix: true, locale: ptBR })
       : "Nenhuma";
 
     const maturityMap: { [key: string]: number } = { M1: 1, M2: 2, M3: 3, M4: 4 };
@@ -135,12 +131,7 @@ export default function Home() {
       };
     }).filter(b => b.media > 0);
 
-    // Ordenar avaliações por data (mais recente primeiro) antes de pegar as 3 últimas
-    const sortedAvaliacoes = [...avaliacoes].sort((a, b) => 
-      new Date(b.data_avaliacao).getTime() - new Date(a.data_avaliacao).getTime()
-    );
-    
-    const recentes = sortedAvaliacoes.slice(0, 3).map(av => ({
+    const recentes = avaliacoes.slice(-3).map(av => ({
       evaluationId: av.id_avaliacao,
       lideradoId: av.liderado_id,
       nome_liderado: liderados.find(l => l.id_usuario === av.liderado_id)?.nome ?? "Desconhecido",
@@ -150,7 +141,7 @@ export default function Home() {
     return {
       quadrante: teamPerformance,
       barras,
-      pizza: teamData,
+      pizza: teamData, // Passando o teamData completo que já é do tipo LideradoDashboard[]
       gaps: teamData,
       recentes,
     };

@@ -4,7 +4,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade } from '@/types/mer';
 import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
 
-// Contratos de Input e Tipos
+// Novo Contrato de Input para o RPC
 interface CompetenciaScore {
   competenciaId: string;
   nota: number;
@@ -25,18 +25,12 @@ interface SaveEvaluationInput {
   dataAvaliacao: string;
 }
 
+// Tipo para dados consolidados da view v_member_xy
 interface MemberXYData {
   liderado_id: number;
   x_tecnico: number | null;
   y_comp: number | null;
   quadrante: NivelMaturidade | 'N/A';
-}
-
-interface RpcDashboardData {
-  liderados: any[];
-  avaliacoes: any[];
-  pontuacoes: any[];
-  memberXYData: any[];
 }
 
 interface AuthContextType {
@@ -63,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [liderados, setLiderados] = useState<Usuario[]>([]);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [pontuacoes, setPontuacoes] = useState<PontuacaoAvaliacao[]>([]);
-  const [memberXYData, setMemberXYData] = useState<MemberXYData[]>([]);
+  const [memberXYData, setMemberXYData] = useState<MemberXYData[]>([]); // Novo estado para dados consolidados
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -123,64 +117,120 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchTeamData = async (liderId?: number) => {
-    console.log("fetchTeamData chamada para líder ID:", liderId);
-
-    
     const id = liderId || (profile ? Number(profile.id_usuario) : undefined);
     if (!id) return;
 
-    // **CHAMADA ÚNICA E OTIMIZADA PARA O RPC**
-    const { data: rpcData, error: rpcError } = await supabase.rpc('get_leader_dashboard_data', { p_leader_id: id });
+    // 1. Buscar IDs dos liderados
+    const { data: relacaoData, error: relacaoError } = await supabase
+      .from('lider_liderado')
+      .select('liderado_id')
+      .eq('lider_id', id);
 
-    if (rpcError) {
-      console.error("Erro ao executar RPC get_leader_dashboard_data:", rpcError);
+    if (relacaoError) {
+      console.error("Erro ao buscar relação líder-liderado:", relacaoError);
       setLiderados([]);
-      setAvaliacoes([]);
-      setPontuacoes([]);
-      setMemberXYData([]);
       return;
     }
-
-    const { liderados: lideradosData, avaliacoes: avaliacoesData, pontuacoes: pontuacoesData, memberXYData: xyData } = rpcData as RpcDashboardData;
-
-    // Processar e definir os estados com os dados recebidos
-    setLiderados(lideradosData.map((l: any) => ({ ...l, id_usuario: String(l.id), lider_id: l.lider_id ? String(l.lider_id) : null })) as Usuario[]);
-    setMemberXYData(xyData as MemberXYData[]);
     
-    const formattedAvaliacoes = avaliacoesData.map((a: any) => ({
-      ...a,
-      id_avaliacao: String(a.id),
-      lider_id: String(a.id_lider),
-      liderado_id: String(a.id_liderado),
-      id_cargo: String(a.cargo_referenciado),
-      media_comportamental_1a4: a.media_comportamental,
-      media_tecnica_1a4: a.media_tecnica,
-      maturidade_quadrante: a.nivel_maturidade,
-    })) as Avaliacao[];
-    setAvaliacoes(formattedAvaliacoes);
+    const lideradoIds = relacaoData.map(r => r.liderado_id);
+    
+    // 2. Buscar perfis dos liderados
+    if (lideradoIds.length > 0) {
+      const { data: lideradosData, error: lideradosError } = await supabase
+        .from('usuario')
+        .select('*')
+        .in('id', lideradoIds);
+      
+      if (lideradosError) {
+        console.error("Erro ao buscar liderados:", lideradosError);
+      } else {
+        const currentLiderados = lideradosData.map((l: any) => ({
+          ...l,
+          id_usuario: String(l.id),
+          lider_id: l.lider_id ? String(l.lider_id) : null,
+        })) as Usuario[];
+        setLiderados(currentLiderados);
+      }
+    } else {
+      setLiderados([]);
+    }
 
-    setPontuacoes(pontuacoesData.map((p: any) => ({
-      ...p,
-      id_avaliacao: String(p.id_avaliacao),
-      id_competencia: String(p.id_competencia),
-      pontuacao_1a4: p.pontuacao,
-      peso_aplicado: p.peso,
-    })) as PontuacaoAvaliacao[]);
+    // 3. Buscar dados consolidados (XY)
+    if (lideradoIds.length > 0) {
+        const { data: xyData, error: xyError } = await supabase
+            .from('v_member_xy')
+            .select('*')
+            .in('liderado_id', lideradoIds);
+        
+        if (xyError) {
+            console.error("Erro ao buscar v_member_xy:", xyError);
+            setMemberXYData([]);
+        } else {
+            setMemberXYData(xyData as MemberXYData[]);
+        }
+    } else {
+        setMemberXYData([]);
+    }
+
+    // 4. Buscar avaliações e pontuações (para detalhes e recentes)
+    const { data: avaliacoesData, error: avaliacoesError } = await supabase
+      .from('avaliacao')
+      .select('*')
+      .eq('id_lider', id);
+
+    if (avaliacoesError) {
+      console.error("Erro ao buscar avaliações:", avaliacoesError);
+    } else {
+      const formattedAvaliacoes = avaliacoesData.map((a: any) => ({
+        ...a,
+        id_avaliacao: String(a.id),
+        lider_id: String(a.id_lider),
+        liderado_id: String(a.id_liderado),
+        id_cargo: String(a.cargo_referenciado),
+        media_comportamental_1a4: a.media_comportamental,
+        media_tecnica_1a4: a.media_tecnica,
+        maturidade_quadrante: a.nivel_maturidade,
+      })) as Avaliacao[];
+      setAvaliacoes(formattedAvaliacoes);
+
+      // 5. Buscar pontuações
+      if (formattedAvaliacoes.length > 0) {
+        const avaliacaoIds = formattedAvaliacoes.map(a => Number(a.id_avaliacao));
+        const { data: pontuacoesData, error: pontuacoesError } = await supabase
+          .from('pontuacao_avaliacao')
+          .select('*')
+          .in('id_avaliacao', avaliacaoIds);
+        
+        if (pontuacoesError) {
+          console.error("Erro ao buscar pontuações:", pontuacoesError);
+        } else {
+          const formattedPontuacoes = pontuacoesData.map((p: any) => ({
+            ...p,
+            id_avaliacao: String(p.id_avaliacao),
+            id_competencia: String(p.id_competencia),
+            pontuacao_1a4: p.pontuacao,
+            peso_aplicado: p.peso,
+          })) as PontuacaoAvaliacao[];
+          setPontuacoes(formattedPontuacoes);
+        }
+      } else {
+        setPontuacoes([]);
+      }
+    }
   };
 
   const saveEvaluation = async (input: SaveEvaluationInput) => {
-
-    console.log("saveEvaluation chamada com:", input);
     if (!session) {
       return { success: false, error: "Usuário não autenticado." };
     }
 
     try {
+      // Chamada RPC para salvar a avaliação transacionalmente
       const { data, error } = await supabase.rpc('save_evaluation_transaction', { 
           p_lider_id: Number(input.liderId),
           p_liderado_id: Number(input.lideradoId),
           p_cargo_ref: input.cargoReferenciado,
-          p_payload: input,
+          p_payload: input, // O objeto JSON completo é passado como payload
       });
 
       if (error) {
@@ -188,8 +238,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: error.message };
       }
       
+      // O RPC retorna um array de objetos { avaliacao_id, maturidade }
       const maturidade = data[0]?.maturidade as NivelMaturidade | 'N/A';
+
+      // Se a inserção for bem-sucedida, atualiza os dados do time
       await fetchTeamData(); 
+
       return { success: true, maturidade };
 
     } catch (e: any) {
@@ -280,7 +334,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             media_comportamental_1a4: xyData.y_comp || 0,
             media_tecnica_1a4: xyData.x_tecnico || 0,
             maturidade_quadrante: xyData.quadrante,
-            data_avaliacao: ultimaAvaliacao?.data_avaliacao || new Date().toISOString(),
+            data_avaliacao: ultimaAvaliacao?.data_avaliacao || new Date().toISOString(), // Usar data da última avaliação bruta
         } : undefined,
         competencias: competenciasConsolidadas,
         categoria_dominante,
