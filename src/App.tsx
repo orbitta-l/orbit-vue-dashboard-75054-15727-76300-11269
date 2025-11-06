@@ -18,7 +18,19 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import DashboardLiderado from "./pages/DashboardLiderado";
 
-const queryClient = new QueryClient();
+// Configuração otimizada do QueryClient
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Desativa o refetch automático ao focar na janela, evitando recargas inesperadas.
+      refetchOnWindowFocus: false,
+      // Considera os dados "frescos" por 5 minutos, evitando buscas repetidas.
+      staleTime: 1000 * 60 * 5,
+      // Tenta novamente apenas 1 vez em caso de falha.
+      retry: 1,
+    },
+  },
+});
 
 const LiderDashboardWrapper = ({ children }: { children: React.ReactNode }) => (
   <ProtectedRoute allowedRole="LIDER">
