@@ -1,22 +1,19 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
-import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade, CompetenciaTipo } from '@/types/mer';
+import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade } from '@/types/mer';
 import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
-import { softSkillTemplates } from '@/data/evaluationTemplates'; // Importar para ideal scores
 
-// Novo Contrato de Input para o RPC
+// Contrato de Input para o RPC de salvar avaliação
 interface CompetenciaScore {
   competenciaId: string;
   nota: number;
 }
-
 interface TechBlockInput {
   categoriaId: string;
   especializacaoId: string;
   competencias: CompetenciaScore[];
 }
-
 interface SaveEvaluationInput {
   liderId: string;
   lideradoId: string;
@@ -26,7 +23,7 @@ interface SaveEvaluationInput {
   dataAvaliacao: string;
 }
 
-// Tipo para dados consolidados da view v_member_xy
+// Tipo para dados da view v_member_xy
 interface MemberXYData {
   liderado_id: number;
   x_tecnico: number | null;
@@ -40,15 +37,17 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
+  // Dados do Líder
   liderados: Usuario[];
   avaliacoes: Avaliacao[];
   pontuacoes: PontuacaoAvaliacao[];
   teamData: LideradoDashboard[];
-  lideradoDashboardData: LideradoDashboard | null;
   isPrimeiroAcesso: boolean;
-  loading: boolean;
   fetchTeamData: () => Promise<void>;
-  fetchLideradoDashboardData: (lideradoId: number) => Promise<void>; // NOVO: Expor esta função
+  // Dados do Liderado
+  lideradoDashboardData: LideradoDashboard | null;
+  fetchLideradoDashboardData: (lideradoId: number) => Promise<void>;
+  loading: boolean;
   saveEvaluation: (input: SaveEvaluationInput) => Promise<{ success: boolean; maturidade?: NivelMaturidade | 'N/A'; error?: string }>;
 }
 
@@ -64,75 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [lideradoDashboardData, setLideradoDashboardData] = useState<LideradoDashboard | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      if (session) {
-        await fetchProfileAndData(session.user);
-      }
-      setLoading(false);
-    };
-
-    getInitialSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      if (session) {
-        await fetchProfileAndData(session.user);
-      } else {
-        setProfile(null);
-        setLiderados([]);
-        setAvaliacoes([]);
-        setPontuacoes([]);
-        setMemberXYData([]);
-        setLideradoDashboardData(null);
-      }
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  const fetchProfileAndData = async (user: User) => {
-    setLoading(true);
-    // MODIFICADO: Usa a função RPC 'get_my_profile' que ignora RLS
-    const { data: profileData, error: profileError } = await supabase
-      .rpc('get_my_profile')
-      .single();
-
-    if (profileError || !profileData) {
-      console.error("Erro ao buscar perfil via RPC ou perfil não encontrado:", profileError);
-      setProfile(null);
-      // Se o perfil não for encontrado, deslogamos para evitar loops
-      if (!profileData) {
-        await supabase.auth.signOut();
-      }
-    } else {
-      const dbProfile = profileData as any;
-      const appProfile: Usuario = {
-        ...dbProfile,
-        id_usuario: String(dbProfile.id),
-        lider_id: dbProfile.lider_id ? String(dbProfile.lider_id) : null,
-      };
-      setProfile(appProfile);
-
-      if (appProfile.role === 'LIDER') {
-        await fetchTeamData(dbProfile.id);
-        setLideradoDashboardData(null);
-      } else if (appProfile.role === 'LIDERADO') {
-        await fetchLideradoDashboardData(dbProfile.id);
-        setLiderados([]);
-        setAvaliacoes([]);
-        setPontuacoes([]);
-        setMemberXYData([]);
-      }
-    }
-    setLoading(false);
-  };
-
-  const fetchLideradoDashboardData = async (lideradoId: number) => {
+  const fetchLideradoDashboardData = useCallback(async (lideradoId: number) => {
     const { data, error } = await supabase.rpc('get_liderado_dashboard_data', { p_liderado_id: lideradoId });
 
     if (error) {
@@ -151,10 +82,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id_usuario: String(profileData.id_usuario),
         nome: profileData.nome,
         email: profileData.email,
-        senha_hash: profileData.senha_hash,
+        senha_hash: '', // Não exposto
         role: profileData.role,
         id_cargo: profileData.id_cargo,
-        lider_id: profileData.lider_id ? String(profileData.lider_id) : null,
+        lider_id: null, // Não relevante para o próprio dashboard
         sexo: profileData.sexo,
         data_nascimento: profileData.data_nascimento,
         ativo: profileData.ativo,
@@ -177,10 +108,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           categoria_nome: c.categoria_nome,
           especializacao_nome: c.especializacao_nome,
         })) : [],
-        categoria_dominante: 'Não Avaliado',
-        especializacao_dominante: 'Não Avaliado',
       };
 
+      // Calcular categoria e especialização dominante
       if (mappedLideradoDashboard.ultima_avaliacao && mappedLideradoDashboard.competencias.length > 0) {
           const hardSkills = mappedLideradoDashboard.competencias.filter(c => c.tipo === 'TECNICA');
           if (hardSkills.length > 0) {
@@ -206,9 +136,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setLideradoDashboardData(null);
     }
-  };
+  }, []);
 
-  const fetchTeamData = async (liderId?: number) => {
+  const fetchTeamData = useCallback(async (liderId?: number) => {
     const id = liderId || (profile ? Number(profile.id_usuario) : undefined);
     if (!id) return;
 
@@ -305,13 +235,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPontuacoes([]);
       }
     }
-  };
+  }, [profile]);
+
+  const fetchProfileAndData = useCallback(async (user: User) => {
+    setLoading(true);
+    const { data: profileData, error: profileError } = await supabase
+      .rpc('get_my_profile')
+      .single();
+
+    if (profileError || !profileData) {
+      console.error("Erro ao buscar perfil via RPC ou perfil não encontrado:", profileError);
+      setProfile(null);
+      if (!profileData) await supabase.auth.signOut();
+    } else {
+      const dbProfile = profileData as any;
+      const appProfile: Usuario = {
+        ...dbProfile,
+        id_usuario: String(dbProfile.id),
+        lider_id: dbProfile.lider_id ? String(dbProfile.lider_id) : null,
+      };
+      setProfile(appProfile);
+
+      if (appProfile.role === 'LIDER') {
+        await fetchTeamData(dbProfile.id);
+        setLideradoDashboardData(null);
+      } else if (appProfile.role === 'LIDERADO') {
+        await fetchLideradoDashboardData(dbProfile.id);
+        setLiderados([]);
+        setAvaliacoes([]);
+        setPontuacoes([]);
+        setMemberXYData([]);
+      }
+    }
+    setLoading(false);
+  }, [fetchTeamData, fetchLideradoDashboardData]);
+
+  useEffect(() => {
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      if (session) {
+        await fetchProfileAndData(session.user);
+      }
+      setLoading(false);
+    };
+
+    getInitialSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session);
+      if (session) {
+        await fetchProfileAndData(session.user);
+      } else {
+        setProfile(null);
+        setLiderados([]);
+        setAvaliacoes([]);
+        setPontuacoes([]);
+        setMemberXYData([]);
+        setLideradoDashboardData(null);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [fetchProfileAndData]);
 
   const saveEvaluation = async (input: SaveEvaluationInput) => {
-    if (!session) {
-      return { success: false, error: "Usuário não autenticado." };
-    }
-
+    if (!session) return { success: false, error: "Usuário não autenticado." };
     try {
       const { data, error } = await supabase.rpc('save_evaluation_transaction', { 
           p_lider_id: Number(input.liderId),
@@ -319,38 +310,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           p_cargo_ref: input.cargoReferenciado,
           p_payload: input,
       });
-
-      if (error) {
-        console.error("RPC Save Evaluation Error:", error);
-        return { success: false, error: error.message };
-      }
-      
+      if (error) throw error;
       const maturidade = data[0]?.maturidade as NivelMaturidade | 'N/A';
-
-      // Se a inserção for bem-sucedida, atualiza os dados do time (para o líder)
-      if (profile?.role === 'LIDER') {
-        await fetchTeamData(); 
-      } 
-      // Se o liderado avaliado for o usuário logado (em outra aba, por exemplo),
-      // atualiza o dashboard dele também.
-      if (profile?.role === 'LIDERADO' && profile.id_usuario === input.lideradoId) {
-        await fetchLideradoDashboardData(Number(profile.id_usuario));
-      }
-
+      if (profile?.role === 'LIDER') await fetchTeamData(); 
+      if (profile?.role === 'LIDERADO' && profile.id_usuario === input.lideradoId) await fetchLideradoDashboardData(Number(profile.id_usuario));
       return { success: true, maturidade };
-
     } catch (e: any) {
-      console.error("Unexpected save error:", e);
-      return { success: false, error: e.message || "Erro desconhecido ao salvar avaliação." };
+      return { success: false, error: e.message || "Erro desconhecido." };
     }
   };
 
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      return { success: false, error: error.message };
-    }
-    return { success: true };
+    return { success: !error, error: error?.message };
   };
 
   const logout = async () => {
@@ -358,100 +330,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const isPrimeiroAcesso = useMemo(() => {
-    if (!profile) return true;
-    if (profile.role !== 'LIDER') return false;
+    if (!profile || profile.role !== 'LIDER') return false;
     return liderados.length === 0 || avaliacoes.length === 0;
   }, [profile, liderados, avaliacoes]);
 
   const teamData = useMemo((): LideradoDashboard[] => {
     if (!profile || profile.role !== 'LIDER') return [];
-    
     return liderados.map(liderado => {
       const xyData = memberXYData.find(d => String(d.liderado_id) === liderado.id_usuario);
-      
-      const lideradoAvaliacoes = avaliacoes
-        .filter(a => a.liderado_id === liderado.id_usuario)
-        .sort((a, b) => b.data_avaliacao.getTime() - a.data_avaliacao.getTime());
-
-      const ultimaAvaliacao = lideradoAvaliacoes[0];
+      const ultimaAvaliacao = avaliacoes.filter(a => a.liderado_id === liderado.id_usuario).sort((a, b) => b.data_avaliacao.getTime() - a.data_avaliacao.getTime())[0];
       const cargo = MOCK_CARGOS.find(c => c.id_cargo === liderado.id_cargo);
-
       let competenciasConsolidadas: LideradoDashboard['competencias'] = [];
       let categoria_dominante = "Não Avaliado";
       let especializacao_dominante = "Não Avaliado";
 
       if (ultimaAvaliacao) {
         const pontuacoesDaAvaliacao = pontuacoes.filter(p => p.id_avaliacao === ultimaAvaliacao.id_avaliacao);
-        
         competenciasConsolidadas = pontuacoesDaAvaliacao.map(p => {
             const competencia = MOCK_COMPETENCIAS.find(c => c.id_competencia === p.id_competencia);
             const especializacao = competencia?.id_especializacao ? MOCK_ESPECIALIZACOES.find(e => e.id_especializacao === competencia.id_especializacao) : null;
             const categoria = especializacao ? MOCK_CATEGORIAS.find(cat => cat.id_categoria === especializacao.id_categoria) : null;
-            
-            return {
-                ...p,
-                nome_competencia: competencia?.nome_competencia || 'Desconhecida',
-                tipo: competencia?.tipo || 'TECNICA',
-                categoria_nome: categoria?.nome_categoria || (competencia?.tipo === 'COMPORTAMENTAL' ? 'Soft Skills' : 'N/A'),
-                especializacao_nome: especializacao?.nome_especializacao || 'N/A',
-            };
+            return { ...p, nome_competencia: competencia?.nome_competencia || 'Desconhecida', tipo: competencia?.tipo || 'TECNICA', categoria_nome: categoria?.nome_categoria || (competencia?.tipo === 'COMPORTAMENTAL' ? 'Soft Skills' : 'N/A'), especializacao_nome: especializacao?.nome_especializacao || 'N/A' };
         });
-
         const hardSkills = competenciasConsolidadas.filter(c => c.tipo === 'TECNICA');
         if (hardSkills.length > 0) {
-            const categoryScores = hardSkills.reduce((acc, skill) => {
-                if (skill.categoria_nome && skill.categoria_nome !== 'N/A') {
-                    acc[skill.categoria_nome] = (acc[skill.categoria_nome] || 0) + skill.pontuacao_1a4;
-                }
-                return acc;
-            }, {} as Record<string, number>);
-
+            const categoryScores = hardSkills.reduce((acc, skill) => { if (skill.categoria_nome && skill.categoria_nome !== 'N/A') { acc[skill.categoria_nome] = (acc[skill.categoria_nome] || 0) + skill.pontuacao_1a4; } return acc; }, {} as Record<string, number>);
             categoria_dominante = Object.keys(categoryScores).reduce((a, b) => categoryScores[a] > categoryScores[b] ? a : b, "Não Avaliado");
-
-            const specializationScores = hardSkills.reduce((acc, skill) => {
-                if (skill.especializacao_nome && skill.especializacao_nome !== 'N/A') {
-                    acc[skill.especializacao_nome] = (acc[skill.especializacao_nome] || 0) + skill.pontuacao_1a4;
-                }
-                return acc;
-            }, {} as Record<string, number>);
-
+            const specializationScores = hardSkills.reduce((acc, skill) => { if (skill.especializacao_nome && skill.especializacao_nome !== 'N/A') { acc[skill.especializacao_nome] = (acc[skill.especializacao_nome] || 0) + skill.pontuacao_1a4; } return acc; }, {} as Record<string, number>);
             especializacao_dominante = Object.keys(specializationScores).reduce((a, b) => specializationScores[a] > specializationScores[b] ? a : b, "Não Avaliado");
         }
       }
-
-      return {
-        ...liderado,
-        idade: calcularIdade(liderado.data_nascimento),
-        cargo_nome: cargo?.nome_cargo || 'Não definido',
-        ultima_avaliacao: xyData ? {
-            media_comportamental_1a4: xyData.y_comp || 0,
-            media_tecnica_1a4: xyData.x_tecnico || 0,
-            maturidade_quadrante: xyData.quadrante,
-            data_avaliacao: ultimaAvaliacao?.data_avaliacao || new Date(),
-        } : undefined,
-        competencias: competenciasConsolidadas,
-        categoria_dominante,
-        especializacao_dominante,
-      };
+      return { ...liderado, idade: calcularIdade(liderado.data_nascimento), cargo_nome: cargo?.nome_cargo || 'Não definido', ultima_avaliacao: xyData ? { media_comportamental_1a4: xyData.y_comp || 0, media_tecnica_1a4: xyData.x_tecnico || 0, maturidade_quadrante: xyData.quadrante, data_avaliacao: ultimaAvaliacao?.data_avaliacao || new Date() } : undefined, competencias: competenciasConsolidadas, categoria_dominante, especializacao_dominante };
     });
   }, [profile, liderados, avaliacoes, pontuacoes, memberXYData]);
 
   const value = {
-    session,
-    profile,
-    isAuthenticated: !!session,
-    login,
-    logout,
-    liderados,
-    avaliacoes,
-    pontuacoes,
-    teamData,
-    lideradoDashboardData,
-    isPrimeiroAcesso,
-    loading,
-    fetchTeamData: () => fetchTeamData(),
-    fetchLideradoDashboardData,
-    saveEvaluation,
+    session, profile, isAuthenticated: !!session, login, logout, liderados, avaliacoes, pontuacoes, teamData, lideradoDashboardData, isPrimeiroAcesso, loading, fetchTeamData: () => fetchTeamData(), fetchLideradoDashboardData, saveEvaluation,
   };
 
   return (
