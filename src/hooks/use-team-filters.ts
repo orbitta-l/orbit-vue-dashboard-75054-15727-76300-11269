@@ -2,17 +2,17 @@ import { useState, useMemo, useCallback } from "react";
 import { LideradoDashboard, NivelMaturidade, SexoTipo } from "@/types/mer";
 import { technicalTemplate } from "@/data/evaluationTemplates";
 
-interface ActiveFilters {
-  maturity: NivelMaturidade[] | 'all';
-  category: string | 'all';
-  specialization: string | 'all';
-  competency: string | 'all';
-  age: string | 'all'; // Ex: '<21', '21-29', '30-39', '40+'
+export interface ActiveFilters {
+  maturity: NivelMaturidade[];
+  category: string;
+  specialization: string;
+  competency: string;
+  age: string;
   gender: SexoTipo | 'all';
 }
 
 const initialFilters: ActiveFilters = {
-  maturity: 'all',
+  maturity: [],
   category: 'all',
   specialization: 'all',
   competency: 'all',
@@ -39,63 +39,42 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
   }, []);
 
   const activeFilterCount = useMemo(() => {
-    return Object.values(activeFilters).filter(value => 
-      (Array.isArray(value) && value.length > 0) || 
-      (typeof value === 'string' && value !== 'all' && value !== '')
-    ).length;
+    return Object.entries(activeFilters).filter(([key, value]) => {
+      if (key === 'maturity') return Array.isArray(value) && value.length > 0;
+      return value !== 'all' && value !== '';
+    }).length;
   }, [activeFilters]);
 
   const filteredMembers = useMemo(() => {
     let members = teamData;
 
-    // 1. Filtro de Nome
     if (searchName) {
       members = members.filter(member =>
         member.nome.toLowerCase().includes(searchName.toLowerCase())
       );
     }
 
-    // 2. Aplicação de Filtros Ativos
     members = members.filter(member => {
       const { ultima_avaliacao, sexo, idade, competencias } = member;
       const { maturity, category, specialization, competency, age, gender } = activeFilters;
 
-      // Maturidade
-      if (maturity !== 'all' && Array.isArray(maturity) && ultima_avaliacao) {
+      if (maturity.length > 0 && ultima_avaliacao) {
         if (!maturity.includes(ultima_avaliacao.maturidade_quadrante)) return false;
       }
 
-      // Gênero
       if (gender !== 'all' && sexo !== gender) return false;
 
-      // Idade
       if (age !== 'all') {
         const range = AGE_RANGES[age];
         if (idade < range.min || idade > range.max) return false;
       }
 
-      // Filtros de Competência (só se o membro tiver sido avaliado)
       if (ultima_avaliacao) {
-        // Categoria
-        if (category !== 'all') {
-          const hasCategory = competencias.some(c => c.categoria_nome === category);
-          if (!hasCategory) return false;
-        }
-
-        // Especialização
-        if (specialization !== 'all') {
-          const hasSpecialization = competencias.some(c => c.especializacao_nome === specialization);
-          if (!hasSpecialization) return false;
-        }
-
-        // Competência Específica
-        if (competency !== 'all') {
-          const hasCompetency = competencias.some(c => c.nome_competencia === competency && c.pontuacao_1a4 > 0);
-          if (!hasCompetency) return false;
-        }
+        if (category !== 'all' && !competencias.some(c => c.categoria_nome === category)) return false;
+        if (specialization !== 'all' && !competencias.some(c => c.especializacao_nome === specialization)) return false;
+        if (competency !== 'all' && !competencias.some(c => c.nome_competencia === competency && c.pontuacao_1a4 > 0)) return false;
       } else {
-        // Se filtros técnicos/maturidade estão ativos, mas o membro não tem avaliação, ele é filtrado
-        if (maturity !== 'all' || category !== 'all' || specialization !== 'all' || competency !== 'all') {
+        if (maturity.length > 0 || category !== 'all' || specialization !== 'all' || competency !== 'all') {
             return false;
         }
       }
@@ -103,8 +82,6 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
       return true;
     });
 
-    // 3. Identificação do TALENTO (Melhor membro no subconjunto filtrado)
-    // Critério: Maior média combinada (Técnica + Comportamental)
     let bestScore = -1;
     let talentId: string | null = null;
 
@@ -125,19 +102,18 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
 
   }, [teamData, searchName, activeFilters]);
 
-  // Dados para popular os selects de filtro
   const filterOptions = useMemo(() => {
-    const allCategories = technicalTemplate.map(c => c.nome_categoria);
+    const allCategories = technicalTemplate.map(c => ({ id: c.id_categoria, name: c.nome_categoria }));
     
     const specializations = activeFilters.category !== 'all'
-      ? technicalTemplate.find(c => c.nome_categoria === activeFilters.category)?.especializacoes.map(s => s.nome_especializacao) || []
+      ? technicalTemplate.find(c => c.id_categoria === activeFilters.category)?.especializacoes.map(s => ({ id: s.id_especializacao, name: s.nome_especializacao })) || []
       : [];
 
     const competencies = activeFilters.specialization !== 'all'
       ? technicalTemplate.flatMap(c => 
           c.especializacoes
-            .filter(s => s.nome_especializacao === activeFilters.specialization)
-            .flatMap(s => s.competencias.map(comp => comp.nome_competencia))
+            .filter(s => s.id_especializacao === activeFilters.specialization)
+            .flatMap(s => s.competencias.map(comp => ({ id: comp.id_competencia, name: comp.nome_competencia })))
         )
       : [];
 
