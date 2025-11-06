@@ -4,7 +4,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade } from '@/types/mer';
 import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
 
-// Novo Contrato de Input para o RPC
+// Contratos de Input e Tipos
 interface CompetenciaScore {
   competenciaId: string;
   nota: number;
@@ -25,12 +25,18 @@ interface SaveEvaluationInput {
   dataAvaliacao: string;
 }
 
-// Tipo para dados consolidados da view v_member_xy
 interface MemberXYData {
   liderado_id: number;
   x_tecnico: number | null;
   y_comp: number | null;
   quadrante: NivelMaturidade | 'N/A';
+}
+
+interface RpcDashboardData {
+  liderados: any[];
+  avaliacoes: any[];
+  pontuacoes: any[];
+  memberXYData: any[];
 }
 
 interface AuthContextType {
@@ -120,21 +126,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const id = liderId || (profile ? Number(profile.id_usuario) : undefined);
     if (!id) return;
 
-    // 1. Buscar IDs dos liderados (etapa sequencial necessária)
-    const { data: relacaoData, error: relacaoError } = await supabase
-      .from('lider_liderado')
-      .select('liderado_id')
-      .eq('lider_id', id);
+    // **CHAMADA ÚNICA E OTIMIZADA PARA O RPC**
+    const { data: rpcData, error: rpcError } = await supabase.rpc('get_leader_dashboard_data', { p_leader_id: id });
 
-    if (relacaoError) {
-      console.error("Erro ao buscar relação líder-liderado:", relacaoError);
-      setLiderados([]);
-      return;
-    }
-    
-    const lideradoIds = relacaoData.map(r => r.liderado_id);
-    
-    if (lideradoIds.length === 0) {
+    if (rpcError) {
+      console.error("Erro ao executar RPC get_leader_dashboard_data:", rpcError);
       setLiderados([]);
       setAvaliacoes([]);
       setPontuacoes([]);
@@ -142,24 +138,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // 2. Executar buscas de dados principais em PARALELO
-    const [lideradosResult, xyDataResult, avaliacoesResult] = await Promise.all([
-      supabase.from('usuario').select('*').in('id', lideradoIds),
-      supabase.from('v_member_xy').select('*').in('liderado_id', lideradoIds),
-      supabase.from('avaliacao').select('*').eq('id_lider', id)
-    ]);
+    const { liderados: lideradosData, avaliacoes: avaliacoesData, pontuacoes: pontuacoesData, memberXYData: xyData } = rpcData as RpcDashboardData;
 
-    // 3. Processar resultados e tratar erros
-    const { data: lideradosData, error: lideradosError } = lideradosResult;
-    const { data: xyData, error: xyError } = xyDataResult;
-    const { data: avaliacoesData, error: avaliacoesError } = avaliacoesResult;
-
-    if (lideradosError || xyError || avaliacoesError) {
-      console.error("Erro ao buscar dados em paralelo:", { lideradosError, xyError, avaliacoesError });
-      return;
-    }
-
-    // Atualizar estados com os dados obtidos
+    // Processar e definir os estados com os dados recebidos
     setLiderados(lideradosData.map((l: any) => ({ ...l, id_usuario: String(l.id), lider_id: l.lider_id ? String(l.lider_id) : null })) as Usuario[]);
     setMemberXYData(xyData as MemberXYData[]);
     
@@ -175,29 +156,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })) as Avaliacao[];
     setAvaliacoes(formattedAvaliacoes);
 
-    // 4. Buscar pontuações (dependente das avaliações)
-    if (formattedAvaliacoes.length > 0) {
-      const avaliacaoIds = formattedAvaliacoes.map(a => Number(a.id_avaliacao));
-      const { data: pontuacoesData, error: pontuacoesError } = await supabase
-        .from('pontuacao_avaliacao')
-        .select('*')
-        .in('id_avaliacao', avaliacaoIds);
-      
-      if (pontuacoesError) {
-        console.error("Erro ao buscar pontuações:", pontuacoesError);
-        setPontuacoes([]);
-      } else {
-        setPontuacoes(pontuacoesData.map((p: any) => ({
-          ...p,
-          id_avaliacao: String(p.id_avaliacao),
-          id_competencia: String(p.id_competencia),
-          pontuacao_1a4: p.pontuacao,
-          peso_aplicado: p.peso,
-        })) as PontuacaoAvaliacao[]);
-      }
-    } else {
-      setPontuacoes([]);
-    }
+    setPontuacoes(pontuacoesData.map((p: any) => ({
+      ...p,
+      id_avaliacao: String(p.id_avaliacao),
+      id_competencia: String(p.id_competencia),
+      pontuacao_1a4: p.pontuacao,
+      peso_aplicado: p.peso,
+    })) as PontuacaoAvaliacao[]);
   };
 
   const saveEvaluation = async (input: SaveEvaluationInput) => {
