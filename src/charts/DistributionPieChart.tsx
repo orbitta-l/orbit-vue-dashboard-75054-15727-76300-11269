@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
-import { LideradoPerformance, PieChartFilterType } from "@/types/mer";
+import { LideradoDashboard, PieChartFilterType } from "@/types/mer";
 
 interface DistributionPieChartProps {
-  teamMembers: LideradoPerformance[];
+  teamMembers: LideradoDashboard[];
   empty?: boolean;
 }
 
@@ -14,7 +14,19 @@ const CHART_COLORS = [
   "hsl(var(--chart-2))",
   "hsl(var(--chart-3))",
   "hsl(var(--chart-4))",
+  "hsl(var(--chart-1) / 0.6)",
 ];
+
+// Helper para classificar a idade em faixas
+const getAgeRange = (idade?: number | null): string => {
+  if (!idade) {
+    return "Idade não informada";
+  }
+  if (idade <= 25) return "Até 25 anos";
+  if (idade <= 35) return "26-35 anos";
+  if (idade <= 45) return "36-45 anos";
+  return "Acima de 45 anos";
+};
 
 export default function DistributionPieChart({ teamMembers, empty = false }: DistributionPieChartProps) {
   const [filter, setFilter] = useState<PieChartFilterType>("maturidade");
@@ -33,7 +45,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
 
       switch (filter) {
         case "maturidade":
-          key = member.nivel_maturidade;
+          key = member.ultima_avaliacao?.maturidade_quadrante || "Não Avaliado";
           break;
         case "categoria":
           key = member.categoria_dominante || "Não definida";
@@ -42,8 +54,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
           key = member.sexo === "NAO_INFORMADO" ? "Não informado" : member.sexo;
           break;
         case "faixaEtaria":
-          // placeholder – idade ainda não está no mock
-          key = "Não definido";
+          key = getAgeRange(member.idade);
           break;
         default:
           key = "Outros";
@@ -51,6 +62,15 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
 
       counts[key] = (counts[key] || 0) + 1;
     });
+
+    // Ordena as faixas etárias para uma visualização consistente
+    if (filter === 'faixaEtaria') {
+      const sortedEntries = Object.entries(counts).sort(([a], [b]) => {
+        const order = ["Até 25 anos", "26-35 anos", "36-45 anos", "Acima de 45 anos", "Idade não informada"];
+        return order.indexOf(a) - order.indexOf(b);
+      });
+      return sortedEntries.map(([name, value]) => ({ name, value }));
+    }
 
     return Object.entries(counts).map(([name, value]) => ({
       name,

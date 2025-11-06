@@ -63,7 +63,7 @@ export default function Home() {
   }, [isPrimeiroAcesso, liderados, avaliacoes, teamData]);
 
   const dashboardData = useMemo(() => {
-    if (isPrimeiroAcesso) return { quadrante: [], barras: [], pizza: [], gaps: undefined, recentes: [] };
+    if (isPrimeiroAcesso) return { quadrante: [], barras: [], pizza: [], gaps: [], recentes: [] };
 
     const teamPerformance = teamData.map(liderado => {
       return {
@@ -76,13 +76,12 @@ export default function Home() {
         competencias: liderado.competencias,
         sexo: liderado.sexo,
         idade: liderado.idade,
-        categoria_dominante: liderado.categoria_dominante, // Garantindo que o dado está aqui para o PieChart
+        categoria_dominante: liderado.categoria_dominante,
       };
     });
 
     const allEvaluatedCompetencies = teamPerformance.flatMap(p => p.competencias);
     
-    // 1. Agregação de médias por NOME da competência
     const competencyMap = new Map<string, { soma: number; count: number; }>();
     
     allEvaluatedCompetencies.forEach(c => {
@@ -95,7 +94,6 @@ export default function Home() {
       }
     });
 
-    // 2. Mapeamento de todas as competências possíveis (do template) para a média calculada
     const allTemplateCompetencies = [
       ...softSkillTemplates.flatMap(t => t.competencias.map(c => {
         const compDetails = MOCK_COMPETENCIAS.find(mc => mc.id_competencia === c.id_competencia);
@@ -118,7 +116,6 @@ export default function Home() {
       )
     ];
     
-    // Garante unicidade pelo nome da competência
     const uniqueTemplateCompetencies = Array.from(new Map(allTemplateCompetencies.map(item => [item.competencia, item])).values());
 
     const barras = uniqueTemplateCompetencies.map(templateComp => {
@@ -132,7 +129,7 @@ export default function Home() {
         categoria: templateComp.categoria,
         especializacao: templateComp.especializacao
       };
-    }).filter(b => b.media > 0); // Filtra apenas competências que foram avaliadas (media > 0)
+    }).filter(b => b.media > 0);
 
     const recentes = avaliacoes.slice(-3).map(av => ({
       evaluationId: av.id_avaliacao,
@@ -144,8 +141,8 @@ export default function Home() {
     return {
       quadrante: teamPerformance,
       barras,
-      pizza: teamPerformance,
-      gaps: teamPerformance,
+      pizza: teamData, // Passando o teamData completo que já é do tipo LideradoDashboard[]
+      gaps: teamData,
       recentes,
     };
   }, [isPrimeiroAcesso, liderados, avaliacoes, teamData]);
@@ -195,12 +192,12 @@ export default function Home() {
 
       <DistributionPieChart
         empty={isPrimeiroAcesso}
-        teamMembers={dashboardData.pizza as any}
+        teamMembers={dashboardData.pizza}
       />
 
       <KnowledgeGapsSection
         empty={isPrimeiroAcesso}
-        teamMembers={dashboardData.gaps as any}
+        teamMembers={dashboardData.gaps}
       />
 
       <RecentEvaluationsSection
