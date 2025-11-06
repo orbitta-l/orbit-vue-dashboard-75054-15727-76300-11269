@@ -34,7 +34,7 @@ export default function Compare() {
     [teamData, selectedMembersForComparison]
   );
 
-  const colors = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--chart-3))", "hsl(var(--chart-4))"];
+  const colors = ["hsl(var(--primary))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--destructive))"];
 
   const analysisThemes = useMemo(() => {
     const hardSkillThemes = technicalTemplate.map(category => ({
@@ -251,9 +251,11 @@ export default function Compare() {
                   <PolarGrid stroke="hsl(var(--muted-foreground) / 0.3)" strokeWidth={1} />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: 'hsl(var(--foreground))', fontSize: 13, fontWeight: 500 }} />
                   <PolarRadiusAxis angle={90} domain={[0, 4]} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} stroke="hsl(var(--muted-foreground) / 0.3)" />
-                  <Radar name="Perfil Ideal" dataKey="PerfilIdeal" stroke="hsl(var(--primary-dark))" fill="hsl(var(--primary-dark))" fillOpacity={0} strokeWidth={3} strokeDasharray="5 5" strokeOpacity={0.8} />
+                  
+                  <Radar name="Perfil Ideal" dataKey="PerfilIdeal" stroke="hsl(var(--accent))" fill="hsl(var(--accent))" fillOpacity={0.2} strokeWidth={2} />
+                  
                   {selectedMembers.map((member, index) => (
-                    <Radar key={member.id_usuario} name={member.nome} dataKey={member.nome} stroke={colors[index % colors.length]} fill={colors[index % colors.length]} fillOpacity={0.4} strokeWidth={2} />
+                    <Radar key={member.id_usuario} name={member.nome} dataKey={member.nome} stroke={colors[index % colors.length]} fill={colors[index % colors.length]} fillOpacity={0.6} strokeWidth={2} />
                   ))}
                   <Legend wrapperStyle={{ paddingTop: '30px' }} iconType="circle" iconSize={12} />
                 </RadarChart>
