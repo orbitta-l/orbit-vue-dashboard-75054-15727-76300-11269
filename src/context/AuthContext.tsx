@@ -123,6 +123,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchTeamData = async (liderId?: number) => {
+    console.log("fetchTeamData chamada para líder ID:", liderId);
+
+    
     const id = liderId || (profile ? Number(profile.id_usuario) : undefined);
     if (!id) return;
 
