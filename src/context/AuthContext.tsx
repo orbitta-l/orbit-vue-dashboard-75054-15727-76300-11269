@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
-import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade } from '@/types/mer';
+import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade, CompetenciaTipo } from '@/types/mer';
 import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
+import { softSkillTemplates } from '@/data/evaluationTemplates'; // Importar para ideal scores
 
 // Novo Contrato de Input para o RPC
 interface CompetenciaScore {
@@ -43,21 +44,24 @@ interface AuthContextType {
   avaliacoes: Avaliacao[];
   pontuacoes: PontuacaoAvaliacao[];
   teamData: LideradoDashboard[];
+  lideradoDashboardData: LideradoDashboard | null;
   isPrimeiroAcesso: boolean;
   loading: boolean;
   fetchTeamData: () => Promise<void>;
+  fetchLideradoDashboardData: (lideradoId: number) => Promise<void>; // NOVO: Expor esta função
   saveEvaluation: (input: SaveEvaluationInput) => Promise<{ success: boolean; maturidade?: NivelMaturidade | 'N/A'; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Usuario | null>(null);
   const [liderados, setLiderados] = useState<Usuario[]>([]);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [pontuacoes, setPontuacoes] = useState<PontuacaoAvaliacao[]>([]);
-  const [memberXYData, setMemberXYData] = useState<MemberXYData[]>([]); // Novo estado para dados consolidados
+  const [memberXYData, setMemberXYData] = useState<MemberXYData[]>([]);
+  const [lideradoDashboardData, setLideradoDashboardData] = useState<LideradoDashboard | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -82,6 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAvaliacoes([]);
         setPontuacoes([]);
         setMemberXYData([]);
+        setLideradoDashboardData(null);
       }
     });
 
@@ -109,18 +114,101 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         lider_id: dbProfile.lider_id ? String(dbProfile.lider_id) : null,
       };
       setProfile(appProfile);
+
       if (appProfile.role === 'LIDER') {
         await fetchTeamData(dbProfile.id);
+        setLideradoDashboardData(null);
+      } else if (appProfile.role === 'LIDERADO') {
+        await fetchLideradoDashboardData(dbProfile.id);
+        setLiderados([]);
+        setAvaliacoes([]);
+        setPontuacoes([]);
+        setMemberXYData([]);
       }
     }
     setLoading(false);
+  };
+
+  const fetchLideradoDashboardData = async (lideradoId: number) => {
+    const { data, error } = await supabase.rpc('get_liderado_dashboard_data', { p_liderado_id: lideradoId });
+
+    if (error) {
+      console.error("Erro ao buscar dados do dashboard do liderado:", error);
+      setLideradoDashboardData(null);
+      return;
+    }
+
+    if (data) {
+      const rawData = data as any;
+      const profileData = rawData.profile;
+      const ultimaAvaliacaoData = rawData.ultima_avaliacao;
+      const competenciasData = rawData.competencias;
+
+      const mappedLideradoDashboard: LideradoDashboard = {
+        id_usuario: String(profileData.id_usuario),
+        nome: profileData.nome,
+        email: profileData.email,
+        senha_hash: profileData.senha_hash,
+        role: profileData.role,
+        id_cargo: profileData.id_cargo,
+        lider_id: profileData.lider_id ? String(profileData.lider_id) : null,
+        sexo: profileData.sexo,
+        data_nascimento: profileData.data_nascimento,
+        ativo: profileData.ativo,
+        avatar_url: profileData.avatar_url,
+        idade: profileData.idade,
+        cargo_nome: profileData.cargo_nome,
+        ultima_avaliacao: ultimaAvaliacaoData ? {
+          media_comportamental_1a4: ultimaAvaliacaoData.media_comportamental_1a4,
+          media_tecnica_1a4: ultimaAvaliacaoData.media_tecnica_1a4,
+          maturidade_quadrante: ultimaAvaliacaoData.maturidade_quadrante,
+          data_avaliacao: new Date(ultimaAvaliacaoData.data_avaliacao + 'Z'),
+        } : undefined,
+        competencias: competenciasData ? competenciasData.map((c: any) => ({
+          id_avaliacao: String(ultimaAvaliacaoData?.id_avaliacao || ''),
+          id_competencia: String(c.id_competencia),
+          pontuacao_1a4: c.pontuacao_1a4,
+          peso_aplicado: c.peso_aplicado,
+          nome_competencia: c.nome_competencia,
+          tipo: c.tipo,
+          categoria_nome: c.categoria_nome,
+          especializacao_nome: c.especializacao_nome,
+        })) : [],
+        categoria_dominante: 'Não Avaliado',
+        especializacao_dominante: 'Não Avaliado',
+      };
+
+      if (mappedLideradoDashboard.ultima_avaliacao && mappedLideradoDashboard.competencias.length > 0) {
+          const hardSkills = mappedLideradoDashboard.competencias.filter(c => c.tipo === 'TECNICA');
+          if (hardSkills.length > 0) {
+              const categoryScores = hardSkills.reduce((acc, skill) => {
+                  if (skill.categoria_nome && skill.categoria_nome !== 'N/A') {
+                      acc[skill.categoria_nome] = (acc[skill.categoria_nome] || 0) + skill.pontuacao_1a4;
+                  }
+                  return acc;
+              }, {} as Record<string, number>);
+              mappedLideradoDashboard.categoria_dominante = Object.keys(categoryScores).reduce((a, b) => categoryScores[a] > categoryScores[b] ? a : b, "Não Avaliado");
+
+              const specializationScores = hardSkills.reduce((acc, skill) => {
+                  if (skill.especializacao_nome && skill.especializacao_nome !== 'N/A') {
+                      acc[skill.especializacao_nome] = (acc[skill.especializacao_nome] || 0) + skill.pontuacao_1a4;
+                  }
+                  return acc;
+              }, {} as Record<string, number>);
+              mappedLideradoDashboard.especializacao_dominante = Object.keys(specializationScores).reduce((a, b) => specializationScores[a] > specializationScores[b] ? a : b, "Não Avaliado");
+          }
+      }
+
+      setLideradoDashboardData(mappedLideradoDashboard);
+    } else {
+      setLideradoDashboardData(null);
+    }
   };
 
   const fetchTeamData = async (liderId?: number) => {
     const id = liderId || (profile ? Number(profile.id_usuario) : undefined);
     if (!id) return;
 
-    // 1. Buscar IDs dos liderados
     const { data: relacaoData, error: relacaoError } = await supabase
       .from('lider_liderado')
       .select('liderado_id')
@@ -134,7 +222,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const lideradoIds = relacaoData.map(r => r.liderado_id);
     
-    // 2. Buscar perfis dos liderados
     if (lideradoIds.length > 0) {
       const { data: lideradosData, error: lideradosError } = await supabase
         .from('usuario')
@@ -155,7 +242,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLiderados([]);
     }
 
-    // 3. Buscar dados consolidados (XY)
     if (lideradoIds.length > 0) {
         const { data: xyData, error: xyError } = await supabase
             .from('v_member_xy')
@@ -172,7 +258,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setMemberXYData([]);
     }
 
-    // 4. Buscar avaliações e pontuações (para detalhes e recentes)
     const { data: avaliacoesData, error: avaliacoesError } = await supabase
       .from('avaliacao')
       .select('*')
@@ -187,14 +272,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         lider_id: String(a.id_lider),
         liderado_id: String(a.id_liderado),
         id_cargo: String(a.cargo_referenciado),
-        data_avaliacao: new Date(a.data_avaliacao + 'Z'), // Adiciona 'Z' para interpretar como UTC
+        data_avaliacao: new Date(a.data_avaliacao + 'Z'),
         media_comportamental_1a4: a.media_comportamental,
         media_tecnica_1a4: a.media_tecnica,
         maturidade_quadrante: a.nivel_maturidade,
       })) as Avaliacao[];
       setAvaliacoes(formattedAvaliacoes);
 
-      // 5. Buscar pontuações
       if (formattedAvaliacoes.length > 0) {
         const avaliacaoIds = formattedAvaliacoes.map(a => Number(a.id_avaliacao));
         const { data: pontuacoesData, error: pontuacoesError } = await supabase
@@ -226,12 +310,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      // Chamada RPC para salvar a avaliação transacionalmente
       const { data, error } = await supabase.rpc('save_evaluation_transaction', { 
           p_lider_id: Number(input.liderId),
           p_liderado_id: Number(input.lideradoId),
           p_cargo_ref: input.cargoReferenciado,
-          p_payload: input, // O objeto JSON completo é passado como payload
+          p_payload: input,
       });
 
       if (error) {
@@ -239,11 +322,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: error.message };
       }
       
-      // O RPC retorna um array de objetos { avaliacao_id, maturidade }
       const maturidade = data[0]?.maturidade as NivelMaturidade | 'N/A';
 
-      // Se a inserção for bem-sucedida, atualiza os dados do time
-      await fetchTeamData(); 
+      // Se a inserção for bem-sucedida, atualiza os dados do time (para o líder)
+      if (profile?.role === 'LIDER') {
+        await fetchTeamData(); 
+      } 
+      // Se o liderado avaliado for o usuário logado (em outra aba, por exemplo),
+      // atualiza o dashboard dele também.
+      if (profile?.role === 'LIDERADO' && profile.id_usuario === input.lideradoId) {
+        await fetchLideradoDashboardData(Number(profile.id_usuario));
+      }
 
       return { success: true, maturidade };
 
@@ -279,7 +368,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const lideradoAvaliacoes = avaliacoes
         .filter(a => a.liderado_id === liderado.id_usuario)
-        .sort((a, b) => b.data_avaliacao.getTime() - a.data_avaliacao.getTime()); // Já são objetos Date
+        .sort((a, b) => b.data_avaliacao.getTime() - a.data_avaliacao.getTime());
 
       const ultimaAvaliacao = lideradoAvaliacoes[0];
       const cargo = MOCK_CARGOS.find(c => c.id_cargo === liderado.id_cargo);
@@ -335,7 +424,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             media_comportamental_1a4: xyData.y_comp || 0,
             media_tecnica_1a4: xyData.x_tecnico || 0,
             maturidade_quadrante: xyData.quadrante,
-            data_avaliacao: ultimaAvaliacao?.data_avaliacao || new Date(), // Usar data da última avaliação bruta ou new Date()
+            data_avaliacao: ultimaAvaliacao?.data_avaliacao || new Date(),
         } : undefined,
         competencias: competenciasConsolidadas,
         categoria_dominante,
@@ -354,9 +443,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     avaliacoes,
     pontuacoes,
     teamData,
+    lideradoDashboardData,
     isPrimeiroAcesso,
     loading,
     fetchTeamData: () => fetchTeamData(),
+    fetchLideradoDashboardData,
     saveEvaluation,
   };
 

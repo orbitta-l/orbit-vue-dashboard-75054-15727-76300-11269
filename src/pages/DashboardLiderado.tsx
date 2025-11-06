@@ -2,7 +2,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, Target, BookOpen, TrendingUp, Filter, ClipboardCheck, Lightbulb } from "lucide-react";
+import { LogOut, Target, BookOpen, Filter, ClipboardCheck, Lightbulb, User as UserIcon, Calendar as CalendarIcon } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
@@ -20,66 +20,134 @@ import {
   CartesianGrid,
   Tooltip
 } from "recharts";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { softSkillTemplates } from "@/data/evaluationTemplates";
+import { MOCK_COMPETENCIAS } from "@/data/mockData";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { NivelMaturidade } from "@/types/mer";
+
+// Helper para obter o nome da competência
+const getCompetencyNameById = (id: string) => {
+  return MOCK_COMPETENCIAS.find(c => c.id_competencia === id)?.nome_competencia || id;
+};
+
+// Helper para obter o ideal score de soft skills
+const getSoftSkillIdealScore = (competencyId: string, cargoId: string): number => {
+  const template = softSkillTemplates.find(t => t.id_cargo === cargoId);
+  return template?.competencias.find(c => c.id_competencia === competencyId)?.nota_ideal || 4.0; // Default 4.0 se não encontrar
+};
+
+interface RadarDataPoint {
+  competency: string;
+  atual: number;
+  ideal: number;
+  categoria?: string;
+}
 
 export default function DashboardLiderado() {
-  const { profile, logout, avaliacoes } = useAuth();
+  const { profile, logout, lideradoDashboardData, loading, fetchLideradoDashboardData } = useAuth();
   const navigate = useNavigate();
   
-  const minhasAvaliacoes = avaliacoes.filter(a => a.id_liderado === profile?.id);
-  const hasData = minhasAvaliacoes.length > 0;
+  const hasData = !!lideradoDashboardData && !!lideradoDashboardData.ultima_avaliacao;
   
   const [radarViewMode, setRadarViewMode] = useState<"all" | "soft" | "custom">("all");
-  const [selectedHardSkills, setSelectedHardSkills] = useState<string[]>(["React", "TypeScript", "API REST"]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedHardCategories, setSelectedHardCategories] = useState<string[]>([]);
+  const [selectedCategoryForBars, setSelectedCategoryForBars] = useState<string>("all");
+
+  // NOVO: useEffect para buscar dados do liderado quando o componente é montado ou o perfil muda
+  useEffect(() => {
+    if (profile && profile.role === 'LIDERADO' && profile.id_usuario) {
+      fetchLideradoDashboardData(Number(profile.id_usuario));
+    }
+  }, [profile?.id_usuario, profile?.role, fetchLideradoDashboardData]);
 
   const handleLogout = () => {
     logout();
     navigate("/", { replace: true });
   };
 
-  // Soft Skills
-  const softSkillsData = [
-    { competencia: "Comunicação", atual: 2, ideal: 4 },
-    { competencia: "Trabalho em Equipe", atual: 3, ideal: 4 },
-    { competencia: "Aprendizado", atual: 2, ideal: 4 },
-    { competencia: "Iniciativa", atual: 2, ideal: 3 },
-    { competencia: "Adaptabilidade", atual: 2, ideal: 4 },
-  ];
+  // Dados para o Radar Chart
+  const competenciasVersus = useMemo(() => {
+    if (!hasData || !lideradoDashboardData) return [];
 
-  // Hard Skills
-  const hardSkillsData = [
-    { competencia: "React", atual: 3, ideal: 4 },
-    { competencia: "TypeScript", atual: 2, ideal: 4 },
-    { competencia: "API REST", atual: 3, ideal: 4 },
-  ];
+    const softSkillsData: RadarDataPoint[] = lideradoDashboardData.competencias
+      .filter(c => c.tipo === 'COMPORTAMENTAL')
+      .map(c => ({
+        competency: c.nome_competencia,
+        atual: c.pontuacao_1a4,
+        ideal: getSoftSkillIdealScore(c.id_competencia, lideradoDashboardData.id_cargo),
+      }));
 
-  // Desempenho por Categoria
-  const categoryPerformanceData = [
-    { category: "Desenvolvimento Web", atual: 3.2, ideal: 4.0 },
-    { category: "BIG DATA/IA", atual: 2.5, ideal: 3.5 },
-    { category: "Cloud Computing", atual: 2.8, ideal: 4.0 },
-  ];
+    const hardSkillsData: RadarDataPoint[] = lideradoDashboardData.competencias
+      .filter(c => c.tipo === 'TECNICA')
+      .map(c => ({
+        competency: c.nome_competencia,
+        atual: c.pontuacao_1a4,
+        ideal: 4.0,
+        categoria: c.categoria_nome,
+      }));
 
-  const getRadarData = () => {
     if (radarViewMode === "soft") return softSkillsData;
     if (radarViewMode === "custom") {
-      return [...softSkillsData, ...hardSkillsData.filter(hs => selectedHardSkills.includes(hs.competencia))];
+      const filteredHard = hardSkillsData.filter(hs => 
+        hs.categoria && selectedHardCategories.includes(hs.categoria)
+      );
+      return [...softSkillsData, ...filteredHard];
     }
     return [...softSkillsData, ...hardSkillsData];
-  };
+  }, [hasData, lideradoDashboardData, radarViewMode, selectedHardCategories]);
 
-  const competenciasVersus = getRadarData();
+  // Dados para o Bar Chart de Desempenho por Categoria
+  const categoryPerformanceData = useMemo(() => {
+    if (!hasData || !lideradoDashboardData) return [];
 
-  const filteredCategoryData = selectedCategory === "all" 
+    const hardSkills = lideradoDashboardData.competencias.filter(c => c.tipo === 'TECNICA');
+    const categoryMap = new Map<string, { soma: number; count: number }>();
+
+    hardSkills.forEach(comp => {
+      if (comp.categoria_nome && comp.categoria_nome !== 'N/A') {
+        const existing = categoryMap.get(comp.categoria_nome);
+        if (existing) {
+          existing.soma += comp.pontuacao_1a4;
+          existing.count += 1;
+        } else {
+          categoryMap.set(comp.categoria_nome, { soma: comp.pontuacao_1a4, count: 1 });
+        }
+      }
+    });
+
+    return Array.from(categoryMap.entries()).map(([category, { soma, count }]) => ({
+      category,
+      atual: soma / count,
+      ideal: 4.0,
+    }));
+  }, [hasData, lideradoDashboardData]);
+
+  const availableHardCategories = useMemo(() => {
+    if (!hasData || !lideradoDashboardData) return [];
+    return Array.from(new Set(lideradoDashboardData.competencias
+      .filter(c => c.tipo === 'TECNICA' && c.categoria_nome && c.categoria_nome !== 'N/A')
+      .map(c => c.categoria_nome!)));
+  }, [hasData, lideradoDashboardData]);
+
+  const filteredCategoryData = selectedCategoryForBars === "all" 
     ? categoryPerformanceData 
-    : categoryPerformanceData.filter(d => d.category === selectedCategory);
+    : categoryPerformanceData.filter(d => d.category === selectedCategoryForBars);
 
-  const toggleHardSkill = (skill: string) => {
-    setSelectedHardSkills(prev => 
-      prev.includes(skill) ? prev.filter(s => s !== skill) : [...prev, skill]
+  const toggleHardCategory = (category: string) => {
+    setSelectedHardCategories(prev => 
+      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
     );
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Lightbulb className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,7 +156,7 @@ export default function DashboardLiderado() {
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Meu Desenvolvimento</h1>
-            <p className="text-sm text-muted-foreground">Bem-vindo(a), {profile?.name}</p>
+            <p className="text-sm text-muted-foreground">Bem-vindo(a), {profile?.nome || 'Liderado'}</p>
           </div>
           <Button
             onClick={handleLogout}
@@ -157,8 +225,8 @@ export default function DashboardLiderado() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-foreground">{minhasAvaliacoes[0]?.nivel || 'N/A'}</p>
-              <p className="text-sm text-muted-foreground">Aprendiz</p>
+              <p className="text-3xl font-bold text-foreground">{lideradoDashboardData?.ultima_avaliacao?.maturidade_quadrante || 'N/A'}</p>
+              <p className="text-sm text-muted-foreground">{lideradoDashboardData?.cargo_nome || 'Cargo'}</p>
             </CardContent>
           </Card>
 
@@ -170,21 +238,29 @@ export default function DashboardLiderado() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-foreground">8</p>
-              <p className="text-sm text-muted-foreground">em avaliação</p>
+              <p className="text-3xl font-bold text-foreground">{lideradoDashboardData?.competencias.length || 0}</p>
+              <p className="text-sm text-muted-foreground">avaliadas</p>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow duration-300">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-accent" />
-              Progresso
+                <CalendarIcon className="w-5 h-5 text-accent" />
+              Última Avaliação
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-foreground">68%</p>
-              <p className="text-sm text-muted-foreground">da meta ideal</p>
+              <p className="text-xl font-bold text-foreground">
+                {lideradoDashboardData?.ultima_avaliacao?.data_avaliacao 
+                  ? formatDistanceToNow(lideradoDashboardData.ultima_avaliacao.data_avaliacao, { addSuffix: true, locale: ptBR })
+                  : 'N/A'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {lideradoDashboardData?.ultima_avaliacao?.data_avaliacao 
+                  ? lideradoDashboardData.ultima_avaliacao.data_avaliacao.toLocaleDateString('pt-BR')
+                  : ''}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -215,18 +291,18 @@ export default function DashboardLiderado() {
             </div>
           </CardHeader>
           <CardContent>
-            {radarViewMode === "custom" && (
+            {radarViewMode === "custom" && availableHardCategories.length > 0 && (
               <div className="mb-4 p-3 border border-border rounded-lg bg-muted/20">
-                <p className="text-sm font-medium text-foreground mb-2">Hard Skills:</p>
+                <p className="text-sm font-medium text-foreground mb-2">Categorias Técnicas:</p>
                 <div className="flex flex-wrap gap-2">
-                  {hardSkillsData.map((hs) => (
-                    <div key={hs.competencia} className="flex items-center gap-2">
+                  {availableHardCategories.map((cat) => (
+                    <div key={cat} className="flex items-center gap-2">
                       <Checkbox 
-                        checked={selectedHardSkills.includes(hs.competencia)}
-                        onCheckedChange={() => toggleHardSkill(hs.competencia)}
+                        checked={selectedHardCategories.includes(cat)}
+                        onCheckedChange={() => toggleHardCategory(cat)}
                       />
                       <label className="text-sm text-muted-foreground cursor-pointer">
-                        {hs.competencia}
+                        {cat}
                       </label>
                     </div>
                   ))}
@@ -234,38 +310,46 @@ export default function DashboardLiderado() {
               </div>
             )}
             <ResponsiveContainer width="100%" height={500}>
-              <RadarChart data={competenciasVersus}>
-                <PolarGrid stroke="hsl(var(--border))" />
-                <PolarAngleAxis 
-                  dataKey="competencia" 
-                  tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-                />
-                <PolarRadiusAxis 
-                  angle={90} 
-                  domain={[0, 4]} 
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <Radar 
-                  name="Perfil Ideal" 
-                  dataKey="ideal" 
-                  stroke="hsl(var(--primary))" 
-                  fill="hsl(var(--primary))" 
-                  fillOpacity={0.2}
-                  strokeWidth={2}
-                />
-                <Radar 
-                  name="Meu Perfil Atual" 
-                  dataKey="atual" 
-                  stroke="hsl(var(--accent))" 
-                  fill="hsl(var(--accent))" 
-                  fillOpacity={0.4}
-                  strokeWidth={2}
-                />
-                <Legend 
-                  wrapperStyle={{ paddingTop: '20px' }}
-                  iconType="circle"
-                />
-              </RadarChart>
+              {competenciasVersus.length === 0 ? (
+                <div className="flex items-center justify-center h-full bg-muted/30 rounded-lg">
+                  <p className="text-muted-foreground text-center">
+                    Nenhuma competência selecionada ou dados de avaliação insuficientes.
+                  </p>
+                </div>
+              ) : (
+                <RadarChart data={competenciasVersus}>
+                  <PolarGrid stroke="hsl(var(--border))" />
+                  <PolarAngleAxis 
+                    dataKey="competency" 
+                    tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                  />
+                  <PolarRadiusAxis 
+                    angle={90} 
+                    domain={[0, 4]} 
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <Radar 
+                    name="Perfil Ideal" 
+                    dataKey="ideal" 
+                    stroke="hsl(var(--primary))" 
+                    fill="hsl(var(--primary))" 
+                    fillOpacity={0.2}
+                    strokeWidth={2}
+                  />
+                  <Radar 
+                    name="Meu Perfil Atual" 
+                    dataKey="atual" 
+                    stroke="hsl(var(--accent))" 
+                    fill="hsl(var(--accent))" 
+                    fillOpacity={0.4}
+                    strokeWidth={2}
+                  />
+                  <Legend 
+                    wrapperStyle={{ paddingTop: '20px' }}
+                    iconType="circle"
+                  />
+                </RadarChart>
+              )}
             </ResponsiveContainer>
             <div className="mt-6 p-4 bg-muted/30 rounded-lg">
               <h4 className="font-semibold text-foreground mb-2">Sobre este gráfico:</h4>
@@ -290,14 +374,14 @@ export default function DashboardLiderado() {
                   Veja seu desempenho filtrado por categoria técnica
                 </CardDescription>
               </div>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <Select value={selectedCategoryForBars} onValueChange={setSelectedCategoryForBars}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Filtrar categoria" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas Categorias</SelectItem>
-                  {categoryPerformanceData.map((cat) => (
-                    <SelectItem key={cat.category} value={cat.category}>{cat.category}</SelectItem>
+                  {availableHardCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -305,27 +389,35 @@ export default function DashboardLiderado() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={filteredCategoryData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis 
-                  dataKey="category" 
-                  tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-                />
-                <YAxis 
-                  domain={[0, 4]}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))', 
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="atual" fill="hsl(var(--accent))" name="Meu Nível" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="ideal" fill="hsl(var(--primary))" name="Nível Ideal" radius={[8, 8, 0, 0]} />
-              </BarChart>
+              {filteredCategoryData.length === 0 ? (
+                <div className="flex items-center justify-center h-full bg-muted/30 rounded-lg">
+                  <p className="text-muted-foreground text-center">
+                    Nenhum dado de categoria para exibir.
+                  </p>
+                </div>
+              ) : (
+                <BarChart data={filteredCategoryData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="category" 
+                    tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                  />
+                  <YAxis 
+                    domain={[0, 4]}
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="atual" fill="hsl(var(--accent))" name="Meu Nível" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="ideal" fill="hsl(var(--primary))" name="Nível Ideal" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              )}
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -350,7 +442,7 @@ export default function DashboardLiderado() {
                 </p>
                 <div className="mt-2 flex gap-2">
                   <span className="px-2 py-1 bg-primary/20 text-primary text-xs rounded font-medium">
-                    {minhasAvaliacoes[0]?.nivel || 'N/A'} - Aprendiz
+                    {lideradoDashboardData?.ultima_avaliacao?.maturidade_quadrante || 'N/A'} - {lideradoDashboardData?.cargo_nome || 'Cargo'}
                   </span>
                   <span className="px-2 py-1 bg-chart-3/40 text-foreground text-xs rounded font-medium">
                     Em Progresso
