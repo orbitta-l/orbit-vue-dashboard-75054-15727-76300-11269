@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Search, Users, ArrowRight, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail, HeartHandshake, Check, User as UserIcon, Calendar as CalendarIcon, Venus, Mars, Genderqueer } from "lucide-react";
+import { Plus, Search, Users, ArrowRight, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail, HeartHandshake, Check, User as UserIcon, Calendar as CalendarIcon, Venus, Mars, Transgender } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -38,7 +38,7 @@ const categoryIcons: Record<string, React.ElementType> = {
 const genderIcons: Record<string, React.ElementType> = {
   FEMININO: Venus,
   MASCULINO: Mars,
-  NAO_BINARIO: Genderqueer,
+  NAO_BINARIO: Transgender,
   NAO_INFORMADO: UserIcon,
 };
 
