@@ -58,7 +58,7 @@ export interface Avaliacao {
   lider_id: string; // FK para USUARIO
   liderado_id: string; // FK para USUARIO
   id_cargo: string; // FK para CARGO (snapshot do cargo no momento da avaliação)
-  data_avaliacao: string; // ISO Date String
+  data_avaliacao: string; // String no formato 'YYYY-MM-DD HH:MM:SS' do banco de dados (sem fuso horário)
   media_comportamental_1a4: number; // Eixo Y
   media_tecnica_1a4: number; // Eixo X
   maturidade_quadrante: NivelMaturidade;
@@ -124,7 +124,7 @@ export interface LideradoDashboard extends Usuario {
     media_comportamental_1a4: number;
     media_tecnica_1a4: number;
     maturidade_quadrante: NivelMaturidade;
-    data_avaliacao: string;
+    data_avaliacao: Date; // Alterado para Date
   };
   competencias: (PontuacaoAvaliacao & {
     nome_competencia: string;

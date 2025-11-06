@@ -187,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         lider_id: String(a.id_lider),
         liderado_id: String(a.id_liderado),
         id_cargo: String(a.cargo_referenciado),
+        data_avaliacao: new Date(a.data_avaliacao + 'Z'), // Adiciona 'Z' para interpretar como UTC
         media_comportamental_1a4: a.media_comportamental,
         media_tecnica_1a4: a.media_tecnica,
         maturidade_quadrante: a.nivel_maturidade,
@@ -278,8 +279,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const lideradoAvaliacoes = avaliacoes
         .filter(a => a.liderado_id === liderado.id_usuario)
-        .sort((a, b) => new Date(b.data_avaliacao).getTime() - new Date(a.data_avaliacao).getTime());
-      
+        .sort((a, b) => b.data_avaliacao.getTime() - a.data_avaliacao.getTime()); // Já são objetos Date
+
       const ultimaAvaliacao = lideradoAvaliacoes[0];
       const cargo = MOCK_CARGOS.find(c => c.id_cargo === liderado.id_cargo);
 
@@ -334,7 +335,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             media_comportamental_1a4: xyData.y_comp || 0,
             media_tecnica_1a4: xyData.x_tecnico || 0,
             maturidade_quadrante: xyData.quadrante,
-            data_avaliacao: ultimaAvaliacao?.data_avaliacao || new Date().toISOString(), // Usar data da última avaliação bruta
+            data_avaliacao: ultimaAvaliacao?.data_avaliacao || new Date(), // Usar data da última avaliação bruta ou new Date()
         } : undefined,
         competencias: competenciasConsolidadas,
         categoria_dominante,

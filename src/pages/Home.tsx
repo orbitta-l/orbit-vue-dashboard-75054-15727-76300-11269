@@ -39,19 +39,19 @@ export default function Home() {
       };
     }
 
-    // CORREÇÃO: Ordenar avaliações por data (mais recente primeiro) antes de processar
+    // CORREÇÃO: Avaliações já vêm ordenadas e como objetos Date do AuthContext
     const sortedAvaliacoes = [...avaliacoes].sort((a, b) => 
-      new Date(b.data_avaliacao).getTime() - new Date(a.data_avaliacao).getTime()
+      b.data_avaliacao.getTime() - a.data_avaliacao.getTime()
     );
 
     const evalsThisMonth = sortedAvaliacoes.filter(av => {
-      const evalDate = new Date(av.data_avaliacao);
+      const evalDate = av.data_avaliacao; // Já é um objeto Date
       const today = new Date();
       return evalDate.getMonth() === today.getMonth() && evalDate.getFullYear() === today.getFullYear();
     }).length;
 
     const lastEval = sortedAvaliacoes.length > 0
-      ? formatDistanceToNow(new Date(sortedAvaliacoes[0].data_avaliacao), { addSuffix: true, locale: ptBR })
+      ? formatDistanceToNow(sortedAvaliacoes[0].data_avaliacao, { addSuffix: true, locale: ptBR }) // Já é um objeto Date
       : "Nenhuma";
 
     const maturityMap: { [key: string]: number } = { M1: 1, M2: 2, M3: 3, M4: 4 };
@@ -135,16 +135,16 @@ export default function Home() {
       };
     }).filter(b => b.media > 0);
 
-    // CORREÇÃO: Ordenar avaliações por data (mais recente primeiro) antes de pegar as 3 últimas
+    // CORREÇÃO: Avaliações já vêm ordenadas e como objetos Date do AuthContext
     const sortedAvaliacoes = [...avaliacoes].sort((a, b) => 
-      new Date(b.data_avaliacao).getTime() - new Date(a.data_avaliacao).getTime()
+      b.data_avaliacao.getTime() - a.data_avaliacao.getTime()
     );
     
     const recentes = sortedAvaliacoes.slice(0, 3).map(av => ({
       evaluationId: av.id_avaliacao,
       lideradoId: av.liderado_id,
       nome_liderado: liderados.find(l => l.id_usuario === av.liderado_id)?.nome ?? "Desconhecido",
-      data_avaliacao: new Date(av.data_avaliacao),
+      data_avaliacao: av.data_avaliacao, // Já é um objeto Date
     }));
 
     return {
