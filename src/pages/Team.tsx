@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Plus, Search, Users, ArrowRight, ArrowLeft, Rocket, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail, HeartHandshake } from "lucide-react";
+import { Plus, Search, Users, ArrowRight, ArrowLeft, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail, HeartHandshake, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -15,21 +15,23 @@ import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SexoTipo, NivelMaturidade, LideradoDashboard } from "@/types/mer";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { SexoTipo, LideradoDashboard, NivelMaturidade } from "@/types/mer";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { technicalTemplate } from "@/data/evaluationTemplates";
 import { MOCK_CARGOS } from "@/data/mockData";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabaseClient";
+import { useTeamFilters } from "@/hooks/use-team-filters";
+import { getGapColorClass } from "@/utils/colorUtils";
 
 const categoryIcons: Record<string, React.ElementType> = {
-  "dev-web": Code,
-  "dev-mobile": Smartphone,
-  "data-ai": Brain,
-  "cloud-devops": Cloud,
-  "sec-info": Shield,
-  "ux-ui": Palette,
+  "Desenvolvimento Web": Code,
+  "Desenvolvimento Mobile": Smartphone,
+  "Ciência de Dados e IA": Brain,
+  "Cloud e DevOps": Cloud,
+  "Segurança da Informação": Shield,
+  "UX/UI Design": Palette,
   "Soft Skills": HeartHandshake,
   "Não Avaliado": CircleUserRound,
 };
@@ -47,7 +49,6 @@ const step1Schema = z.object({
   data_nascimento: z.string().min(1, "Data de nascimento é obrigatória").refine((val) => {
     const birthDate = new Date(val);
     const today = new Date();
-    // Adjust for timezone offset to prevent future date errors
     birthDate.setMinutes(birthDate.getMinutes() + birthDate.getTimezoneOffset());
     if (birthDate > today) return false;
     
@@ -73,6 +74,10 @@ export default function Team() {
   const [provisionedData, setProvisionedData] = useState<Step1Form | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Lógica de Filtros
+  const { activeFilters, setFilter, resetFilters, activeFilterCount, filteredMembers, filterOptions } = useTeamFilters(teamData, searchName);
+
+  // Lógica de Comparação
   const [isComparisonMode, setIsComparisonMode] = useState(false);
   const [selectedMembersForComparison, setSelectedMembersForComparison] = useState<string[]>([]);
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
@@ -82,6 +87,39 @@ export default function Team() {
     mode: "onBlur",
   });
 
+  // --- Handlers de Comparação ---
+  const handleToggleComparisonMode = () => {
+    setIsComparisonMode(prev => !prev);
+    setSelectedMembersForComparison([]);
+  };
+
+  const handleSelectMemberForComparison = (memberId: string) => {
+    setSelectedMembersForComparison(prev => {
+      if (prev.includes(memberId)) {
+        return prev.filter(id => id !== memberId);
+      }
+      if (prev.length < 4) {
+        return [...prev, memberId];
+      }
+      toast({ title: "Limite atingido", description: "Você pode comparar no máximo 4 liderados.", variant: "destructive" });
+      return prev;
+    });
+  };
+
+  const handleNavigateToCompare = () => {
+    if (selectedMembersForComparison.length < 2) {
+      toast({ title: "Selecione mais membros", description: "Você precisa de pelo menos 2 membros para comparar.", variant: "destructive" });
+      return;
+    }
+    navigate({
+      pathname: "/compare",
+      search: createSearchParams({
+        members: selectedMembersForComparison.join(','),
+      }).toString(),
+    });
+  };
+
+  // --- Handlers de Cadastro (Modal) ---
   const handleNextStep = async () => {
     const isValid = await trigger();
     if (isValid) {
@@ -103,30 +141,25 @@ export default function Team() {
       });
 
       if (error) {
-        // O erro da Edge Function agora é um objeto com uma propriedade 'error'
         const errorMessage = error.error || "Ocorreu um erro desconhecido.";
         throw new Error(errorMessage);
       }
       
-      // CORREÇÃO CRÍTICA: A resposta da Edge Function está aninhada em 'data'
-      // Tipagem da resposta da Edge Function
       const responseData = data as { temporaryPassword: string, email: string, liderado_id: number, ok: boolean, error?: string };
 
       if (responseData && responseData.temporaryPassword) {
           setTempPassword(responseData.temporaryPassword); 
           toast({ title: "Liderado provisionado!", description: "Compartilhe a senha temporária com o novo membro." });
-          await fetchTeamData(); // Atualiza a lista de liderados
-          setModalStep(3); // Avança para a tela de sucesso com a senha
+          await fetchTeamData();
+          setModalStep(3);
       } else if (responseData.error) {
-          // Captura erros de negócio retornados pela Edge Function (ex: email duplicado)
           throw new Error(responseData.error);
       } else {
           throw new Error("Resposta da função incompleta ou sem senha.");
       }
 
     } catch (err: any) {
-      // Captura o erro da Edge Function (que pode ser 409 - email duplicado)
-      const errorMessage = err.message || "Erro desconhecido no servidor.";
+      const errorMessage = err.message || "Erro inesperado no servidor.";
       toast({ variant: "destructive", title: "Erro no cadastro", description: errorMessage });
     } finally {
       setIsSubmitting(false);
@@ -148,37 +181,50 @@ export default function Team() {
     toast({ title: "Senha copiada!" });
   };
 
-  const filteredMembers = useMemo(() => {
-    return teamData.filter(member =>
-      member.nome.toLowerCase().includes(searchName.toLowerCase())
-    );
-  }, [teamData, searchName]);
-
-  const getCategoryIcon = (categoryName: string) => {
-    switch (categoryName) {
-      case "Desenvolvimento Web": return Code;
-      case "Desenvolvimento Mobile": return Smartphone;
-      case "Ciência de Dados e IA": return Brain;
-      case "Cloud e DevOps": return Cloud;
-      case "Segurança da Informação": return Shield;
-      case "UX/UI Design": return Palette;
-      case "Soft Skills": return HeartHandshake;
-      default: return CircleUserRound;
-    }
-  };
-
-  const renderMemberCard = (member: LideradoDashboard) => {
+  // --- Renderização do Card ---
+  const renderMemberCard = (member: LideradoDashboard & { isTalent: boolean }) => {
     const isEvaluated = !!member.ultima_avaliacao;
     const maturity = member.ultima_avaliacao?.maturidade_quadrante || 'N/A';
     const dominantCategory = member.categoria_dominante || 'Não Avaliado';
     const CategoryIcon = getCategoryIcon(dominantCategory);
+    const isSelected = selectedMembersForComparison.includes(member.id_usuario);
+
+    // Obtém as 3 melhores competências avaliadas
+    const topCompetencies = member.competencias
+      .filter(c => c.pontuacao_1a4 > 0)
+      .sort((a, b) => b.pontuacao_1a4 - a.pontuacao_1a4)
+      .slice(0, 3);
 
     return (
       <Card 
         key={member.id_usuario} 
-        className="relative overflow-hidden w-full p-4 rounded-xl shadow-md transition-all duration-300 group cursor-pointer hover:shadow-lg hover:-translate-y-1"
-        onClick={() => navigate(`/team/${member.id_usuario}`)}
+        className={cn(
+          "relative overflow-hidden w-full p-4 rounded-xl shadow-md transition-all duration-300 group",
+          isComparisonMode 
+            ? "cursor-pointer hover:shadow-lg hover:border-primary/50" 
+            : "cursor-pointer hover:shadow-lg hover:-translate-y-1",
+          isSelected && isComparisonMode && "border-2 border-primary ring-2 ring-primary/50"
+        )}
+        onClick={() => isComparisonMode ? handleSelectMemberForComparison(member.id_usuario) : navigate(`/team/${member.id_usuario}`)}
       >
+        {/* Checkbox para Modo de Comparação */}
+        {isComparisonMode && (
+          <div className="absolute top-3 right-3 z-10">
+            <Checkbox 
+              checked={isSelected} 
+              onCheckedChange={() => handleSelectMemberForComparison(member.id_usuario)}
+              className="w-5 h-5"
+            />
+          </div>
+        )}
+
+        {/* Badge TALENTO */}
+        {member.isTalent && (
+          <Badge className="absolute top-0 left-0 rounded-br-lg rounded-tl-xl bg-yellow-500 text-yellow-900 font-bold px-3 py-1 text-xs z-10">
+            <Star className="w-3 h-3 mr-1 fill-yellow-900" /> TALENTO
+          </Badge>
+        )}
+
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar className="w-12 h-12">
@@ -208,7 +254,7 @@ export default function Team() {
         </div>
 
         <div className="mt-4 pt-4 border-t border-border">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-muted-foreground">Área Dominante</span>
             {isEvaluated ? (
               <Badge variant="secondary" className="text-xs gap-1">
@@ -221,8 +267,178 @@ export default function Team() {
               </Badge>
             )}
           </div>
+          
+          {isEvaluated && topCompetencies.length > 0 && (
+            <div className="mt-3">
+              <span className="text-xs font-medium text-muted-foreground block mb-1">Top Competências:</span>
+              <div className="flex flex-wrap gap-1">
+                {topCompetencies.map(comp => (
+                  <Badge 
+                    key={comp.id_competencia} 
+                    className={cn("text-xs font-medium", getGapColorClass(comp.pontuacao_1a4))}
+                    variant="outline"
+                  >
+                    {comp.nome_competencia.split(' ')[0]} ({comp.pontuacao_1a4.toFixed(1)})
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </Card>
+    );
+  };
+
+  // --- Componente de Filtros (Sheet Content) ---
+  const FilterSidebar = () => {
+    const handleMaturityChange = (value: string) => {
+      const current = activeFilters.maturity === 'all' ? [] : activeFilters.maturity;
+      const newMaturity = current.includes(value as NivelMaturidade)
+        ? current.filter(m => m !== value)
+        : [...current, value as NivelMaturidade];
+      
+      setFilter('maturity', newMaturity.length === 0 ? 'all' : newMaturity);
+    };
+
+    const handleCategoryChange = (value: string) => {
+      setFilter('category', value);
+      // Reset specialization and competency when category changes
+      setFilter('specialization', 'all');
+      setFilter('competency', 'all');
+    };
+
+    const handleSpecializationChange = (value: string) => {
+      setFilter('specialization', value);
+      // Reset competency when specialization changes
+      setFilter('competency', 'all');
+    };
+
+    return (
+      <SheetContent side="right" className="w-full sm:max-w-sm">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <Filter className="w-5 h-5 text-primary" />
+            Filtros Avançados
+          </SheetTitle>
+          <DialogDescription>
+            Refine a lista de liderados por critérios de desempenho e perfil.
+          </DialogDescription>
+        </SheetHeader>
+        
+        <div className="py-4 space-y-6">
+          {activeFilterCount > 0 && (
+            <Button variant="outline" onClick={resetFilters} className="w-full gap-2 text-destructive border-destructive/50 hover:bg-destructive/10">
+              <X className="w-4 h-4" /> Limpar Todos os Filtros ({activeFilterCount})
+            </Button>
+          )}
+
+          {/* Filtro de Maturidade */}
+          <div>
+            <Label className="mb-2 block font-semibold">Maturidade Geral</Label>
+            <div className="flex flex-wrap gap-2">
+              {filterOptions.maturities.map(m => (
+                <Button
+                  key={m}
+                  variant={activeFilters.maturity !== 'all' && activeFilters.maturity.includes(m) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleMaturityChange(m)}
+                >
+                  {m}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Filtro de Área Específica (Categoria) */}
+          <div>
+            <Label htmlFor="category-filter" className="mb-2 block font-semibold">Área Específica (Categoria)</Label>
+            <Select value={activeFilters.category} onValueChange={handleCategoryChange}>
+              <SelectTrigger id="category-filter">
+                <SelectValue placeholder="Todas as Categorias" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Categorias</SelectItem>
+                {filterOptions.categories.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Filtro de Especialização (Dependente da Categoria) */}
+          <div>
+            <Label htmlFor="specialization-filter" className="mb-2 block font-semibold">Especialização</Label>
+            <Select 
+              value={activeFilters.specialization} 
+              onValueChange={handleSpecializationChange}
+              disabled={activeFilters.category === 'all' || filterOptions.specializations.length === 0}
+            >
+              <SelectTrigger id="specialization-filter">
+                <SelectValue placeholder="Todas as Especializações" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Especializações</SelectItem>
+                {filterOptions.specializations.map(spec => (
+                  <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Filtro de Competência (Dependente da Especialização) */}
+          <div>
+            <Label htmlFor="competency-filter" className="mb-2 block font-semibold">Competência Específica</Label>
+            <Select 
+              value={activeFilters.competency} 
+              onValueChange={(v) => setFilter('competency', v)}
+              disabled={activeFilters.specialization === 'all' || filterOptions.competencies.length === 0}
+            >
+              <SelectTrigger id="competency-filter">
+                <SelectValue placeholder="Todas as Competências" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Competências</SelectItem>
+                {filterOptions.competencies.map(comp => (
+                  <SelectItem key={comp} value={comp}>{comp}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Filtro de Idade */}
+          <div>
+            <Label htmlFor="age-filter" className="mb-2 block font-semibold">Faixa Etária</Label>
+            <Select value={activeFilters.age} onValueChange={(v) => setFilter('age', v)}>
+              <SelectTrigger id="age-filter">
+                <SelectValue placeholder="Todas as Idades" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Idades</SelectItem>
+                {filterOptions.ageRanges.map(range => (
+                  <SelectItem key={range} value={range}>{range}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Filtro de Gênero */}
+          <div>
+            <Label htmlFor="gender-filter" className="mb-2 block font-semibold">Gênero</Label>
+            <Select value={activeFilters.gender} onValueChange={(v) => setFilter('gender', v as SexoTipo | 'all')}>
+              <SelectTrigger id="gender-filter">
+                <SelectValue placeholder="Todos os Gêneros" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Gêneros</SelectItem>
+                <SelectItem value="FEMININO">Feminino</SelectItem>
+                <SelectItem value="MASCULINO">Masculino</SelectItem>
+                <SelectItem value="NAO_BINARIO">Não Binário</SelectItem>
+                <SelectItem value="NAO_INFORMADO">Não Informado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </SheetContent>
     );
   };
 
@@ -342,10 +558,77 @@ export default function Team() {
             </Dialog>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredMembers.map((member) => renderMemberCard(member))}
+
+        {/* Barra de Ações e Filtros */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar liderado pelo nome..."
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              className="pl-10 w-full"
+            />
+            {searchName && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-3 hover:bg-transparent"
+                onClick={() => setSearchName("")}
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </Button>
+            )}
+          </div>
+
+          <div className="flex gap-3">
+            <Sheet open={isFilterSidebarOpen} onOpenChange={setIsFilterSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="relative gap-2">
+                  <Filter className="w-4 h-4" />
+                  Filtros
+                  {activeFilterCount > 0 && (
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full">
+                      {activeFilterCount}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <FilterSidebar />
+            </Sheet>
+
+            {isComparisonMode ? (
+              <>
+                <Button variant="outline" onClick={handleToggleComparisonMode}>
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={handleNavigateToCompare} 
+                  disabled={selectedMembersForComparison.length < 2 || selectedMembersForComparison.length > 4}
+                  className="gap-2"
+                >
+                  Comparar ({selectedMembersForComparison.length})
+                </Button>
+              </>
+            ) : (
+              <Button variant="secondary" onClick={handleToggleComparisonMode} className="gap-2">
+                <ArrowRight className="w-4 h-4" /> Versus
+              </Button>
+            )}
+          </div>
         </div>
-        {filteredMembers.length === 0 && (<div className="text-center py-12"><p className="text-muted-foreground">Nenhum liderado encontrado.</p></div>)}
+
+        {/* Lista de Liderados */}
+        {filteredMembers.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredMembers.map((member) => renderMemberCard(member))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Nenhum liderado encontrado com os critérios de busca e filtro aplicados.</p>
+          </div>
+        )}
       </main>
     </div>
   );
