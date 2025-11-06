@@ -376,6 +376,8 @@ export default function Compare() {
                     fillOpacity={0}
                     strokeWidth={3}
                     strokeDasharray="5 5"
+                    // Adicionando strokeOpacity para garantir visibilidade
+                    strokeOpacity={0.8} 
                   />
 
                   {/* Liderados Selecionados */}
