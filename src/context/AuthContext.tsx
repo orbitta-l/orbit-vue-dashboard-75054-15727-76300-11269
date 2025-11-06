@@ -166,6 +166,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const saveEvaluation = async (input: SaveEvaluationInput) => {
+
+    console.log("saveEvaluation chamada com:", input);
     if (!session) {
       return { success: false, error: "Usuário não autenticado." };
     }
