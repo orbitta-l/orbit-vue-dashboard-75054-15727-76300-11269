@@ -120,12 +120,19 @@ serve(async (req) => {
 
     // Verifica se o e-mail já existe no sistema de autenticação (auth.users)
     console.log("Verificando se o e-mail já está cadastrado no auth.users...");
-    const { data: existingAuthUser, error: existingAuthUserError } = await admin.auth.admin.getUserByEmail(body.email);
-    if (existingAuthUserError && existingAuthUserError.message !== 'User not found') { // 'User not found' é esperado se não existir
+    // ALTERAÇÃO AQUI: Substituindo admin.auth.admin.getUserByEmail por uma consulta direta
+    const { data: existingAuthUser, error: existingAuthUserError } = await admin
+      .from('auth.users')
+      .select('id')
+      .eq('email', body.email)
+      .maybeSingle(); // maybeSingle retorna null se não encontrar, ou o objeto se encontrar
+
+    if (existingAuthUserError) {
       console.error("Erro ao verificar e-mail existente no auth.users:", existingAuthUserError);
       return Response.json({ error: "Erro ao verificar e-mail no sistema de autenticação." }, { status: 500, headers: corsHeaders });
     }
-    if (existingAuthUser?.user) {
+    // Se existingAuthUser não for null, significa que um usuário com esse e-mail já existe
+    if (existingAuthUser) {
       console.error("Erro: E-mail já cadastrado no sistema de autenticação.");
       return Response.json({ error: "E-mail já cadastrado no sistema de autenticação." }, { status: 409, headers: corsHeaders });
     }
