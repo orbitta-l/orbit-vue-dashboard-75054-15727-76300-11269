@@ -70,9 +70,23 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
       }
 
       if (ultima_avaliacao) {
-        if (category !== 'all' && !competencias.some(c => c.categoria_nome === category)) return false;
-        if (specialization !== 'all' && !competencias.some(c => c.especializacao_nome === specialization)) return false;
-        if (competency !== 'all' && !competencias.some(c => c.nome_competencia === competency && c.pontuacao_1a4 > 0)) return false;
+        // CORREÇÃO: Buscar o NOME da categoria/especialização/competência a partir do ID armazenado no filtro
+        const categoryName = category !== 'all'
+          ? technicalTemplate.find(c => c.id_categoria === category)?.nome_categoria
+          : 'all';
+        
+        const specializationName = specialization !== 'all'
+          ? technicalTemplate.flatMap(c => c.especializacoes).find(s => s.id_especializacao === specialization)?.nome_especializacao
+          : 'all';
+
+        const competencyName = competency !== 'all'
+          ? technicalTemplate.flatMap(c => c.especializacoes).flatMap(s => s.competencias).find(comp => comp.id_competencia === competency)?.nome_competencia
+          : 'all';
+
+        if (categoryName && categoryName !== 'all' && !competencias.some(c => c.categoria_nome === categoryName)) return false;
+        if (specializationName && specializationName !== 'all' && !competencias.some(c => c.especializacao_nome === specializationName)) return false;
+        if (competencyName && competencyName !== 'all' && !competencias.some(c => c.nome_competencia === competencyName && c.pontuacao_1a4 > 0)) return false;
+      
       } else {
         if (maturity.length > 0 || category !== 'all' || specialization !== 'all' || competency !== 'all') {
             return false;
