@@ -70,7 +70,6 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
       }
 
       if (ultima_avaliacao) {
-        // CORREÇÃO: Buscar o NOME da categoria/especialização/competência a partir do ID armazenado no filtro
         const categoryName = category !== 'all'
           ? technicalTemplate.find(c => c.id_categoria === category)?.nome_categoria
           : 'all';
@@ -96,22 +95,69 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
       return true;
     });
 
-    let bestScore = -1;
-    let talentId: string | null = null;
+    if (members.length === 0) {
+      return [];
+    }
 
-    members.forEach(member => {
-      if (member.ultima_avaliacao) {
-        const combinedScore = (member.ultima_avaliacao.media_tecnica_1a4 + member.ultima_avaliacao.media_comportamental_1a4) / 2;
-        if (combinedScore > bestScore) {
-          bestScore = combinedScore;
+    let talentId: string | null = null;
+    let bestScore = -1;
+
+    const { category, specialization, competency } = activeFilters;
+
+    if (competency !== 'all') {
+      members.forEach(member => {
+        const comp = member.competencias.find(c => c.id_competencia === competency);
+        const score = comp ? comp.pontuacao_1a4 : 0;
+        if (score > bestScore) {
+          bestScore = score;
           talentId = member.id_usuario;
         }
+      });
+    } else if (specialization !== 'all') {
+      const specializationName = technicalTemplate.flatMap(c => c.especializacoes).find(s => s.id_especializacao === specialization)?.nome_especializacao;
+      if (specializationName) {
+        members.forEach(member => {
+          const relevantCompetencies = member.competencias.filter(c => c.especializacao_nome === specializationName);
+          if (relevantCompetencies.length > 0) {
+            const totalScore = relevantCompetencies.reduce((sum, c) => sum + c.pontuacao_1a4, 0);
+            const avgScore = totalScore / relevantCompetencies.length;
+            if (avgScore > bestScore) {
+              bestScore = avgScore;
+              talentId = member.id_usuario;
+            }
+          }
+        });
       }
-    });
+    } else if (category !== 'all') {
+      const categoryName = technicalTemplate.find(c => c.id_categoria === category)?.nome_categoria;
+      if (categoryName) {
+        members.forEach(member => {
+          const relevantCompetencies = member.competencias.filter(c => c.categoria_nome === categoryName);
+          if (relevantCompetencies.length > 0) {
+            const totalScore = relevantCompetencies.reduce((sum, c) => sum + c.pontuacao_1a4, 0);
+            const avgScore = totalScore / relevantCompetencies.length;
+            if (avgScore > bestScore) {
+              bestScore = avgScore;
+              talentId = member.id_usuario;
+            }
+          }
+        });
+      }
+    } else {
+      members.forEach(member => {
+        if (member.ultima_avaliacao) {
+          const combinedScore = (member.ultima_avaliacao.media_tecnica_1a4 + member.ultima_avaliacao.media_comportamental_1a4) / 2;
+          if (combinedScore > bestScore) {
+            bestScore = combinedScore;
+            talentId = member.id_usuario;
+          }
+        }
+      });
+    }
 
     return members.map(member => ({
       ...member,
-      isTalent: member.id_usuario === talentId,
+      isTalent: member.id_usuario === talentId && bestScore > 0,
     }));
 
   }, [teamData, searchName, activeFilters]);
