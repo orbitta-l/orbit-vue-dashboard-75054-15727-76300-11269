@@ -63,6 +63,7 @@ export default function Home() {
   }, [isPrimeiroAcesso, liderados, avaliacoes, teamData]);
 
   const dashboardData = useMemo(() => {
+    console.log("Recalculando dashboardData. avaliacoes:", avaliacoes);
     if (isPrimeiroAcesso) return { quadrante: [], barras: [], pizza: [], gaps: [], recentes: [] };
 
     const teamPerformance = teamData.map(liderado => {
