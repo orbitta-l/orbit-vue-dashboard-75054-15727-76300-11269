@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PontuacaoAvaliacao, Usuario } from "@/types/mer";
+import { Usuario } from "@/types/mer";
 import EvaluationRadarChart from "@/charts/EvaluationRadarChart";
 import SpecializationSelectionModal from "@/components/SpecializationSelectionModal";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -32,7 +32,7 @@ const getCompetencyDescription = (id: string) => {
 export default function Evaluation() {
   const { memberId } = useParams<{ memberId: string }>();
   const navigate = useNavigate();
-  const { liderados, avaliacoes, saveEvaluation, profile } = useAuth(); // Adicionado 'profile'
+  const { liderados, avaliacoes, saveEvaluation, profile } = useAuth();
   
   const [member, setMember] = useState<Usuario | undefined>(undefined);
   const [softTemplate, setSoftTemplate] = useState<(typeof softSkillTemplates)[0] | null>(null);
@@ -59,12 +59,10 @@ export default function Evaluation() {
     }
     setMember(currentMember);
 
-    // Busca o template de soft skills baseado no id_cargo
     const template = softSkillTemplates.find(t => t.id_cargo === currentMember.id_cargo);
     setSoftTemplate(template || null);
     
     if (template) {
-      // Inicializa scores com 1.0 (nota mínima)
       const initialScores = template.competencias.reduce((acc, skill) => ({ ...acc, [skill.id_competencia]: 1 }), {});
       setSoftScores(initialScores);
     } else {
@@ -103,7 +101,6 @@ export default function Evaluation() {
     const category = technicalTemplate.find(c => c.id_categoria === categoryId);
     const specialization = category?.especializacoes.find(s => s.id_especializacao === specializationId);
     
-    // Inicializa scores com 1.0 (nota mínima)
     const initialScores = specialization?.competencias.reduce((acc, comp) => ({ ...acc, [comp.id_competencia]: 1 }), {}) || {};
 
     setTechBlocks(prev => [...prev, { 
@@ -128,7 +125,6 @@ export default function Evaluation() {
     toast({ title: "Bloco salvo!", description: "As notas desta especialização foram salvas localmente." });
   };
 
-  // A avaliação final só é habilitada se houver pelo menos um bloco técnico salvo.
   const isFinalSaveEnabled = techBlocks.length > 0 && techBlocks.every(b => b.completed);
 
   const handleSaveEvaluation = async () => {
@@ -139,13 +135,11 @@ export default function Evaluation() {
     
     setIsSaving(true);
 
-    // 1. Mapeamento Comportamental (para o RPC)
     const comportamentais = softTemplate ? softTemplate.competencias.map(skill => ({
         competenciaId: skill.id_competencia,
         nota: softScores[skill.id_competencia] || 0,
     })) : [];
 
-    // 2. Mapeamento Técnico (para o RPC)
     const tecnicas = techBlocks.map(block => {
         const category = technicalTemplate.find(c => c.id_categoria === block.categoria_id);
         
@@ -172,7 +166,6 @@ export default function Evaluation() {
       dataAvaliacao: new Date().toISOString(),
     };
 
-    // 3. Chamar o RPC
     const result = await saveEvaluation(evaluationInput);
 
     if (result.success) {

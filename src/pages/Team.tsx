@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { Plus, Search, Users, ArrowRight, ArrowLeft, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail, HeartHandshake, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SexoTipo, LideradoDashboard, NivelMaturidade } from "@/types/mer";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { technicalTemplate } from "@/data/evaluationTemplates";
 import { MOCK_CARGOS } from "@/data/mockData";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
@@ -84,7 +83,6 @@ export default function Team() {
   // Lógica de Comparação
   const [isComparisonMode, setIsComparisonMode] = useState(false);
   const [selectedMembersForComparison, setSelectedMembersForComparison] = useState<string[]>([]);
-  const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
   
   const { register, control, formState: { errors }, trigger, getValues, reset } = useForm<Step1Form>({
     resolver: zodResolver(step1Schema),
@@ -145,21 +143,18 @@ export default function Team() {
       });
 
       if (error) {
-        const errorMessage = error.error || "Ocorreu um erro desconhecido.";
-        throw new Error(errorMessage);
+        throw new Error(error.message || "Ocorreu um erro desconhecido.");
       }
       
-      const responseData = data as { temporaryPassword: string, email: string, liderado_id: number, ok: boolean, error?: string };
+      const responseData = data as { temporaryPassword?: string, error?: string };
 
       if (responseData && responseData.temporaryPassword) {
           setTempPassword(responseData.temporaryPassword); 
           toast({ title: "Liderado provisionado!", description: "Compartilhe a senha temporária com o novo membro." });
           await fetchTeamData();
           setModalStep(3);
-      } else if (responseData.error) {
-          throw new Error(responseData.error);
       } else {
-          throw new Error("Resposta da função incompleta ou sem senha.");
+          throw new Error(responseData.error || "Resposta da função incompleta ou sem senha.");
       }
 
     } catch (err: any) {
@@ -304,19 +299,6 @@ export default function Team() {
       setFilter('maturity', newMaturity.length === 0 ? 'all' : newMaturity);
     };
 
-    const handleCategoryChange = (value: string) => {
-      setFilter('category', value);
-      // Reset specialization and competency when category changes
-      setFilter('specialization', 'all');
-      setFilter('competency', 'all');
-    };
-
-    const handleSpecializationChange = (value: string) => {
-      setFilter('specialization', value);
-      // Reset competency when specialization changes
-      setFilter('competency', 'all');
-    };
-
     return (
       <SheetContent side="right" className="w-full sm:max-w-sm">
         <SheetHeader>
@@ -351,95 +333,6 @@ export default function Team() {
                 </Button>
               ))}
             </div>
-          </div>
-
-          {/* Filtro de Área Específica (Categoria) */}
-          <div>
-            <Label htmlFor="category-filter" className="mb-2 block font-semibold">Área Específica (Categoria)</Label>
-            <Select value={activeFilters.category} onValueChange={handleCategoryChange}>
-              <SelectTrigger id="category-filter">
-                <SelectValue placeholder="Todas as Categorias" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Categorias</SelectItem>
-                {filterOptions.categories.map(cat => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Filtro de Especialização (Dependente da Categoria) */}
-          <div>
-            <Label htmlFor="specialization-filter" className="mb-2 block font-semibold">Especialização</Label>
-            <Select 
-              value={activeFilters.specialization} 
-              onValueChange={handleSpecializationChange}
-              disabled={activeFilters.category === 'all' || filterOptions.specializations.length === 0}
-            >
-              <SelectTrigger id="specialization-filter">
-                <SelectValue placeholder="Todas as Especializações" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Especializações</SelectItem>
-                {filterOptions.specializations.map(spec => (
-                  <SelectItem key={spec} value={spec}>{spec}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Filtro de Competência (Dependente da Especialização) */}
-          <div>
-            <Label htmlFor="competency-filter" className="mb-2 block font-semibold">Competência Específica</Label>
-            <Select 
-              value={activeFilters.competency} 
-              onValueChange={(v) => setFilter('competency', v)}
-              disabled={activeFilters.specialization === 'all' || filterOptions.competencies.length === 0}
-            >
-              <SelectTrigger id="competency-filter">
-                <SelectValue placeholder="Todas as Competências" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Competências</SelectItem>
-                {filterOptions.competencies.map(comp => (
-                  <SelectItem key={comp} value={comp}>{comp}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Filtro de Idade */}
-          <div>
-            <Label htmlFor="age-filter" className="mb-2 block font-semibold">Faixa Etária</Label>
-            <Select value={activeFilters.age} onValueChange={(v) => setFilter('age', v)}>
-              <SelectTrigger id="age-filter">
-                <SelectValue placeholder="Todas as Idades" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as Idades</SelectItem>
-                {filterOptions.ageRanges.map(range => (
-                  <SelectItem key={range} value={range}>{range}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Filtro de Gênero */}
-          <div>
-            <Label htmlFor="gender-filter" className="mb-2 block font-semibold">Gênero</Label>
-            <Select value={activeFilters.gender} onValueChange={(v) => setFilter('gender', v as SexoTipo | 'all')}>
-              <SelectTrigger id="gender-filter">
-                <SelectValue placeholder="Todos os Gêneros" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Gêneros</SelectItem>
-                <SelectItem value="FEMININO">Feminino</SelectItem>
-                <SelectItem value="MASCULINO">Masculino</SelectItem>
-                <SelectItem value="NAO_BINARIO">Não Binário</SelectItem>
-                <SelectItem value="NAO_INFORMADO">Não Informado</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </SheetContent>
@@ -587,7 +480,7 @@ export default function Team() {
           </div>
 
           <div className="flex gap-3">
-            <Sheet open={isFilterSidebarOpen} onOpenChange={setIsFilterSidebarOpen}>
+            <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" className="relative gap-2">
                   <Filter className="w-4 h-4" />

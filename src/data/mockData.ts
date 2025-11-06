@@ -1,12 +1,10 @@
-import { Usuario, Cargo, Categoria, Especializacao, Competencia, Avaliacao, PontuacaoAvaliacao, calcularNivelMaturidade } from "@/types/mer";
+import { Cargo, Categoria, Especializacao, Competencia } from "@/types/mer";
 
-// ============ CATÁLOGOS BASE ============
+// ============ CATÁLOGOS BASE (ESTÁTICOS) ============
 
 export const MOCK_CARGOS: Cargo[] = [
   { id_cargo: "cargo_estagiario", nome_cargo: "Estagiário", descricao: "Nível inicial", ativo: true },
-  // Renomeando Sênior para Especialista I
   { id_cargo: "cargo_especialista_i", nome_cargo: "Especialista I", descricao: "Nível especialista", ativo: true },
-  // Mantendo os IDs antigos para compatibilidade com usuários mockados existentes, mas não listando como "oficiais"
   { id_cargo: "cargo_junior", nome_cargo: "Desenvolvedor Júnior", descricao: "Nível júnior", ativo: false },
   { id_cargo: "cargo_pleno", nome_cargo: "Desenvolvedor Pleno", descricao: "Nível pleno", ativo: false },
 ];
@@ -57,8 +55,6 @@ export const MOCK_COMPETENCIAS: Competencia[] = [
   { id_competencia: "16", nome_competencia: "Modelagem e Consultas SQL/NoSQL", tipo: "TECNICA", id_especializacao: "2", descricao: "Projetar esquemas e escrever consultas eficientes." },
   { id_competencia: "17", nome_competencia: "Implementação de Regras de Negócio", tipo: "TECNICA", id_especializacao: "2", descricao: "Codificação de lógicas de domínio e validações no servidor." },
   { id_competencia: "18", nome_competencia: "Autenticação e Controle de Acesso", tipo: "TECNICA", id_especializacao: "2", descricao: "Sessões, tokens, OAuth2/OpenID e autorização por papéis." },
-  
-  // Novas Hard Skills para preencher o template completo (IDs 19+)
   { id_competencia: "19", nome_competencia: "iOS Swift/Kotlin", tipo: "TECNICA", id_especializacao: "3", descricao: "Desenvolvimento nativo para iOS e Android." },
   { id_competencia: "20", nome_competencia: "Flutter/React Native", tipo: "TECNICA", id_especializacao: "4", descricao: "Desenvolvimento cross-platform." },
   { id_competencia: "21", nome_competencia: "Estatística Aplicada", tipo: "TECNICA", id_especializacao: "5", descricao: "Uso de métodos estatísticos para análise de dados." },
@@ -77,85 +73,4 @@ export const MOCK_COMPETENCIAS: Competencia[] = [
   { id_competencia: "34", nome_competencia: "Criação de Personas e Jornadas", tipo: "TECNICA", id_especializacao: "11", descricao: "Mapeamento da experiência do usuário." },
   { id_competencia: "35", nome_competencia: "Design System e Componentização", tipo: "TECNICA", id_especializacao: "12", descricao: "Criação e manutenção de bibliotecas de componentes." },
   { id_competencia: "36", nome_competencia: "Prototipagem (Figma/Sketch)", tipo: "TECNICA", id_especializacao: "12", descricao: "Criação de protótipos de alta fidelidade." },
-];
-
-// ============ USUÁRIOS ============
-
-export const MOCK_USERS: Usuario[] = [
-  // Líder com time
-  { id_usuario: 'lider-001', nome: 'Juliana Martins', email: 'juli.lider@gmail.com', senha_hash: 'juli@123', role: 'LIDER', id_cargo: 'cargo_especialista_i', lider_id: null, sexo: 'FEMININO', data_nascimento: '1985-05-15', ativo: true },
-  // Líder sem time
-  { id_usuario: 'lider-002', nome: 'Thais Costa', email: 'thais.lider@gmail.com', senha_hash: 'thais@123', role: 'LIDER', id_cargo: 'cargo_especialista_i', lider_id: null, sexo: 'FEMININO', data_nascimento: '1990-03-20', ativo: true },
-  // Liderados
-  { id_usuario: 'lid-001', nome: 'Antonio Pereira', email: 'tone.p@gmail.com', senha_hash: 'tone@123', role: 'LIDERADO', id_cargo: 'cargo_junior', lider_id: 'lider-001', sexo: 'MASCULINO', data_nascimento: '2000-08-12', ativo: true },
-  { id_usuario: 'lid-002', nome: 'Lara Mendes', email: 'lara.m@gmail.com', senha_hash: 'lara@123', role: 'LIDERADO', id_cargo: 'cargo_pleno', lider_id: 'lider-001', sexo: 'FEMININO', data_nascimento: '1993-11-25', ativo: true },
-  { id_usuario: 'lid-003', nome: 'Ramon Silva', email: 'ramon.p@gmail.com', senha_hash: 'ramon@123', role: 'LIDERADO', id_cargo: 'cargo_estagiario', lider_id: 'lider-002', sexo: 'MASCULINO', data_nascimento: '1998-07-30', ativo: true },
-];
-
-// ============ AVALIAÇÕES E PONTUAÇÕES ============
-
-const PONTUACOES_LID_001: PontuacaoAvaliacao[] = [
-  // Soft (Usando novos IDs)
-  { id_avaliacao: "av_001", id_competencia: "1", pontuacao_1a4: 2.5, peso_aplicado: 2 }, // Comunicação
-  { id_avaliacao: "av_001", id_competencia: "2", pontuacao_1a4: 3.0, peso_aplicado: 3 }, // Trabalho em Equipe
-  { id_avaliacao: "av_001", id_competencia: "6", pontuacao_1a4: 2.0, peso_aplicado: 2 }, // Iniciativa e Proatividade
-  { id_avaliacao: "av_001", id_competencia: "10", pontuacao_1a4: 3.5, peso_aplicado: 3 }, // Visão de Negócio
-  { id_avaliacao: "av_001", id_competencia: "4", pontuacao_1a4: 2.0, peso_aplicado: 3 }, // Vontade de Aprender
-  // Hard (Usando novos IDs)
-  { id_avaliacao: "av_001", id_competencia: "11", pontuacao_1a4: 2.5, peso_aplicado: null }, // Design Responsivo
-  { id_avaliacao: "av_001", id_competencia: "12", pontuacao_1a4: 2.0, peso_aplicado: null }, // Interatividade
-  { id_avaliacao: "av_001", id_competencia: "15", pontuacao_1a4: 1.5, peso_aplicado: null }, // Criação e Gestão de APIs
-];
-
-const PONTUACOES_LID_002: PontuacaoAvaliacao[] = [
-  // Soft (simulando cargo Pleno, sem template definido ainda)
-  { id_avaliacao: "av_002", id_competencia: "1", pontuacao_1a4: 3.5, peso_aplicado: 2 }, // Comunicação
-  { id_avaliacao: "av_002", id_competencia: "2", pontuacao_1a4: 4.0, peso_aplicado: 3 }, // Trabalho em Equipe
-  // Hard
-  { id_avaliacao: "av_002", id_competencia: "15", pontuacao_1a4: 3.5, peso_aplicado: null }, // Criação e Gestão de APIs
-  { id_avaliacao: "av_002", id_competencia: "16", pontuacao_1a4: 3.0, peso_aplicado: null }, // Modelagem e Consultas SQL/NoSQL
-  { id_avaliacao: "av_002", id_competencia: "17", pontuacao_1a4: 2.5, peso_aplicado: null }, // Implementação de Regras de Negócio
-];
-
-export const MOCK_PONTUACOES: PontuacaoAvaliacao[] = [...PONTUACOES_LID_001, ...PONTUACOES_LID_002];
-
-// Função para calcular médias para uma avaliação
-const calcularMedias = (pontuacoes: PontuacaoAvaliacao[]) => {
-  const soft = pontuacoes.filter(p => MOCK_COMPETENCIAS.find(c => c.id_competencia === p.id_competencia)?.tipo === 'COMPORTAMENTAL');
-  const hard = pontuacoes.filter(p => MOCK_COMPETENCIAS.find(c => c.id_competencia === p.id_competencia)?.tipo === 'TECNICA');
-  
-  const media_comportamental_1a4 = soft.length > 0 ? soft.reduce((acc, p) => acc + p.pontuacao_1a4, 0) / soft.length : 0;
-  const media_tecnica_1a4 = hard.length > 0 ? hard.reduce((acc, p) => acc + p.pontuacao_1a4, 0) / hard.length : 0;
-
-  return { media_comportamental_1a4, media_tecnica_1a4 };
-};
-
-const medias_lid_001 = calcularMedias(PONTUACOES_LID_001);
-const medias_lid_002 = calcularMedias(PONTUACOES_LID_002);
-
-export const MOCK_AVALIACAO: Avaliacao[] = [
-  {
-    id_avaliacao: "av_001",
-    lider_id: "lider-001",
-    liderado_id: "lid-001",
-    id_cargo: "cargo_junior",
-    data_avaliacao: "2024-05-10T10:00:00Z",
-    media_comportamental_1a4: medias_lid_001.media_comportamental_1a4,
-    media_tecnica_1a4: medias_lid_001.media_tecnica_1a4,
-    maturidade_quadrante: calcularNivelMaturidade(medias_lid_001.media_tecnica_1a4, medias_lid_001.media_comportamental_1a4),
-    status: "CONCLUIDA",
-    observacoes: "Antonio demonstra bom potencial de aprendizado."
-  },
-  {
-    id_avaliacao: "av_002",
-    lider_id: "lider-001",
-    liderado_id: "lid-002",
-    id_cargo: "cargo_pleno",
-    data_avaliacao: "2024-05-15T14:30:00Z",
-    media_comportamental_1a4: medias_lid_002.media_comportamental_1a4,
-    media_tecnica_1a4: medias_lid_002.media_tecnica_1a4,
-    maturidade_quadrante: calcularNivelMaturidade(medias_lid_002.media_tecnica_1a4, medias_lid_002.media_comportamental_1a4),
-    status: "CONCLUIDA",
-    observacoes: "Lara é uma excelente colaboradora, referência técnica no backend."
-  }
 ];

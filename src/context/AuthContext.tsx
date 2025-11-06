@@ -135,7 +135,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const lideradoIds = relacaoData.map(r => r.liderado_id);
     
     // 2. Buscar perfis dos liderados
-    let currentLiderados: Usuario[] = [];
     if (lideradoIds.length > 0) {
       const { data: lideradosData, error: lideradosError } = await supabase
         .from('usuario')
@@ -145,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (lideradosError) {
         console.error("Erro ao buscar liderados:", lideradosError);
       } else {
-        currentLiderados = lideradosData.map((l: any) => ({
+        const currentLiderados = lideradosData.map((l: any) => ({
           ...l,
           id_usuario: String(l.id),
           lider_id: l.lider_id ? String(l.lider_id) : null,
@@ -362,7 +361,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
