@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useMemo, use
 import { supabase } from '@/lib/supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
 import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade } from '@/types/mer';
-import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
+import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORias } from '@/data/mockData';
 
 // Contrato de Input para o RPC de salvar avaliação
 interface CompetenciaScore {
@@ -237,40 +237,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [profile]);
 
-  const fetchProfileAndData = useCallback(async (user: User) => {
-    setLoading(true);
-    const { data: profileData, error: profileError } = await supabase
-      .rpc('get_my_profile')
-      .single();
-
-    if (profileError || !profileData) {
-      console.error("Erro ao buscar perfil via RPC ou perfil não encontrado:", profileError);
-      setProfile(null);
-      if (!profileData) await supabase.auth.signOut();
-    } else {
-      const dbProfile = profileData as any;
-      const appProfile: Usuario = {
-        ...dbProfile,
-        id_usuario: String(dbProfile.id),
-        lider_id: dbProfile.lider_id ? String(dbProfile.lider_id) : null,
-      };
-      setProfile(appProfile);
-
-      if (appProfile.role === 'LIDER') {
-        await fetchTeamData(dbProfile.id);
-        setLideradoDashboardData(null);
-      } else if (appProfile.role === 'LIDERADO') {
-        await fetchLideradoDashboardData(dbProfile.id);
-        setLiderados([]);
-        setAvaliacoes([]);
-        setPontuacoes([]);
-        setMemberXYData([]);
-      }
-    }
-    setLoading(false);
-  }, [fetchTeamData, fetchLideradoDashboardData]);
-
   useEffect(() => {
+    const fetchProfileAndData = async (user: User) => {
+      setLoading(true);
+      const { data: profileData, error: profileError } = await supabase
+        .rpc('get_my_profile')
+        .single();
+  
+      if (profileError || !profileData) {
+        console.error("Erro ao buscar perfil via RPC ou perfil não encontrado:", profileError);
+        setProfile(null);
+        if (!profileData) await supabase.auth.signOut();
+      } else {
+        const dbProfile = profileData as any;
+        const appProfile: Usuario = {
+          ...dbProfile,
+          id_usuario: String(dbProfile.id),
+          lider_id: dbProfile.lider_id ? String(dbProfile.lider_id) : null,
+        };
+        setProfile(appProfile);
+  
+        if (appProfile.role === 'LIDER') {
+          await fetchTeamData(dbProfile.id);
+          setLideradoDashboardData(null);
+        } else if (appProfile.role === 'LIDERADO') {
+          await fetchLideradoDashboardData(dbProfile.id);
+          setLiderados([]);
+          setAvaliacoes([]);
+          setPontuacoes([]);
+          setMemberXYData([]);
+        }
+      }
+      setLoading(false);
+    };
+
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
@@ -299,7 +299,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [fetchProfileAndData]);
+  // AVISO: O array de dependências está vazio de propósito para que este efeito rode apenas uma vez.
+  // A lógica de atualização é gerenciada pelo listener onAuthStateChange.
+  }, []);
 
   const saveEvaluation = async (input: SaveEvaluationInput) => {
     if (!session) return { success: false, error: "Usuário não autenticado." };
