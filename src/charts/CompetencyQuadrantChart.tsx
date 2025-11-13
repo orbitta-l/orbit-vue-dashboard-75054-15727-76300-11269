@@ -21,12 +21,12 @@ interface CompetencyQuadrantChartProps {
   empty?: boolean;
 }
 
-// Mapeamento de cores e rótulos
+// Mapeamento de cores e rótulos (Priorizando Azul e Laranja)
 const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
-  M1: "hsl(var(--destructive))", // Básico (Vermelho - Crítico)
-  M2: "hsl(var(--accent))",       // Intermediário (Laranja - Comportamental Forte)
-  M3: "hsl(var(--color-good))",    // Avançado (Verde - Técnico Forte)
-  M4: "hsl(var(--primary))",      // Expect (Azul Primário - Ideal)
+  M1: "hsl(var(--muted-foreground))", // Básico (Cinza/Neutro - Área de maior necessidade)
+  M2: "hsl(var(--accent))",           // Intermediário (Laranja - Comportamental Forte)
+  M3: "hsl(var(--primary-dark))",     // Avançado (Azul Escuro - Técnico Forte)
+  M4: "hsl(var(--primary))",          // Expect (Azul Primário - Ideal)
 };
 
 const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
@@ -38,11 +38,11 @@ const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
 
 // Helper para determinar a cor do texto do badge (preto ou branco)
 const getTextColor = (maturity: NivelMaturidade) => {
-    // M3 (Verde/Amarelo) e M2 (Laranja) geralmente precisam de texto preto para contraste
-    if (maturity === 'M3' || maturity === 'M2') {
+    // M1 (Cinza) e M2 (Laranja) precisam de texto preto para contraste
+    if (maturity === 'M1' || maturity === 'M2') {
         return 'text-black';
     }
-    // M1 (Vermelho) e M4 (Azul) geralmente precisam de texto branco
+    // M3 (Azul Escuro) e M4 (Azul Primário) precisam de texto branco
     return 'text-white';
 };
 
