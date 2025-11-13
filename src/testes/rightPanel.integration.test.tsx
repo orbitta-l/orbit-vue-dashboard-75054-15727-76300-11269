@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import RightPanel from "@/components/login/RightPanel";
-import { vi } from "vitest";
+import { vi, describe, beforeEach, it, expect } from "vitest";
 
 // ======= Mocks =======
 

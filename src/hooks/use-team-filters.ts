@@ -59,7 +59,13 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
       const { maturity, category, specialization, competency, age, gender } = activeFilters;
 
       if (maturity.length > 0 && ultima_avaliacao) {
-        if (!maturity.includes(ultima_avaliacao.maturidade_quadrante)) return false;
+        // Garante que maturidade_quadrante é um NivelMaturidade antes de verificar a inclusão
+        if (ultima_avaliacao.maturidade_quadrante !== 'N/A') {
+            if (!maturity.includes(ultima_avaliacao.maturidade_quadrante)) return false;
+        } else {
+            // Se o filtro de maturidade está ativo, mas o membro não foi avaliado, ele não deve ser incluído.
+            return false;
+        }
       }
 
       if (gender !== 'all' && sexo !== gender) return false;
