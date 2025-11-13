@@ -23,10 +23,10 @@ interface CompetencyQuadrantChartProps {
 
 // Mapeamento de cores e rótulos
 const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
-  M1: "hsl(var(--destructive))", // Básico (Vermelho)
-  M2: "hsl(var(--accent))",       // Intermediário (Laranja)
-  M3: "hsl(var(--color-mid))",    // Avançado (Amarelo)
-  M4: "hsl(var(--primary))",      // Expect (Azul Primário)
+  M1: "hsl(var(--destructive))", // Básico (Vermelho - Crítico)
+  M2: "hsl(var(--accent))",       // Intermediário (Laranja - Comportamental Forte)
+  M3: "hsl(var(--color-good))",    // Avançado (Verde - Técnico Forte)
+  M4: "hsl(var(--primary))",      // Expect (Azul Primário - Ideal)
 };
 
 const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
@@ -34,6 +34,16 @@ const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
   M2: "Intermediário",
   M3: "Avançado",
   M4: "Expect",
+};
+
+// Helper para determinar a cor do texto do badge (preto ou branco)
+const getTextColor = (maturity: NivelMaturidade) => {
+    // M3 (Verde/Amarelo) e M2 (Laranja) geralmente precisam de texto preto para contraste
+    if (maturity === 'M3' || maturity === 'M2') {
+        return 'text-black';
+    }
+    // M1 (Vermelho) e M4 (Azul) geralmente precisam de texto branco
+    return 'text-white';
 };
 
 const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -120,7 +130,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
               </div>
             )}
             <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 50, right: 50, bottom: 50, left: 50 }}> {/* Aumentando as margens */}
+              <ScatterChart margin={{ top: 50, right: 50, bottom: 50, left: 50 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   type="number" 
@@ -169,16 +179,16 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
             </ResponsiveContainer>
             {/* Quadrant Badges com novos rótulos e cores - Ajustando o posicionamento */}
             <div className="absolute top-10 left-10 text-center">
-              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} ({quadrantCounts.M3 || 0})</div>
+              <div className={`px-3 py-1 rounded-md font-bold text-sm ${getTextColor('M3')}`} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} ({quadrantCounts.M3 || 0})</div>
             </div>
             <div className="absolute top-10 right-10 text-center">
-              <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} ({quadrantCounts.M4 || 0})</div>
+              <div className={`px-3 py-1 rounded-md font-bold text-sm ${getTextColor('M4')}`} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} ({quadrantCounts.M4 || 0})</div>
             </div>
             <div className="absolute bottom-10 left-10 text-center">
-              <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} ({quadrantCounts.M1 || 0})</div>
+              <div className={`px-3 py-1 rounded-md font-bold text-sm ${getTextColor('M1')}`} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} ({quadrantCounts.M1 || 0})</div>
             </div>
             <div className="absolute bottom-10 right-10 text-center">
-              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} ({quadrantCounts.M2 || 0})</div>
+              <div className={`px-3 py-1 rounded-md font-bold text-sm ${getTextColor('M2')}`} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} ({quadrantCounts.M2 || 0})</div>
             </div>
           </div>
         </div>
