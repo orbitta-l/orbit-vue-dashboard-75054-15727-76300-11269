@@ -23,8 +23,8 @@ interface CompetencyQuadrantChartProps {
 
 // Mapeamento de cores e rótulos (Priorizando Azul e Laranja)
 const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
-  M1: "hsl(var(--muted-foreground))", // Básico (Cinza/Neutro - Área de maior necessidade)
-  M2: "hsl(var(--accent))",           // Intermediário (Laranja - Comportamental Forte)
+  M1: "hsl(var(--accent) / 0.5)",      // Básico (Laranja Claro - Área de maior necessidade)
+  M2: "hsl(var(--accent))",           // Intermediário (Laranja Escuro - Comportamental Forte)
   M3: "hsl(var(--primary-dark))",     // Avançado (Azul Escuro - Técnico Forte)
   M4: "hsl(var(--primary))",          // Expect (Azul Primário - Ideal)
 };
@@ -38,7 +38,7 @@ const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
 
 // Helper para determinar a cor do texto do badge (preto ou branco)
 const getTextColor = (maturity: NivelMaturidade) => {
-    // M1 (Cinza) e M2 (Laranja) precisam de texto preto para contraste
+    // M1 (Laranja Claro) e M2 (Laranja Escuro) precisam de texto preto para contraste
     if (maturity === 'M1' || maturity === 'M2') {
         return 'text-black';
     }
@@ -140,6 +140,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   ticks={[1, 2, 2.5, 3, 4]} 
                   label={{ value: "Média Comportamental (SOFT)", position: 'insideBottom', offset: -15, fill: 'hsl(var(--foreground))' }}
                   stroke="hsl(var(--foreground))"
+                  tick={false} // Remove os valores numéricos do eixo X
                 />
                 <YAxis 
                   type="number" 
@@ -149,16 +150,18 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   ticks={[1, 2, 2.5, 3, 4]}
                   label={{ value: "Média Técnica (HARD)", angle: -90, position: 'insideLeft', offset: -15, fill: 'hsl(var(--foreground))' }}
                   stroke="hsl(var(--foreground))"
+                  tick={false} // Remove os valores numéricos do eixo Y
                 />
                 
-                <ReferenceLine x={2.5} stroke="hsl(var(--border))" strokeDasharray="4 4" />
-                <ReferenceLine y={2.5} stroke="hsl(var(--border))" strokeDasharray="4 4" />
+                {/* Linhas centrais destacadas */}
+                <ReferenceLine x={2.5} stroke="hsl(var(--foreground))" strokeDasharray="2 2" strokeWidth={2} />
+                <ReferenceLine y={2.5} stroke="hsl(var(--foreground))" strokeDasharray="2 2" strokeWidth={2} />
 
-                {/* Quadrantes com cores da paleta */}
-                <ReferenceArea x1={1} x2={2.5} y1={1} y2={2.5} fill={QUADRANT_COLORS.M1} fillOpacity={0.1} />
-                <ReferenceArea x1={2.5} x2={4} y1={1} y2={2.5} fill={QUADRANT_COLORS.M2} fillOpacity={0.1} />
-                <ReferenceArea x1={1} x2={2.5} y1={2.5} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.1} />
-                <ReferenceArea x1={2.5} x2={4} y1={2.5} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.1} />
+                {/* Quadrantes com cores da paleta (M1 e M2 em tons de laranja, M3 e M4 em tons de azul) */}
+                <ReferenceArea x1={1} x2={2.5} y1={1} y2={2.5} fill={QUADRANT_COLORS.M1} fillOpacity={0.15} />
+                <ReferenceArea x1={2.5} x2={4} y1={1} y2={2.5} fill={QUADRANT_COLORS.M2} fillOpacity={0.2} />
+                <ReferenceArea x1={1} x2={2.5} y1={2.5} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.15} />
+                <ReferenceArea x1={2.5} x2={4} y1={2.5} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
 
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
                 
