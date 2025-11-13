@@ -13,12 +13,12 @@ export function MetricCard({ title, value, icon, description }: MetricCardProps)
     <Card className="transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-default text-center">
       <CardHeader className="flex flex-col items-center justify-center space-y-1 p-3 pb-1">
         <div className="text-primary mb-1">{icon}</div>
-        <CardTitle className="text-xs font-semibold text-muted-foreground flex items-center justify-center gap-2">
+        <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center justify-center gap-2">
           {title}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-3 pt-0">
-        <div className="text-3xl font-bold mb-1">{value}</div>
+        <div className="text-2xl font-bold mb-1">{value}</div>
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </CardContent>
     </Card>
