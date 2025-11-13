@@ -31,9 +31,9 @@ export const Sidebar = () => {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 z-20 w-64">
+    <aside className="fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 z-20 w-56">
       {/* Logo Section */}
-      <div className="relative flex items-center justify-center h-16 border-b border-sidebar-border transition-all duration-300 px-6">
+      <div className="relative flex items-center justify-center h-16 border-b border-sidebar-border transition-all duration-300 px-4">
         <img src={logo} alt="ORBITTA Logo" className="h-8 transition-all duration-300" />
         {/* Botão de recolher removido */}
       </div>
@@ -41,7 +41,7 @@ export const Sidebar = () => {
       {/* Profile Section */}
       <div className="p-4 border-b border-sidebar-border transition-all duration-300 py-4 px-4">
         <div className="flex flex-col items-center p-2 rounded-lg transition-all duration-300 hover:bg-white/5">
-          <Avatar className="mb-2 w-16 h-16">
+          <Avatar className="mb-2 w-14 h-14">
             {/* Se houver avatar_url no profile, usar <AvatarImage src={profile.avatar_url} /> */}
             <AvatarFallback className="bg-accent text-accent-foreground font-semibold text-lg">
               {profile ? getInitials(profile.nome) : 'U'}
@@ -62,7 +62,7 @@ export const Sidebar = () => {
       </div>
 
       {/* Main Navigation Items */}
-      <div className="flex-1 p-4 overflow-y-auto">
+      <div className="flex-1 p-3 overflow-y-auto">
         <nav className="space-y-1">
           {navItems.map((item) => (
             <NavLink
@@ -71,7 +71,7 @@ export const Sidebar = () => {
               end={item.to === "/dashboard-lider"}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
+                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200",
                   isActive
                     ? "bg-primary text-primary-foreground font-medium"
                     : "text-sidebar-foreground/80 hover:bg-white/5 hover:text-sidebar-foreground"
@@ -90,12 +90,12 @@ export const Sidebar = () => {
       </div>
 
       {/* Bottom Navigation Items (Settings and Logout) */}
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="p-3 border-t border-sidebar-border space-y-1">
         <NavLink
           to="/settings"
           className={({ isActive }) =>
             cn(
-              "flex items-center gap-3 px-4 py-3 w-full rounded-lg transition-all duration-200 mb-1",
+              "flex items-center gap-3 px-3 py-2 w-full rounded-lg transition-all duration-200",
               isActive
                 ? "bg-primary text-primary-foreground font-medium"
                 : "text-sidebar-foreground/60 hover:bg-white/5 hover:text-sidebar-foreground"
@@ -111,7 +111,7 @@ export const Sidebar = () => {
         </NavLink>
         <button 
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 w-full rounded-lg bg-transparent hover:bg-accent/20 transition-all duration-200"
+          className="flex items-center gap-3 px-3 py-2 w-full rounded-lg bg-transparent hover:bg-accent/20 transition-all duration-200"
         >
           <LogOut className="w-5 h-5 text-accent" />
           <span className="text-accent">Sair</span>
