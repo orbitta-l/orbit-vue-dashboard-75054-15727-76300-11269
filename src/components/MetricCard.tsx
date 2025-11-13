@@ -17,7 +17,7 @@ export function MetricCard({ title, value, icon, description }: MetricCardProps)
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4 pt-0">
+      <CardContent className="px-4 pb-4 pt-0">
         <div className="text-2xl font-bold">{value}</div>
         {description && <p className="text-xs text-muted-foreground mt-1">{description}</p>}
       </CardContent>
