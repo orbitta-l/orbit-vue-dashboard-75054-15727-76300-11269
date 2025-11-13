@@ -52,8 +52,8 @@ export const Sidebar = () => {
             >
               {({ isActive }) => (
                 <>
-                  {/* Ícones principais em azul claro (text-accent) */}
-                  <item.icon className={cn("w-5 h-5", isActive ? "text-primary-foreground" : "text-primary")} />
+                  {/* Ícones principais em cinza claro (text-sidebar-foreground/60) */}
+                  <item.icon className={cn("w-5 h-5", isActive ? "text-primary-foreground" : "text-sidebar-foreground/60")} />
                   <span>{item.label}</span>
                 </>
               )}
