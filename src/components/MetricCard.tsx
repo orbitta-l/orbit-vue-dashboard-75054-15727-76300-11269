@@ -11,11 +11,11 @@ interface MetricCardProps {
 export function MetricCard({ title, value, icon, description }: MetricCardProps) {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         <div className="text-muted-foreground">{icon}</div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 pt-0">
         <div className="text-2xl font-bold">{value}</div>
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </CardContent>

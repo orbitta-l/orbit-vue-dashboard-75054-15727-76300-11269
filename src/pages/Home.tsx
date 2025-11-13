@@ -157,7 +157,7 @@ export default function Home() {
   }, [isPrimeiroAcesso, liderados, avaliacoes, teamData]);
 
   return (
-    <div className="p-8">
+    <div className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-start mb-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">
