@@ -38,29 +38,6 @@ export const Sidebar = () => {
         {/* Botão de recolher removido */}
       </div>
 
-      {/* Profile Section */}
-      <div className="p-4 border-b border-sidebar-border transition-all duration-300 py-4 px-4">
-        <div className="flex flex-col items-center p-2 rounded-lg transition-all duration-300 hover:bg-white/5">
-          <Avatar className="mb-3 w-16 h-16"> {/* Aumentei o tamanho do avatar e a margem inferior */}
-            {/* Se houver avatar_url no profile, usar <AvatarImage src={profile.avatar_url} /> */}
-            <AvatarFallback className="bg-accent text-accent-foreground font-semibold text-xl"> {/* Aumentei o tamanho da fonte */}
-              {profile ? getInitials(profile.nome) : 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0 text-center transition-opacity duration-300 space-y-0.5"> {/* Adicionei space-y-0.5 */}
-            <p className="text-base font-medium text-sidebar-foreground truncate">
-              {profile?.nome || 'Usuário'}
-            </p>
-            <p className="text-sm text-sidebar-foreground/70 truncate">
-              {profile?.role === 'LIDER' ? 'Tech Lead' : 'Desenvolvedor'}
-            </p>
-            <p className="text-sm text-sidebar-foreground/70 truncate">
-              {profile?.email || 'email@exemplo.com'}
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Main Navigation Items */}
       <div className="flex-1 p-3 overflow-y-auto">
         <nav className="space-y-1">
