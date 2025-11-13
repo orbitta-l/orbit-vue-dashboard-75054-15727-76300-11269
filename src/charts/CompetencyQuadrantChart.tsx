@@ -21,11 +21,19 @@ interface CompetencyQuadrantChartProps {
   empty?: boolean;
 }
 
+// Mapeamento de cores e rótulos
 const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
-  M1: "hsl(var(--destructive))", // Baixo C, Baixo T (Vermelho)
-  M2: "hsl(var(--accent))",       // Alto C, Baixo T (Laranja)
-  M3: "hsl(var(--color-mid))",    // Baixo C, Alto T (Amarelo)
-  M4: "hsl(var(--primary))",      // Alto C, Alto T (Azul Primário)
+  M1: "hsl(var(--destructive))", // Básico (Vermelho)
+  M2: "hsl(var(--accent))",       // Intermediário (Laranja)
+  M3: "hsl(var(--color-mid))",    // Avançado (Amarelo)
+  M4: "hsl(var(--primary))",      // Expect (Azul Primário)
+};
+
+const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
+  M1: "Básico",
+  M2: "Intermediário",
+  M3: "Avançado",
+  M4: "Expect",
 };
 
 const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -79,12 +87,15 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      const maturidadeLabel = QUADRANT_LABELS[data.nivel_maturidade as NivelMaturidade] || 'N/A';
+      const maturidadeColor = QUADRANT_COLORS[data.nivel_maturidade as NivelMaturidade] || 'hsl(var(--foreground))';
+      
       return (
         <div className="p-3 bg-card border rounded-lg shadow-lg text-sm">
           <p className="font-bold text-foreground">{data.nome_liderado}</p>
           <p className="text-muted-foreground">{data.cargo}</p>
           <p className="text-xs mt-2 pt-2 border-t">
-            Maturidade: <span className="font-semibold" style={{ color: QUADRANT_COLORS[data.nivel_maturidade] }}>{data.nivel_maturidade}</span>
+            Maturidade: <span className="font-semibold" style={{ color: maturidadeColor }}>{maturidadeLabel} ({data.nivel_maturidade})</span>
           </p>
           <p className="text-xs">Comportamental: {data.eixo_y_comportamental.toFixed(1)} | Técnico: {data.eixo_x_tecnico_geral.toFixed(1)}</p>
         </div>
@@ -97,8 +108,8 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
     <Card className="p-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
         <div className="md:col-span-7">
-          <h3 className="text-lg font-semibold text-foreground">Matriz de Competências</h3>
-          <p className="text-sm text-muted-foreground mb-4">Perfil técnico vs. comportamental do time</p>
+          <h3 className="text-lg font-semibold text-foreground">Matriz de Competências (Maturidade)</h3>
+          <p className="text-sm text-muted-foreground mb-4">Posicionamento do time com base na média de desempenho técnico vs. comportamental.</p>
           
           <div className="relative w-full h-[480px]">
             {empty && (
@@ -117,7 +128,8 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   name="Comportamental" 
                   domain={[1, 4]} 
                   ticks={[1, 2, 2.5, 3, 4]} 
-                  label={{ value: "Média Comportamental (SOFT)", position: 'insideBottom', offset: -15 }}
+                  label={{ value: "Média Comportamental (SOFT)", position: 'insideBottom', offset: -15, fill: 'hsl(var(--foreground))' }}
+                  stroke="hsl(var(--foreground))"
                 />
                 <YAxis 
                   type="number" 
@@ -125,12 +137,14 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   name="Técnico" 
                   domain={[1, 4]} 
                   ticks={[1, 2, 2.5, 3, 4]}
-                  label={{ value: "Média Técnica (HARD)", angle: -90, position: 'insideLeft', offset: -15 }}
+                  label={{ value: "Média Técnica (HARD)", angle: -90, position: 'insideLeft', offset: -15, fill: 'hsl(var(--foreground))' }}
+                  stroke="hsl(var(--foreground))"
                 />
                 
                 <ReferenceLine x={2.5} stroke="hsl(var(--border))" strokeDasharray="4 4" />
                 <ReferenceLine y={2.5} stroke="hsl(var(--border))" strokeDasharray="4 4" />
 
+                {/* Quadrantes com cores da paleta */}
                 <ReferenceArea x1={1} x2={2.5} y1={1} y2={2.5} fill={QUADRANT_COLORS.M1} fillOpacity={0.1} />
                 <ReferenceArea x1={2.5} x2={4} y1={1} y2={2.5} fill={QUADRANT_COLORS.M2} fillOpacity={0.1} />
                 <ReferenceArea x1={1} x2={2.5} y1={2.5} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.1} />
@@ -153,18 +167,18 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                 )}
               </ScatterChart>
             </ResponsiveContainer>
-            {/* Quadrant Badges */}
+            {/* Quadrant Badges com novos rótulos e cores */}
             <div className="absolute top-2 left-2 text-center">
-              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M3 }}>M3 ({quadrantCounts.M3 || 0})</div>
+              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} ({quadrantCounts.M3 || 0})</div>
             </div>
             <div className="absolute top-2 right-2 text-center">
-              <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M4 }}>M4 ({quadrantCounts.M4 || 0})</div>
+              <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} ({quadrantCounts.M4 || 0})</div>
             </div>
             <div className="absolute bottom-2 left-2 text-center">
-              <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M1 }}>M1 ({quadrantCounts.M1 || 0})</div>
+              <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} ({quadrantCounts.M1 || 0})</div>
             </div>
             <div className="absolute bottom-2 right-2 text-center">
-              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M2 }}>M2 ({quadrantCounts.M2 || 0})</div>
+              <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} ({quadrantCounts.M2 || 0})</div>
             </div>
           </div>
         </div>
