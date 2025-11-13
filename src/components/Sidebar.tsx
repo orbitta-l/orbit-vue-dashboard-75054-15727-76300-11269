@@ -1,4 +1,4 @@
-import { Home, Users, ClipboardCheck, LogOut, Settings, Mail } from "lucide-react";
+import { Home, Users, ClipboardCheck, LogOut, Settings } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -56,7 +56,7 @@ export const Sidebar = () => {
             >
               {({ isActive }) => (
                 <>
-                  <item.icon className={cn("w-5 h-5", isActive ? "text-primary-foreground" : "text-primary")} />
+                  <item.icon className={cn("w-5 h-5", isActive ? "text-primary-foreground" : "text-accent")} />
                   <span>{item.label}</span>
                 </>
               )}

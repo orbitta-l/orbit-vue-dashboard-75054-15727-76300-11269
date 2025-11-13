@@ -40,14 +40,14 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    /* Sidebar adjustments for light mode (White/Light Gray) */
-    --sidebar-background: 0 0% 100%; /* White */
-    --sidebar-foreground: 214 100% 1%; /* Dark text */
+    /* Sidebar adjustments (Revertido para o tema escuro original) */
+    --sidebar-background: 227 68% 9%; /* Dark Blue */
+    --sidebar-foreground: 0 0% 100%; /* White text */
     --sidebar-primary: 215 100% 23%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 200 10% 90%; /* Light gray for hover/active background */
-    --sidebar-accent-foreground: 214 100% 1%;
-    --sidebar-border: 200 10% 90%;
+    --sidebar-accent: 227 50% 15%; /* Darker background for hover/active */
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 227 40% 25%;
     --sidebar-ring: 215 100% 23%;
     
     --chart-1: 215 100% 23%; /* Blue (Primary) */

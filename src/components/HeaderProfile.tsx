@@ -33,7 +33,6 @@ export function HeaderProfile() {
   const currentHour = format(currentTime, "HH:mm:ss");
   
   const userName = profile?.nome || "Usuário";
-  const userRole = profile?.role === 'LIDER' ? 'Tech Lead' : 'Desenvolvedor';
   const userEmail = profile?.email || 'email@exemplo.com';
 
   return (
@@ -51,7 +50,6 @@ export function HeaderProfile() {
             {getGreeting()}, {userName}!
           </h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0">
-            <Badge variant="secondary" className="text-xs font-medium">{userRole}</Badge>
             <div className="flex items-center gap-1">
                 <Mail className="w-3 h-3" />
                 <span className="truncate">{userEmail}</span>
