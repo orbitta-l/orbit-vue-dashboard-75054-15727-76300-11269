@@ -205,7 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         lider_id: String(a.id_lider),
         liderado_id: String(a.id_liderado),
         id_cargo: String(a.cargo_referenciado),
-        data_avaliacao: new Date(a.data_avaliacao + 'Z'),
+        data_avaliacao: new Date(a.data_avaliacao + 'Z'), // Convertendo para Date
         media_comportamental_1a4: a.media_comportamental,
         media_tecnica_1a4: a.media_tecnica,
         maturidade_quadrante: a.nivel_maturidade,

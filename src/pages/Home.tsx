@@ -31,7 +31,7 @@ export default function Home() {
       };
     }
 
-    // CORREÇÃO: Avaliações já vêm ordenadas e como objetos Date do AuthContext
+    // CORREÇÃO: Avaliações já vêm como objetos Date do AuthContext
     const sortedAvaliacoes = [...avaliacoes].sort((a, b) => 
       b.data_avaliacao.getTime() - a.data_avaliacao.getTime()
     );
@@ -127,7 +127,7 @@ export default function Home() {
       };
     }).filter(b => b.media > 0);
 
-    // CORREÇÃO: Avaliações já vêm ordenadas e como objetos Date do AuthContext
+    // CORREÇÃO: Avaliações já vêm como objetos Date do AuthContext
     const sortedAvaliacoes = [...avaliacoes].sort((a, b) => 
       b.data_avaliacao.getTime() - a.data_avaliacao.getTime()
     );
@@ -173,7 +173,7 @@ export default function Home() {
 
       <CompetencyQuadrantChart
         empty={isPrimeiroAcesso}
-        teamMembers={dashboardData.quadrante}
+        teamMembers={dashboardData.quadrante as any} // Cast temporário, pois o tipo MemberData no chart precisa ser atualizado
       />
       
       <CompetencyBarsChart

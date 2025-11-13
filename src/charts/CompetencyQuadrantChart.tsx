@@ -13,7 +13,7 @@ interface MemberData {
   cargo: string;
   eixo_x_tecnico_geral: number;
   eixo_y_comportamental: number;
-  nivel_maturidade: NivelMaturidade;
+  nivel_maturidade: NivelMaturidade | 'N/A';
 }
 
 interface CompetencyQuadrantChartProps {
@@ -22,22 +22,24 @@ interface CompetencyQuadrantChartProps {
 }
 
 // Mapeamento de cores e rótulos (Priorizando Azul e Laranja)
-const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
+const QUADRANT_COLORS: Record<NivelMaturidade | 'N/A', string> = {
   M1: "hsl(var(--accent) / 0.5)",      // Básico (Laranja Claro - Área de maior necessidade)
   M2: "hsl(var(--accent))",           // Intermediário (Laranja Escuro - Comportamental Forte)
   M3: "hsl(var(--primary-dark))",     // Avançado (Azul Escuro - Técnico Forte)
   M4: "hsl(var(--primary))",          // Expect (Azul Primário - Ideal)
+  'N/A': "hsl(var(--muted-foreground) / 0.5)", // Não Avaliado
 };
 
-const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
+const QUADRANT_LABELS: Record<NivelMaturidade | 'N/A', string> = {
   M1: "Básico",
   M2: "Intermediário",
   M3: "Avançado",
   M4: "Expect",
+  'N/A': "Não Avaliado",
 };
 
 // Helper para determinar a cor do texto do badge (preto ou branco)
-const getTextColor = (maturity: NivelMaturidade) => {
+const getTextColor = (maturity: NivelMaturidade | 'N/A') => {
     // M1 (Laranja Claro) e M2 (Laranja Escuro) precisam de texto preto para contraste
     if (maturity === 'M1' || maturity === 'M2') {
         return 'text-black';
@@ -76,9 +78,10 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
 
   const quadrantCounts = useMemo(() => {
     return filteredMembers.reduce((acc, member) => {
-      acc[member.nivel_maturidade] = (acc[member.nivel_maturidade] || 0) + 1;
+      const key = member.nivel_maturidade;
+      acc[key] = (acc[key] || 0) + 1;
       return acc;
-    }, {} as Record<NivelMaturidade, number>);
+    }, {} as Record<NivelMaturidade | 'N/A', number>);
   }, [filteredMembers]);
 
   useEffect(() => {
@@ -97,8 +100,8 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      const maturidadeLabel = QUADRANT_LABELS[data.nivel_maturidade as NivelMaturidade] || 'N/A';
-      const maturidadeColor = QUADRANT_COLORS[data.nivel_maturidade as NivelMaturidade] || 'hsl(var(--foreground))';
+      const maturidadeLabel = QUADRANT_LABELS[data.nivel_maturidade as NivelMaturidade | 'N/A'] || 'N/A';
+      const maturidadeColor = QUADRANT_COLORS[data.nivel_maturidade as NivelMaturidade | 'N/A'] || 'hsl(var(--foreground))';
       
       return (
         <div className="p-3 bg-card border rounded-lg shadow-lg text-sm">
@@ -140,7 +143,6 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   ticks={[1, 2, 2.5, 3, 4]} 
                   label={{ value: "Média Comportamental (SOFT)", position: 'insideBottom', offset: -15, fill: 'hsl(var(--foreground))' }}
                   stroke="hsl(var(--foreground))"
-                  tick={false} // Remove os valores numéricos do eixo X
                 />
                 <YAxis 
                   type="number" 
@@ -150,7 +152,6 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   ticks={[1, 2, 2.5, 3, 4]}
                   label={{ value: "Média Técnica (HARD)", angle: -90, position: 'insideLeft', offset: -15, fill: 'hsl(var(--foreground))' }}
                   stroke="hsl(var(--foreground))"
-                  tick={false} // Remove os valores numéricos do eixo Y
                 />
                 
                 {/* Linhas centrais destacadas */}

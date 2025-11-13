@@ -15,7 +15,7 @@ export default function Settings() {
   // Dados do usuário autenticado
   const mockUser = {
     email: profile?.email || "usuario@orbitta.com",
-    name: profile?.name || "Usuário",
+    name: profile?.nome || "Usuário",
     role: (profile?.role === 'LIDER' ? "LÍDER" : "LIDERADO") as "LÍDER" | "LIDERADO",
   };
 

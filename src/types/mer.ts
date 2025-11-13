@@ -7,6 +7,7 @@ export type SexoTipo = 'MASCULINO' | 'FEMININO' | 'OUTRO' | 'NAO_BINARIO' | 'NAO
 export type CompetenciaTipo = 'COMPORTAMENTAL' | 'TECNICA';
 export type AvaliacaoStatus = 'RASCUNHO' | 'CONCLUIDA';
 export type NivelMaturidade = 'M1' | 'M2' | 'M3' | 'M4';
+export type PieChartFilterType = "maturidade" | "categoria" | "sexo" | "faixaEtaria";
 
 // ============ ENTIDADES PRINCIPAIS ============
 
@@ -58,7 +59,7 @@ export interface Avaliacao {
   lider_id: string; // FK para USUARIO
   liderado_id: string; // FK para USUARIO
   id_cargo: string; // FK para CARGO (snapshot do cargo no momento da avaliação)
-  data_avaliacao: string; // String no formato 'YYYY-MM-DD HH:MM:SS' do banco de dados (sem fuso horário)
+  data_avaliacao: Date; // Alterado para Date
   media_comportamental_1a4: number; // Eixo Y
   media_tecnica_1a4: number; // Eixo X
   maturidade_quadrante: NivelMaturidade;
@@ -77,7 +78,7 @@ export interface PontuacaoAvaliacao {
 
 export interface TemplateCompetencia {
   id_competencia: string;
-  peso: 1 | 2 | 3;
+  peso: 1 | 2 | 3 | 4; // Permitindo peso 4
   nota_ideal: number;
 }
 
@@ -123,8 +124,8 @@ export interface LideradoDashboard extends Usuario {
   ultima_avaliacao?: {
     media_comportamental_1a4: number;
     media_tecnica_1a4: number;
-    maturidade_quadrante: NivelMaturidade;
-    data_avaliacao: Date; // Alterado para Date
+    maturidade_quadrante: NivelMaturidade | 'N/A'; // Permitindo 'N/A'
+    data_avaliacao: Date; 
   };
   competencias: (PontuacaoAvaliacao & {
     nome_competencia: string;
