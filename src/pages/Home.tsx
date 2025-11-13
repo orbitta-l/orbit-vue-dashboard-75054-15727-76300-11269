@@ -160,10 +160,10 @@ export default function Home() {
     <div className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-start mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+          <h1 className="text-4xl font-bold mb-1 text-transparent bg-clip-text bg-gradient-to-r from-foreground to-primary">
             {getGreeting()}, {profile?.nome || "Usuário"}!
           </h1>
-          <p className="text-muted-foreground">Acompanhe a evolução das competências da sua equipe.</p>
+          <p className="text-muted-foreground mt-0">Acompanhe a evolução das competências da sua equipe.</p>
         </div>
         <div className="text-right">
           <p className="text-sm text-muted-foreground">{currentDate}</p>
