@@ -120,7 +120,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
               </div>
             )}
             <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 40, right: 40, bottom: 40, left: 40 }}>
+              <ScatterChart margin={{ top: 50, right: 50, bottom: 50, left: 50 }}> {/* Aumentando as margens */}
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   type="number" 
@@ -167,17 +167,17 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                 )}
               </ScatterChart>
             </ResponsiveContainer>
-            {/* Quadrant Badges com novos rótulos e cores */}
-            <div className="absolute top-2 left-2 text-center">
+            {/* Quadrant Badges com novos rótulos e cores - Ajustando o posicionamento */}
+            <div className="absolute top-10 left-10 text-center">
               <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} ({quadrantCounts.M3 || 0})</div>
             </div>
-            <div className="absolute top-2 right-2 text-center">
+            <div className="absolute top-10 right-10 text-center">
               <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} ({quadrantCounts.M4 || 0})</div>
             </div>
-            <div className="absolute bottom-2 left-2 text-center">
+            <div className="absolute bottom-10 left-10 text-center">
               <div className="px-3 py-1 rounded-md text-white font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} ({quadrantCounts.M1 || 0})</div>
             </div>
-            <div className="absolute bottom-2 right-2 text-center">
+            <div className="absolute bottom-10 right-10 text-center">
               <div className="px-3 py-1 rounded-md text-black font-bold text-sm" style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} ({quadrantCounts.M2 || 0})</div>
             </div>
           </div>
