@@ -47,8 +47,12 @@ export default function Home() {
       : "Nenhuma";
 
     const maturityMap: { [key: string]: number } = { M1: 1, M2: 2, M3: 3, M4: 4 };
-    const totalMaturity = teamData.reduce((sum, liderado) => sum + (maturityMap[liderado.ultima_avaliacao?.maturidade_quadrante || ''] || 0), 0);
-    const avgMaturity = teamData.length > 0 ? `M${(totalMaturity / teamData.length).toFixed(1)}` : "N/A";
+    
+    // FILTRAR APENAS LIDERADOS COM AVALIAÇÃO PARA O CÁLCULO DA MÉDIA DE MATURIDADE
+    const evaluatedMembers = teamData.filter(liderado => liderado.ultima_avaliacao?.maturidade_quadrante && liderado.ultima_avaliacao.maturidade_quadrante !== 'N/A');
+    
+    const totalMaturity = evaluatedMembers.reduce((sum, liderado) => sum + (maturityMap[liderado.ultima_avaliacao!.maturidade_quadrante!] || 0), 0);
+    const avgMaturity = evaluatedMembers.length > 0 ? `M${(totalMaturity / evaluatedMembers.length).toFixed(1)}` : "N/A";
 
     return {
       teamMembers: liderados.length,
