@@ -77,7 +77,7 @@ export default function RecentEvaluationsSection({
               className="flex items-center gap-4 p-4 rounded-lg border border-border hover:border-primary/50 hover:shadow-md transition-all duration-200 cursor-pointer"
             >
               <Avatar className="w-12 h-12">
-                <AvatarFallback className="bg-accent text-accent-foreground font-semibold">
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                   {getInitials(evaluation.nome_liderado)}
                 </AvatarFallback>
               </Avatar>

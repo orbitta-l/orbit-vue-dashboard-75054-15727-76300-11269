@@ -114,7 +114,6 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
     } else {
       setSelectedMemberId(memberId);
       // Posição de fallback para o centro do gráfico (50% da largura, 240px de altura)
-      // Isso garante que o popover apareça, mesmo que não esteja ancorado ao ponto.
       setSelectedPointPosition({ x: 50, y: 240 }); 
     }
   };
@@ -193,7 +192,11 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
             <div className="flex-1 overflow-y-auto space-y-1 pr-2">
               {filteredMembers.map(member => (
                 <div key={member.id_liderado} ref={(el) => (listRefs.current[member.id_liderado] = el)} className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`} onClick={() => handleListClick(member.id_liderado)}>
-                  <Avatar className="w-9 h-9"><AvatarFallback className="text-sm" style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade] }}>{getInitials(member.nome_liderado)}</AvatarFallback></Avatar>
+                  <Avatar className="w-9 h-9">
+                    <AvatarFallback className="text-sm bg-primary/10 text-primary font-semibold">
+                      {getInitials(member.nome_liderado)}
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground truncate">{member.nome_liderado}</p><p className="text-xs text-muted-foreground truncate">{member.cargo}</p></div>
                 </div>
               ))}
