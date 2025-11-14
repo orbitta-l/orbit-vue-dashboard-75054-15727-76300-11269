@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { X, ArrowRight, Code, HeartHandshake } from 'lucide-react';
 import { NivelMaturidade } from '@/types/mer';
+import { cn } from '@/lib/utils'; // Importando cn para combinar classes
 
 interface MemberData {
   id_liderado: string;
@@ -36,7 +37,7 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
 
   return (
     <div
-      className="absolute z-20 p-4 bg-card rounded-lg shadow-2xl border w-64 flex flex-col animate-in fade-in-50 zoom-in-95"
+      className="absolute z-20 p-4 bg-card rounded-lg shadow-2xl border w-60 flex flex-col animate-in fade-in-50 zoom-in-95" // Alterado w-64 para w-60
       style={{
         left: position.x,
         top: position.y,
@@ -94,12 +95,15 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
 
       {/* Bottom Section: Actions */}
       <div className="flex justify-between gap-2 pt-3 border-t border-border/50">
-        {/* Botão Fechar (Outline, Discreto) */}
+        {/* Botão Fechar (Outline, Discreto) - Ajustado para hover mais sutil */}
         <Button 
           onClick={onClose} 
           variant="outline" 
           size="sm" 
-          className="flex-1 text-xs h-8"
+          className={cn(
+            "flex-1 text-xs h-8",
+            "hover:bg-muted/50 hover:border-primary/50" // Hover mais sutil
+          )}
         >
           Fechar
         </Button>
