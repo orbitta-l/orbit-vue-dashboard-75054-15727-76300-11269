@@ -32,10 +32,7 @@ export function DashboardHeader() {
     <div className="mb-8 flex justify-between items-start">
       {/* Título Principal (Esquerda) */}
       <div>
-        {/* Nova linha de boas-vindas */}
-        <p className="text-sm font-medium text-accent mb-1">
-          Seja bem vindo!
-        </p>
+        {/* Linha de saudação removida */}
         <h1 className={cn(
           "text-3xl font-bold",
           "bg-gradient-to-r from-primary-dark to-primary", // Gradiente mais escuro
@@ -43,9 +40,9 @@ export function DashboardHeader() {
         )}>
           {greeting}, {userName}
         </h1>
-        {/* Novo texto pequeno */}
+        {/* Novo texto pequeno com a saudação incorporada */}
         <p className="text-sm text-muted-foreground mt-0.5">
-          Acompanhe a evolução da sua equipe
+          Seja bem-vindo! Acompanhe a evolução da sua equipe.
         </p>
       </div>
 
