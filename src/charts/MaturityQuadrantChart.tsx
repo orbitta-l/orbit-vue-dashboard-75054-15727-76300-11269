@@ -113,10 +113,9 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
       setSelectedPointPosition(null);
     } else {
       setSelectedMemberId(memberId);
-      // Ao clicar na lista, não temos as coordenadas SVG do ponto.
-      // Definimos a posição como null para que o popover não apareça em um lugar aleatório.
-      // O usuário deve clicar no ponto do gráfico para ver o popover ancorado.
-      setSelectedPointPosition(null); 
+      // Posição de fallback para o centro do gráfico (50% da largura, 240px de altura)
+      // Isso garante que o popover apareça, mesmo que não esteja ancorado ao ponto.
+      setSelectedPointPosition({ x: 50, y: 240 }); 
     }
   };
 
