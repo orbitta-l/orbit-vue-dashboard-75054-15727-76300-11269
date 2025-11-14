@@ -59,15 +59,17 @@ const CustomDot = (props: any) => {
   const color = QUADRANT_COLORS[payload.nivel_maturidade as NivelMaturidade];
 
   return (
-    <circle
-      cx={cx}
-      cy={cy}
-      r={isSelected ? 12 : 7}
-      fill={color}
-      stroke="#fff"
-      strokeWidth={isSelected ? 3 : 1.5}
-      style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
-    />
+    <g filter="url(#white-glow)">
+      <circle
+        cx={cx}
+        cy={cy}
+        r={isSelected ? 10 : 5} // Tamanho reduzido: 5 (padrão), 10 (selecionado)
+        fill={color}
+        stroke={color}
+        strokeWidth={isSelected ? 2 : 1}
+        style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
+      />
+    </g>
   );
 };
 
@@ -104,6 +106,15 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
     }
   };
 
+  const handleListClick = (memberId: string) => {
+    if (selectedMemberId === memberId) {
+      setSelectedMemberId(null);
+    } else {
+      setSelectedMemberId(memberId);
+    }
+    setSelectedPointPosition(null); // Garante que o popover não apareça ao clicar na lista
+  };
+
   const selectedMemberData = useMemo(() => {
     if (!selectedMemberId) return null;
     return filteredMembers.find(m => m.id_liderado === selectedMemberId);
@@ -138,6 +149,11 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
+                  <defs>
+                    <filter id="white-glow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feDropShadow dx="0" dy="0" stdDeviation="1.5" floodColor="white" floodOpacity="0.8" />
+                    </filter>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" dataKey="eixo_y_comportamental" name="Comportamental" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Soft Skills", position: 'bottom', offset: 30, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
                   <YAxis type="number" dataKey="eixo_x_tecnico_geral" name="Técnico" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Hard Skills", angle: -90, position: 'left', offset: -10, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
@@ -169,7 +185,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
             </div>
             <div className="flex-1 overflow-y-auto space-y-1 pr-2">
               {filteredMembers.map(member => (
-                <div key={member.id_liderado} ref={(el) => (listRefs.current[member.id_liderado] = el)} className={`flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`} onClick={() => handlePointClick({ id_liderado: member.id_liderado, cx: 0, cy: 0 })}>
+                <div key={member.id_liderado} ref={(el) => (listRefs.current[member.id_liderado] = el)} className={`flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`} onClick={() => handleListClick(member.id_liderado)}>
                   <Avatar className="w-10 h-10"><AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade] }}>{getInitials(member.nome_liderado)}</AvatarFallback></Avatar>
                   <div className="flex-1 min-w-0"><p className="text-base font-medium text-foreground truncate">{member.nome_liderado}</p><p className="text-sm text-muted-foreground truncate">{member.cargo}</p></div>
                 </div>
