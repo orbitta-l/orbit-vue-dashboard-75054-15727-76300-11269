@@ -9,6 +9,8 @@ interface MemberData {
   id_liderado: string;
   nome_liderado: string;
   cargo: string;
+  eixo_x_tecnico_geral: number; // Hard Skills
+  eixo_y_comportamental: number; // Soft Skills
   nivel_maturidade: NivelMaturidade | 'N/A';
 }
 
@@ -35,35 +37,46 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
 
   return (
     <div
-      className="absolute z-20 p-4 bg-card rounded-lg shadow-2xl border w-80 flex flex-col gap-3 animate-in fade-in-50 zoom-in-95"
+      className="absolute z-20 p-3 bg-card rounded-lg shadow-2xl border w-64 flex flex-col gap-2 animate-in fade-in-50 zoom-in-95"
       style={{
         left: position.x,
         top: position.y,
-        transform: 'translate(-50%, -100%) translateY(-20px)', // Posiciona acima do ponto
+        transform: 'translate(-50%, -100%) translateY(-15px)', // Posiciona acima do ponto
       }}
     >
       <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={onClose}>
         <X className="h-4 w-4" />
       </Button>
       
-      <div className="flex items-center gap-4">
-        <Avatar className="w-16 h-16">
-          <AvatarFallback className="text-xl bg-primary/10 text-primary font-semibold">
+      <div className="flex items-center gap-3">
+        <Avatar className="w-12 h-12">
+          <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">
             {getInitials(member.nome_liderado)}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <p className="font-bold text-lg text-foreground">{member.nome_liderado}</p>
-          <p className="text-sm text-muted-foreground">{member.cargo}</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground">Maturidade</p>
-          <Badge className="text-base mt-1">{member.nivel_maturidade}</Badge>
-          <p className="text-xs text-muted-foreground mt-1">{maturityLabel}</p>
+          <p className="font-semibold text-base text-foreground">{member.nome_liderado}</p>
+          <p className="text-xs text-muted-foreground">{member.cargo}</p>
         </div>
       </div>
 
-      <Button onClick={onNavigate} className="w-full gap-2">
+      <div className="grid grid-cols-2 gap-2 text-center text-sm">
+        <div>
+          <p className="text-xs text-muted-foreground">Maturidade</p>
+          <Badge className="text-sm mt-0.5">{member.nivel_maturidade}</Badge>
+          <p className="text-xs text-muted-foreground mt-0.5">{maturityLabel}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Hard Skills</p>
+          <Badge className="text-sm mt-0.5">{member.eixo_x_tecnico_geral.toFixed(1)}</Badge>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Soft Skills</p>
+          <Badge className="text-sm mt-0.5">{member.eixo_y_comportamental.toFixed(1)}</Badge>
+        </div>
+      </div>
+
+      <Button onClick={onNavigate} className="w-full gap-2 mt-2">
         Ver mais <ArrowRight className="w-4 h-4" />
       </Button>
     </div>
