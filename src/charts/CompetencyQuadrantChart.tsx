@@ -22,7 +22,7 @@ interface CompetencyQuadrantChartProps {
   empty?: boolean;
 }
 
-// Mapeamento de cores e rótulos (Mantido, mas a posição visual será alterada)
+// Mapeamento de cores e rótulos (Mantido)
 const QUADRANT_COLORS: Record<NivelMaturidade | 'N/A', string> = {
   M1: "hsl(var(--destructive))",      // Básico (Vermelho - Crítico)
   M2: "hsl(var(--accent))",           // Intermediário (Laranja - Comportamental Forte)
@@ -46,6 +46,16 @@ const getTextColor = (maturity: NivelMaturidade | 'N/A') => {
         return 'text-white'; // Usando branco para contraste no vermelho e laranja
     }
     // M3 (Azul Escuro) e M4 (Azul Primário)
+    return 'text-white';
+};
+
+// Helper para determinar a cor do texto da CONTAGEM
+const getCountTextColor = (maturity: NivelMaturidade | 'N/A') => {
+    if (maturity === 'M2') {
+        // Laranja (M2) precisa de texto escuro para contraste
+        return 'text-primary-dark'; 
+    }
+    // Outros quadrantes (M1, M3, M4) têm fundos escuros, então usamos branco
     return 'text-white';
 };
 
@@ -210,30 +220,30 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
             {/* Quadrant Badges com contagem sem parênteses e reposicionamento */}
             
             {/* M4: Expect (Superior Esquerdo) - Novo Posicionamento */}
-            <div className="absolute top-0 left-0 translate-x-[-10px] translate-y-[-10px] text-center">
+            <div className="absolute top-10 left-10 text-center">
               <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>
-                {QUADRANT_LABELS.M4} <span className="text-accent ml-1">{quadrantCounts.M4 || 0}</span>
+                {QUADRANT_LABELS.M4} <span className={cn("ml-1", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span>
               </div>
             </div>
             
             {/* M3: Avançado (Superior Direito) - Novo Posicionamento */}
-            <div className="absolute top-0 right-0 translate-x-[10px] translate-y-[-10px] text-center">
+            <div className="absolute top-10 right-10 text-center">
               <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>
-                {QUADRANT_LABELS.M3} <span className="text-accent ml-1">{quadrantCounts.M3 || 0}</span>
+                {QUADRANT_LABELS.M3} <span className={cn("ml-1", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span>
               </div>
             </div>
             
             {/* M1: Básico (Inferior Esquerdo) - Mantido */}
-            <div className="absolute bottom-0 left-0 translate-x-[-10px] translate-y-[10px] text-center">
+            <div className="absolute bottom-10 left-10 text-center">
               <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>
-                {QUADRANT_LABELS.M1} <span className="text-accent ml-1">{quadrantCounts.M1 || 0}</span>
+                {QUADRANT_LABELS.M1} <span className={cn("ml-1", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span>
               </div>
             </div>
             
             {/* M2: Intermediário (Inferior Direito) - Mantido */}
-            <div className="absolute bottom-0 right-0 translate-x-[10px] translate-y-[10px] text-center">
+            <div className="absolute bottom-10 right-10 text-center">
               <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>
-                {QUADRANT_LABELS.M2} <span className="text-accent ml-1">{quadrantCounts.M2 || 0}</span>
+                {QUADRANT_LABELS.M2} <span className={cn("ml-1", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span>
               </div>
             </div>
           </div>
