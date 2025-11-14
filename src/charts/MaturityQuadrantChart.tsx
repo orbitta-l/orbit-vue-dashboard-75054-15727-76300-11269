@@ -109,10 +109,17 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   const handleListClick = (memberId: string) => {
     if (selectedMemberId === memberId) {
       setSelectedMemberId(null);
+      setSelectedPointPosition(null); // Garante que o popover desapareça
     } else {
       setSelectedMemberId(memberId);
+      // Ao clicar na lista, não temos coordenadas do gráfico. 
+      // Se o usuário quer que o balão apareça, precisamos de uma posição.
+      // Vamos forçar o balão a aparecer no centro do gráfico (50% x 50%) se for clicado na lista.
+      // No entanto, para manter a UX limpa, é melhor que o clique na lista apenas destaque o membro.
+      // Se o usuário quer o balão, ele deve clicar no ponto.
+      // Vou manter a lógica de que o clique na lista apenas destaca o item.
+      setSelectedPointPosition(null); 
     }
-    setSelectedPointPosition(null); // Garante que o popover não apareça ao clicar na lista
   };
 
   const selectedMemberData = useMemo(() => {
@@ -148,7 +155,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 40, right: 20, bottom: 40, left: 20 }}> {/* Aumentado margin top para 40 */}
+                <ScatterChart margin={{ top: 40, right: 20, bottom: 40, left: 20 }}>
                   <defs>
                     <filter id="white-glow" x="-50%" y="-50%" width="200%" height="200%">
                       <feDropShadow dx="0" dy="0" stdDeviation="1.5" floodColor="white" floodOpacity="0.8" />
@@ -169,11 +176,11 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
               </ResponsiveContainer>
             )}
             
-            {/* Ajustado translate-y para -10px para compensar o aumento do margin-top do chart */}
-            <div className="absolute top-0 left-0 -translate-x-4 -translate-y-10 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span></div></div>
-            <div className="absolute top-0 right-0 translate-x-4 -translate-y-10 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span></div></div>
-            <div className="absolute bottom-0 left-0 -translate-x-4 translate-y-4 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} <span className={cn("ml-1 font-bold", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span></div></div>
-            <div className="absolute bottom-0 right-0 translate-x-4 translate-y-4 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} <span className={cn("ml-1 font-bold", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span></div></div>
+            {/* Rótulos dos Quadrantes */}
+            <div className="absolute top-0 left-0 -translate-x-4 -translate-y-10 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span></div></div>
+            <div className="absolute top-0 right-0 translate-x-4 -translate-y-10 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span></div></div>
+            <div className="absolute bottom-0 left-0 -translate-x-4 translate-y-4 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} <span className={cn("ml-1 font-bold", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span></div></div>
+            <div className="absolute bottom-0 right-0 translate-x-4 translate-y-4 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} <span className={cn("ml-1 font-bold", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span></div></div>
           </div>
         </div>
         
@@ -186,9 +193,9 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
             </div>
             <div className="flex-1 overflow-y-auto space-y-1 pr-2">
               {filteredMembers.map(member => (
-                <div key={member.id_liderado} ref={(el) => (listRefs.current[member.id_liderado] = el)} className={`flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`} onClick={() => handleListClick(member.id_liderado)}>
-                  <Avatar className="w-10 h-10"><AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade] }}>{getInitials(member.nome_liderado)}</AvatarFallback></Avatar>
-                  <div className="flex-1 min-w-0"><p className="text-base font-medium text-foreground truncate">{member.nome_liderado}</p><p className="text-sm text-muted-foreground truncate">{member.cargo}</p></div>
+                <div key={member.id_liderado} ref={(el) => (listRefs.current[member.id_liderado] = el)} className={`flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`} onClick={() => handleListClick(member.id_liderado)}>
+                  <Avatar className="w-9 h-9"><AvatarFallback className="text-sm" style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade] }}>{getInitials(member.nome_liderado)}</AvatarFallback></Avatar>
+                  <div className="flex-1 min-w-0"><p className="text-sm font-medium text-foreground truncate">{member.nome_liderado}</p><p className="text-xs text-muted-foreground truncate">{member.cargo}</p></div>
                 </div>
               ))}
                {filteredMembers.length === 0 && !empty && <p className="text-sm text-muted-foreground text-center py-4">Nenhum resultado.</p>}
