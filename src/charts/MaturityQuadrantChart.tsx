@@ -114,8 +114,8 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
       setSelectedPointPosition(null);
     } else {
       setSelectedMemberId(memberId);
-      // Posição de fallback: 10% da largura (margem esquerda) e 50% da altura (centro vertical)
-      setSelectedPointPosition({ x: '10%', y: '50%' }); 
+      // Posição de fallback: 5% da largura (margem esquerda) e 50% da altura (centro vertical)
+      setSelectedPointPosition({ x: '5%', y: '50%' }); 
     }
   };
 
