@@ -22,12 +22,12 @@ interface CompetencyQuadrantChartProps {
   empty?: boolean;
 }
 
-// Mapeamento de cores e rótulos (Mantido)
+// Mapeamento de cores e rótulos (Atualizado para usar cores fracas)
 const QUADRANT_COLORS: Record<NivelMaturidade | 'N/A', string> = {
-  M1: "hsl(var(--destructive))",      // Básico (Vermelho - Crítico)
-  M2: "hsl(var(--accent))",           // Intermediário (Laranja - Comportamental Forte)
-  M3: "hsl(var(--primary-dark))",     // Avançado (Azul Escuro - Técnico Forte)
-  M4: "hsl(var(--primary))",          // Expect (Azul Primário - Ideal)
+  M1: "hsl(var(--color-m1-weak))",      // Vermelho Fraco
+  M2: "hsl(var(--color-m2-weak))",      // Amarelo Fraco
+  M3: "hsl(var(--primary-dark))",     // Azul Escuro
+  M4: "hsl(var(--primary))",          // Azul Primário
   'N/A': "hsl(var(--muted-foreground) / 0.5)", // Não Avaliado
 };
 
@@ -41,21 +41,21 @@ const QUADRANT_LABELS: Record<NivelMaturidade | 'N/A', string> = {
 
 // Helper para determinar a cor do texto do badge (preto ou branco)
 const getTextColor = (maturity: NivelMaturidade | 'N/A') => {
-    // M1 (Vermelho) e M2 (Laranja)
+    // M1 (Vermelho Fraco) e M2 (Amarelo Fraco) precisam de texto escuro para contraste
     if (maturity === 'M1' || maturity === 'M2') {
-        return 'text-white'; // Usando branco para contraste no vermelho e laranja
+        return 'text-foreground'; 
     }
-    // M3 (Azul Escuro) e M4 (Azul Primário)
+    // M3 (Azul Escuro) e M4 (Azul Primário) usam texto branco
     return 'text-white';
 };
 
 // Helper para determinar a cor do texto da CONTAGEM
 const getCountTextColor = (maturity: NivelMaturidade | 'N/A') => {
-    // M2 (Laranja) agora usa texto branco para contraste
-    if (maturity === 'M2') {
-        return 'text-white'; 
+    // M1 e M2 usam texto escuro
+    if (maturity === 'M1' || maturity === 'M2') {
+        return 'text-foreground'; 
     }
-    // Outros quadrantes (M1, M3, M4) têm fundos escuros, então usamos branco
+    // Outros quadrantes (M3, M4) têm fundos escuros, então usamos branco
     return 'text-white';
 };
 
@@ -188,16 +188,16 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                 {/* Quadrantes com cores atualizadas e preenchendo de 1 a 4 */}
                 
                 {/* M1: Básico (Inferior Esquerdo) -> X: 1-2, Y: 1-2 */}
-                <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1} fillOpacity={0.2} />
+                <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1 as string} fillOpacity={0.2} />
                 
                 {/* M2: Intermediário (Inferior Direito) -> X: 2-4, Y: 1-2 */}
-                <ReferenceArea x1={CENTER_POINT} x2={4} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M2} fillOpacity={0.2} />
+                <ReferenceArea x1={CENTER_POINT} x2={4} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M2 as string} fillOpacity={0.2} />
                 
                 {/* M3: Avançado (Superior Direito) -> X: 2-4, Y: 2-4 (INVERTIDO) */}
-                <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.2} />
+                <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3 as string} fillOpacity={0.2} />
                 
                 {/* M4: Expect (Superior Esquerdo) -> X: 1-2, Y: 2-4 (INVERTIDO) */}
-                <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
+                <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4 as string} fillOpacity={0.2} />
 
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
                 
@@ -206,7 +206,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                     {filteredMembers.map((entry) => (
                       <Cell 
                         key={`cell-${entry.id_liderado}`} 
-                        fill={QUADRANT_COLORS[entry.nivel_maturidade]}
+                        fill={QUADRANT_COLORS[entry.nivel_maturidade as NivelMaturidade]}
                         stroke="#fff"
                         strokeWidth={selectedMemberId === entry.id_liderado ? 3 : 1}
                         className="transition-all duration-300"
@@ -280,7 +280,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   onClick={() => setSelectedMemberId(member.id_liderado)}
                 >
                   <Avatar className="w-8 h-8">
-                    <AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade] }}>
+                    <AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade] }}>
                       {getInitials(member.nome_liderado)}
                     </AvatarFallback>
                   </Avatar>

@@ -66,6 +66,10 @@ All colors MUST be HSL.
     --color-good: 142 71% 45%;
     --color-mid: 45 93% 47%;
     --color-talent-glow: 45 93% 60%; /* Cor para o brilho do talento */
+    
+    /* NOVAS CORES PARA QUADRANTE M1 e M2 */
+    --color-m1-weak: 0 84% 75%; /* Vermelho mais claro/fraco */
+    --color-m2-weak: 45 93% 75%; /* Amarelo mais claro/fraco */
 
     /* Accent Orange Palette for Cargo Badges */
     --accent-orange-light: 21 40% 80%;
@@ -124,6 +128,10 @@ All colors MUST be HSL.
     --accent-orange-dark: 21 60% 55%;
     --accent-orange-darker: 21 70% 45%;
     --accent-orange-deep: 21 80% 35%;
+    
+    /* NOVAS CORES PARA QUADRANTE M1 e M2 (Dark Mode) */
+    --color-m1-weak: 0 84% 40%; /* Vermelho mais escuro/fraco no dark mode */
+    --color-m2-weak: 45 93% 40%; /* Amarelo mais escuro/fraco no dark mode */
   }
 }
 

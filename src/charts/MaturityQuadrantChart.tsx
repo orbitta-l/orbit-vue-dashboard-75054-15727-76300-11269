@@ -25,10 +25,10 @@ interface CompetencyQuadrantChartProps {
 }
 
 const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
-  M1: "hsl(var(--destructive))",
-  M2: "hsl(var(--accent))",
-  M3: "hsl(var(--primary-dark))",
-  M4: "hsl(var(--primary))",
+  M1: "hsl(var(--color-m1-weak))",      // Vermelho Fraco
+  M2: "hsl(var(--color-m2-weak))",      // Amarelo Fraco
+  M3: "hsl(var(--primary-dark))",       // Azul Escuro
+  M4: "hsl(var(--primary))",            // Azul Primário
 };
 
 const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
