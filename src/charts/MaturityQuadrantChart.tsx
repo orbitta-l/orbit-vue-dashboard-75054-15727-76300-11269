@@ -130,7 +130,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
         <div className="md:col-span-7">
           <h3 className="text-lg font-semibold text-foreground">Matriz de Competências</h3>
-          <p className="text-sm text-muted-foreground mb-4">Posicionamento do time com base na média de desempenho técnico vs. comportamental.</p>
+          <p className="text-sm text-muted-foreground mb-8">Posicionamento do time com base na média de desempenho técnico vs. comportamental.</p>
           
           <div className="relative w-full h-[480px]">
             {selectedMemberData && selectedPointPosition && (
@@ -148,7 +148,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <ScatterChart margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
+                <ScatterChart margin={{ top: 40, right: 20, bottom: 40, left: 20 }}> {/* Aumentado margin top para 40 */}
                   <defs>
                     <filter id="white-glow" x="-50%" y="-50%" width="200%" height="200%">
                       <feDropShadow dx="0" dy="0" stdDeviation="1.5" floodColor="white" floodOpacity="0.8" />
@@ -169,8 +169,9 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
               </ResponsiveContainer>
             )}
             
-            <div className="absolute top-0 left-0 -translate-x-4 -translate-y-4 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span></div></div>
-            <div className="absolute top-0 right-0 translate-x-4 -translate-y-4 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span></div></div>
+            {/* Ajustado translate-y para -10px para compensar o aumento do margin-top do chart */}
+            <div className="absolute top-0 left-0 -translate-x-4 -translate-y-10 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span></div></div>
+            <div className="absolute top-0 right-0 translate-x-4 -translate-y-10 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span></div></div>
             <div className="absolute bottom-0 left-0 -translate-x-4 translate-y-4 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} <span className={cn("ml-1 font-bold", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span></div></div>
             <div className="absolute bottom-0 right-0 translate-x-4 translate-y-4 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} <span className={cn("ml-1 font-bold", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span></div></div>
           </div>
