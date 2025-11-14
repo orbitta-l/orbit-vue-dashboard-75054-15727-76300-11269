@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
 import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade } from '@/types/mer';
 import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
-import { useNavigate } from 'react-router-dom'; // Importar useNavigate
+import { useNavigate, useLocation } from 'react-router-dom'; // Importar useLocation
 
 // Contrato de Input para o RPC de salvar avaliação
 interface CompetenciaScore {
@@ -64,7 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [memberXYData, setMemberXYData] = useState<MemberXYData[]>([]);
   const [lideradoDashboardData, setLideradoDashboardData] = useState<LideradoDashboard | null>(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // Usar useNavigate aqui
+  const navigate = useNavigate();
+  const location = useLocation(); // Usar useLocation aqui
 
   const fetchLideradoDashboardData = useCallback(async (lideradoId: number) => {
     const { data, error } = await supabase.rpc('get_liderado_dashboard_data', { p_liderado_id: lideradoId });
@@ -276,25 +277,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...dbProfile,
           id_usuario: String(dbProfile.id),
           lider_id: dbProfile.lider_id ? String(dbProfile.lider_id) : null,
-          first_login: dbProfile.first_login, // Mapear first_login
+          first_login: dbProfile.first_login,
         };
         setProfile(appProfile);
   
-        if (appProfile.role === 'LIDER') {
-          await fetchTeamData(dbProfile.id);
-          setLideradoDashboardData(null);
-        } else if (appProfile.role === 'LIDERADO') {
-          // Redirecionar para SetNewPassword se for o primeiro login
-          if (appProfile.first_login) {
-            navigate('/set-new-password', { replace: true });
-          } else {
+        // Determine the target dashboard based on role
+        const targetDashboard = appProfile.role === 'LIDER' ? '/dashboard-lider' : '/dashboard-liderado';
+        const targetFirstLogin = '/set-new-password';
+
+        // Se o usuário é um LIDERADO e é o primeiro login, priorize o redirecionamento para /set-new-password
+        if (appProfile.role === 'LIDERADO' && appProfile.first_login) {
+          if (location.pathname !== targetFirstLogin) {
+            navigate(targetFirstLogin, { replace: true });
+          }
+          // Ainda busca os dados do dashboard do liderado, mesmo que esteja redirecionando
+          await fetchLideradoDashboardData(dbProfile.id);
+        } 
+        // Para outros casos (LIDER ou LIDERADO após o primeiro login)
+        else {
+          // Redireciona para o dashboard apropriado APENAS se não estiver já no dashboard
+          // ou se estiver na página de login/landing page.
+          if (location.pathname === '/login' || location.pathname === '/') {
+            navigate(targetDashboard, { replace: true });
+          }
+          // Busca os dados com base no papel
+          if (appProfile.role === 'LIDER') {
+            await fetchTeamData(dbProfile.id);
+            setLideradoDashboardData(null);
+          } else if (appProfile.role === 'LIDERADO') {
             await fetchLideradoDashboardData(dbProfile.id);
           }
-          setLiderados([]);
-          setAvaliacoes([]);
-          setPontuacoes([]);
-          setMemberXYData([]);
         }
+
+        setLiderados([]);
+        setAvaliacoes([]);
+        setPontuacoes([]);
+        setMemberXYData([]);
       }
       setLoading(false);
     };
@@ -305,7 +323,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session) {
         await fetchProfileAndData(session.user);
       } else {
-        setLoading(false); // Se não há sessão, não está carregando
+        setLoading(false);
+        // Redireciona para a Landing Page se não houver sessão e não estiver já na landing ou login
+        if (location.pathname !== '/' && location.pathname !== '/login') {
+          navigate('/', { replace: true });
+        }
       }
     };
 
@@ -322,17 +344,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPontuacoes([]);
         setMemberXYData([]);
         setLideradoDashboardData(null);
-        // Redirecionar para a Landing Page se não houver sessão
-        navigate('/', { replace: true });
+        // Redireciona para a Landing Page se não houver sessão e não estiver já na landing ou login
+        if (location.pathname !== '/' && location.pathname !== '/login') {
+          navigate('/', { replace: true });
+        }
       }
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  // AVISO: O array de dependências está vazio de propósito para que este efeito rode apenas uma vez.
-  // A lógica de atualização é gerenciada pelo listener onAuthStateChange.
-  }, [navigate, fetchLideradoDashboardData, fetchTeamData]); // Adicionado navigate e fetch functions como dependências
+  // Adicionado location.pathname e fetch functions como dependências para garantir que o efeito reaja a mudanças de rota e funções.
+  }, [navigate, location.pathname, fetchLideradoDashboardData, fetchTeamData]);
 
   const saveEvaluation = async (input: SaveEvaluationInput) => {
     if (!session) return { success: false, error: "Usuário não autenticado." };
