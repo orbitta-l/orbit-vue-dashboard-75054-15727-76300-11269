@@ -23,14 +23,14 @@ export function ProtectedRoute({ children, allowedRole }: ProtectedRouteProps) {
 
   // 2. Após o carregamento, verifica se está autenticado
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />; {/* Redireciona para a Landing Page */}
   }
 
   // 3. Garante que o perfil foi carregado
   if (!profile) {
     // Caso raro onde a sessão existe mas o perfil não foi encontrado.
-    // Redirecionar para o login é a ação mais segura.
-    return <Navigate to="/login" replace />;
+    // Redirecionar para a Landing Page é a ação mais segura.
+    return <Navigate to="/" replace />; {/* Redireciona para a Landing Page */}
   }
 
   // 4. Verifica se o papel do usuário é o permitido para a rota

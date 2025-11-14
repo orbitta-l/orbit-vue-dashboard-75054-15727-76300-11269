@@ -322,8 +322,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPontuacoes([]);
         setMemberXYData([]);
         setLideradoDashboardData(null);
-        // Redirecionar para a página de login se não houver sessão
-        navigate('/login', { replace: true });
+        // Redirecionar para a Landing Page se não houver sessão
+        navigate('/', { replace: true });
       }
     });
 
