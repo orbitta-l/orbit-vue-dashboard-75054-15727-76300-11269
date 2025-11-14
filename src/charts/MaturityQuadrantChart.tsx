@@ -140,7 +140,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
           <h3 className="text-lg font-semibold text-foreground">Matriz de Competências</h3>
           <p className="text-sm text-muted-foreground mb-4">Posicionamento do time com base na média de desempenho técnico vs. comportamental.</p>
           
-          <div className="relative w-full h-[400px]"> {/* Reduzindo a altura do gráfico */}
+          <div className="relative w-full h-[480px]">
             {empty || !hasEvaluatedMembers ? (
               <div className="absolute inset-0 flex items-center justify-center bg-muted/30 rounded-lg z-10">
                 <p className="text-muted-foreground text-center">
@@ -219,37 +219,36 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
             {/* Quadrant Badges com contagem */}
             
             {/* M4: Expect (Superior Esquerdo) */}
-            <div className="absolute top-0 left-0 translate-x-[-10px] translate-y-[-10px] text-center">
-              <div className={cn("px-3 py-1 rounded-md font-semibold text-sm", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>
+            <div className="absolute top-0 left-0 -translate-x-4 -translate-y-4 text-center">
+              <div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>
                 {QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span>
               </div>
             </div>
             
             {/* M3: Avançado (Superior Direito) */}
-            <div className="absolute top-0 right-0 translate-x-[10px] translate-y-[-10px] text-center">
-              <div className={cn("px-3 py-1 rounded-md font-semibold text-sm", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>
+            <div className="absolute top-0 right-0 translate-x-4 -translate-y-4 text-center">
+              <div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>
                 {QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span>
               </div>
             </div>
             
             {/* M1: Básico (Inferior Esquerdo) */}
-            <div className="absolute bottom-0 left-0 translate-x-[-10px] translate-y-[10px] text-center">
-              <div className={cn("px-3 py-1 rounded-md font-semibold text-sm", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>
+            <div className="absolute bottom-0 left-0 -translate-x-4 translate-y-4 text-center">
+              <div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>
                 {QUADRANT_LABELS.M1} <span className={cn("ml-1 font-bold", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span>
               </div>
             </div>
             
             {/* M2: Intermediário (Inferior Direito) */}
-            <div className="absolute bottom-0 right-0 translate-x-[10px] translate-y-[10px] text-center">
-              <div className={cn("px-3 py-1 rounded-md font-semibold text-sm", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>
+            <div className="absolute bottom-0 right-0 translate-x-4 translate-y-4 text-center">
+              <div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>
                 {QUADRANT_LABELS.M2} <span className={cn("ml-1 font-bold", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span>
               </div>
             </div>
           </div>
         </div>
         
-        {/* Painel Lateral com Altura Fixa Reduzida */}
-        <div className="md:col-span-3 space-y-4 flex flex-col h-[400px]"> {/* Altura fixa reduzida para 400px */}
+        <div className="md:col-span-3 space-y-4 flex flex-col h-[400px]">
           <div className="flex flex-col flex-1 min-h-0">
             <div className="relative mb-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -276,17 +275,17 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                 <div 
                   key={member.id_liderado}
                   ref={(el) => (listRefs.current[member.id_liderado] = el)}
-                  className={`flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`} {/* Aumentando o padding (p-3) e o gap (gap-4) */}
+                  className={`flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`}
                   onClick={() => setSelectedMemberId(member.id_liderado)}
                 >
-                  <Avatar className="w-10 h-10"> {/* Aumentando o Avatar */}
+                  <Avatar className="w-10 h-10">
                     <AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade] }}>
                       {getInitials(member.nome_liderado)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-medium text-foreground truncate">{member.nome_liderado}</p> {/* Aumentando a fonte */}
-                    <p className="text-sm text-muted-foreground truncate">{member.cargo}</p> {/* Aumentando a fonte */}
+                    <p className="text-base font-medium text-foreground truncate">{member.nome_liderado}</p>
+                    <p className="text-sm text-muted-foreground truncate">{member.cargo}</p>
                   </div>
                 </div>
               ))}
