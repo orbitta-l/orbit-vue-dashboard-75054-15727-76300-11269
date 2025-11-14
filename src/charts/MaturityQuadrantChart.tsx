@@ -77,10 +77,11 @@ const CustomDot = (props: any) => {
 export default function MaturityQuadrantChart({ teamMembers, empty = false }: CompetencyQuadrantChartProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
-  // Alterado o tipo para aceitar string (para porcentagens)
   const [selectedPointPosition, setSelectedPointPosition] = useState<{ x: string | number; y: string | number } | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 200);
   const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const chartContainerRef = useRef<HTMLDivElement>(null); // Ref para o container do gráfico
+  const listContainerRef = useRef<HTMLDivElement>(null); // Ref para o container da lista
   const navigate = useNavigate();
 
   const evaluatedMembers = useMemo(() => teamMembers.filter(member => member.nivel_maturidade !== 'N/A'), [teamMembers]);
@@ -90,6 +91,28 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {} as Record<NivelMaturidade, number>), [filteredMembers]);
+
+  // Lógica de fechar ao clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!selectedMemberId) return;
+
+      // Verifica se o clique ocorreu dentro do container do gráfico ou da lista
+      const clickedInsideChart = chartContainerRef.current && chartContainerRef.current.contains(event.target as Node);
+      const clickedInsideList = listContainerRef.current && listContainerRef.current.contains(event.target as Node);
+      
+      // Se o clique não foi dentro do gráfico, nem dentro da lista, fecha o popover
+      if (!clickedInsideChart && !clickedInsideList) {
+        setSelectedMemberId(null);
+        setSelectedPointPosition(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [selectedMemberId]);
 
   useEffect(() => {
     if (selectedMemberId && listRefs.current[selectedMemberId]) {
@@ -138,7 +161,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   return (
     <Card className="p-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
-        <div className="md:col-span-7">
+        <div className="md:col-span-7" ref={chartContainerRef}> {/* Adicionado ref aqui */}
           <h3 className="text-lg font-semibold text-foreground">Matriz de Competências</h3>
           <p className="text-sm text-muted-foreground mb-8">Posicionamento do time com base na média de desempenho técnico vs. comportamental.</p>
           
@@ -189,7 +212,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
           </div>
         </div>
         
-        <div className="md:col-span-3 space-y-4 flex flex-col h-[400px]">
+        <div className="md:col-span-3 space-y-4 flex flex-col h-[400px]" ref={listContainerRef}> {/* Adicionado ref aqui */}
           <div className="flex flex-col flex-1 min-h-0">
             <div className="relative mb-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
