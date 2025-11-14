@@ -41,8 +41,8 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
       style={{
         left: position.x,
         top: position.y,
-        // Centraliza horizontalmente e posiciona acima do ponto
-        transform: 'translate(-50%, -100%) translateY(-15px)', 
+        // Centraliza horizontalmente e posiciona 5px acima do ponto
+        transform: 'translate(-50%, -100%) translateY(-5px)', 
       }}
     >
       {/* Seta Conectora */}
