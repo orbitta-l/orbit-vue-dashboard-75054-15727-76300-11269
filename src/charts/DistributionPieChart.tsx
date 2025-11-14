@@ -9,12 +9,13 @@ interface DistributionPieChartProps {
   empty?: boolean;
 }
 
+// Cores institucionais: Azul (Primary), Laranja (Accent), Azul Escuro (Primary-Dark), Azul Claro (Chart-5)
 const CHART_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))", // Usando a nova variável
+  "hsl(var(--primary))",
+  "hsl(var(--accent))",
+  "hsl(var(--primary-dark))",
+  "hsl(var(--chart-5))",
+  "hsl(var(--secondary))", // Adicionando secondary como fallback para mais de 4 categorias
 ];
 
 // Helper para classificar a idade em faixas
