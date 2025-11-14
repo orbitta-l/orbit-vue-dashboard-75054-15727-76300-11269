@@ -59,15 +59,15 @@ const CustomDot = (props: any) => {
   const color = QUADRANT_COLORS[payload.nivel_maturidade as NivelMaturidade];
 
   return (
-    <g filter="url(#white-glow)">
+    <g filter={isSelected ? "url(#white-glow)" : undefined}>
       <circle
         cx={cx}
         cy={cy}
-        r={isSelected ? 11 : 6} // Aumentado o raio para 11 quando selecionado
+        r={6} // Raio fixo em 6
         fill={color}
         stroke={color}
-        strokeWidth={isSelected ? 3 : 1} // Aumentado o stroke para 3 quando selecionado
-        style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
+        strokeWidth={isSelected ? 2 : 1} // Aumenta o stroke para 2 quando selecionado
+        style={{ transition: 'all 0.5s ease', cursor: 'pointer' }} // Transição mais suave e longa
       />
     </g>
   );
@@ -153,8 +153,9 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 40, right: 20, bottom: 40, left: 20 }}>
                   <defs>
+                    {/* Ajustado o filtro para um brilho mais sutil e branco */}
                     <filter id="white-glow" x="-50%" y="-50%" width="200%" height="200%">
-                      <feDropShadow dx="0" dy="0" stdDeviation="1.5" floodColor="white" floodOpacity="0.8" />
+                      <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="white" floodOpacity="1" />
                     </filter>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" />
