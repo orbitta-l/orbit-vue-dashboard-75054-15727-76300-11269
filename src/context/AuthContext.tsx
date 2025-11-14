@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
 import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade } from '@/types/mer';
 import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
-import { useNavigate, useLocation } from 'react-router-dom'; // Importar useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Contrato de Input para o RPC de salvar avaliação
 interface CompetenciaScore {
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [lideradoDashboardData, setLideradoDashboardData] = useState<LideradoDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation(); // Usar useLocation aqui
+  const location = useLocation();
 
   const fetchLideradoDashboardData = useCallback(async (lideradoId: number) => {
     const { data, error } = await supabase.rpc('get_liderado_dashboard_data', { p_liderado_id: lideradoId });
@@ -112,30 +112,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           tipo: c.tipo,
           categoria_nome: c.categoria_nome,
           especializacao_nome: c.especializacao_nome,
+          nota_ideal: c.nota_ideal, // Adicionado nota_ideal
         })) : [],
+        categoria_dominante: profileData.categoria_dominante,
+        especializacao_dominante: profileData.especializacao_dominante,
       };
-
-      // Calcular categoria e especialização dominante
-      if (mappedLideradoDashboard.ultima_avaliacao && mappedLideradoDashboard.competencias.length > 0) {
-          const hardSkills = mappedLideradoDashboard.competencias.filter(c => c.tipo === 'TECNICA');
-          if (hardSkills.length > 0) {
-              const categoryScores = hardSkills.reduce((acc, skill) => {
-                  if (skill.categoria_nome && skill.categoria_nome !== 'N/A') {
-                      acc[skill.categoria_nome] = (acc[skill.categoria_nome] || 0) + skill.pontuacao_1a4;
-                  }
-                  return acc;
-              }, {} as Record<string, number>);
-              mappedLideradoDashboard.categoria_dominante = Object.keys(categoryScores).reduce((a, b) => categoryScores[a] > categoryScores[b] ? a : b, "Não Avaliado");
-
-              const specializationScores = hardSkills.reduce((acc, skill) => {
-                  if (skill.especializacao_nome && skill.especializacao_nome !== 'N/A') {
-                      acc[skill.especializacao_nome] = (acc[skill.especializacao_nome] || 0) + skill.pontuacao_1a4;
-                  }
-                  return acc;
-              }, {} as Record<string, number>);
-              mappedLideradoDashboard.especializacao_dominante = Object.keys(specializationScores).reduce((a, b) => specializationScores[a] > specializationScores[b] ? a : b, "Não Avaliado");
-          }
-      }
 
       setLideradoDashboardData(mappedLideradoDashboard);
     } else {
@@ -147,99 +128,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const id = liderId || (profile ? Number(profile.id_usuario) : undefined);
     if (!id) return;
 
-    const { data: relacaoData, error: relacaoError } = await supabase
-      .from('lider_liderado')
-      .select('liderado_id')
-      .eq('lider_id', id);
+    // 1. Buscar dados do dashboard do líder (usando RPC)
+    const { data: dashboardData, error: dashboardError } = await supabase.rpc('get_leader_dashboard_data', { p_leader_id: id });
 
-    if (relacaoError) {
-      console.error("Erro ao buscar relação líder-liderado:", relacaoError);
-      setLiderados([]);
-      return;
-    }
-    
-    const lideradoIds = relacaoData.map(r => r.liderado_id);
-    
-    if (lideradoIds.length > 0) {
-      const { data: lideradosData, error: lideradosError } = await supabase
-        .from('usuario')
-        .select('*')
-        .in('id', lideradoIds);
-      
-      if (lideradosError) {
-        console.error("Erro ao buscar liderados:", lideradosError);
-      } else {
-        const currentLiderados = lideradosData.map((l: any) => ({
-          ...l,
-          id_usuario: String(l.id),
-          lider_id: l.lider_id ? String(l.lider_id) : null,
-        })) as Usuario[];
-        setLiderados(currentLiderados);
-      }
-    } else {
-      setLiderados([]);
-    }
-
-    if (lideradoIds.length > 0) {
-        const { data: xyData, error: xyError } = await supabase
-            .from('v_member_xy')
-            .select('*')
-            .in('liderado_id', lideradoIds);
-        
-        if (xyError) {
-            console.error("Erro ao buscar v_member_xy:", xyError);
-            setMemberXYData([]);
-        } else {
-            setMemberXYData(xyData as MemberXYData[]);
-        }
-    } else {
+    if (dashboardError) {
+        console.error("Erro ao buscar dados do dashboard do líder:", dashboardError);
+        setLiderados([]);
+        setAvaliacoes([]);
+        setPontuacoes([]);
         setMemberXYData([]);
+        return;
     }
 
-    const { data: avaliacoesData, error: avaliacoesError } = await supabase
-      .from('avaliacao')
-      .select('*')
-      .eq('id_lider', id);
+    const rawData = dashboardData as any;
+    
+    // Mapear Liderados
+    const currentLiderados = (rawData.liderados || []).map((l: any) => ({
+        ...l,
+        id_usuario: String(l.id),
+        lider_id: l.lider_id ? String(l.lider_id) : null,
+    })) as Usuario[];
+    setLiderados(currentLiderados);
 
-    if (avaliacoesError) {
-      console.error("Erro ao buscar avaliações:", avaliacoesError);
-    } else {
-      const formattedAvaliacoes = avaliacoesData.map((a: any) => ({
+    // Mapear Avaliações
+    const formattedAvaliacoes = (rawData.avaliacoes || []).map((a: any) => ({
         ...a,
         id_avaliacao: String(a.id),
         lider_id: String(a.id_lider),
         liderado_id: String(a.id_liderado),
         id_cargo: String(a.cargo_referenciado),
-        data_avaliacao: new Date(a.data_avaliacao + 'Z'), // Convertendo para Date
+        data_avaliacao: new Date(a.data_avaliacao + 'Z'),
         media_comportamental_1a4: a.media_comportamental,
         media_tecnica_1a4: a.media_tecnica,
         maturidade_quadrante: a.nivel_maturidade,
-      })) as Avaliacao[];
-      setAvaliacoes(formattedAvaliacoes);
+    })) as Avaliacao[];
+    setAvaliacoes(formattedAvaliacoes);
 
-      if (formattedAvaliacoes.length > 0) {
-        const avaliacaoIds = formattedAvaliacoes.map(a => Number(a.id_avaliacao));
-        const { data: pontuacoesData, error: pontuacoesError } = await supabase
-          .from('pontuacao_avaliacao')
-          .select('*')
-          .in('id_avaliacao', avaliacaoIds);
-        
-        if (pontuacoesError) {
-          console.error("Erro ao buscar pontuações:", pontuacoesError);
-        } else {
-          const formattedPontuacoes = pontuacoesData.map((p: any) => ({
-            ...p,
-            id_avaliacao: String(p.id_avaliacao),
-            id_competencia: String(p.id_competencia),
-            pontuacao_1a4: p.pontuacao,
-            peso_aplicado: p.peso,
-          })) as PontuacaoAvaliacao[];
-          setPontuacoes(formattedPontuacoes);
-        }
-      } else {
-        setPontuacoes([]);
-      }
-    }
+    // Mapear Pontuações
+    const formattedPontuacoes = (rawData.pontuacoes || []).map((p: any) => ({
+        ...p,
+        id_avaliacao: String(p.id_avaliacao),
+        id_competencia: String(p.id_competencia),
+        pontuacao_1a4: p.pontuacao,
+        peso_aplicado: p.peso,
+    })) as PontuacaoAvaliacao[];
+    setPontuacoes(formattedPontuacoes);
+
+    // Mapear Member XY Data
+    setMemberXYData((rawData.memberXYData || []) as MemberXYData[]);
+
   }, [profile]);
 
   const updateFirstLoginStatus = useCallback(async (userId: string) => {
@@ -262,7 +199,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const fetchProfileAndData = async (user: User) => {
-      setLoading(true);
       const { data: profileData, error: profileError } = await supabase
         .rpc('get_my_profile')
         .single();
@@ -270,65 +206,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (profileError || !profileData) {
         console.error("Erro ao buscar perfil via RPC ou perfil não encontrado:", profileError);
         setProfile(null);
+        // Se o perfil não for encontrado, forçamos o logout para limpar a sessão
         if (!profileData) await supabase.auth.signOut();
-      } else {
-        const dbProfile = profileData as any;
-        const appProfile: Usuario = {
-          ...dbProfile,
-          id_usuario: String(dbProfile.id),
-          lider_id: dbProfile.lider_id ? String(dbProfile.lider_id) : null,
-          first_login: dbProfile.first_login,
-        };
-        setProfile(appProfile);
-  
-        // Determine the target dashboard based on role
-        const targetDashboard = appProfile.role === 'LIDER' ? '/dashboard-lider' : '/dashboard-liderado';
-        const targetFirstLogin = '/set-new-password';
-
-        // Se o usuário é um LIDERADO e é o primeiro login, priorize o redirecionamento para /set-new-password
-        if (appProfile.role === 'LIDERADO' && appProfile.first_login) {
-          if (location.pathname !== targetFirstLogin) {
-            navigate(targetFirstLogin, { replace: true });
-          }
-          // Ainda busca os dados do dashboard do liderado, mesmo que esteja redirecionando
-          await fetchLideradoDashboardData(dbProfile.id);
-        } 
-        // Para outros casos (LIDER ou LIDERADO após o primeiro login)
-        else {
-          // Redireciona para o dashboard apropriado APENAS se não estiver já no dashboard
-          // ou se estiver na página de login/landing page.
-          if (location.pathname === '/login' || location.pathname === '/') {
-            navigate(targetDashboard, { replace: true });
-          }
-          // Busca os dados com base no papel
-          if (appProfile.role === 'LIDER') {
-            await fetchTeamData(dbProfile.id);
-            setLideradoDashboardData(null);
-          } else if (appProfile.role === 'LIDERADO') {
-            await fetchLideradoDashboardData(dbProfile.id);
-          }
-        }
-
-        setLiderados([]);
-        setAvaliacoes([]);
-        setPontuacoes([]);
-        setMemberXYData([]);
+        return;
       }
-      setLoading(false);
+      
+      const dbProfile = profileData as any;
+      const appProfile: Usuario = {
+        ...dbProfile,
+        id_usuario: String(dbProfile.id),
+        lider_id: dbProfile.lider_id ? String(dbProfile.lider_id) : null,
+        first_login: dbProfile.first_login,
+      };
+      setProfile(appProfile);
+  
+      const targetDashboard = appProfile.role === 'LIDER' ? '/dashboard-lider' : '/dashboard-liderado';
+      const targetFirstLogin = '/set-new-password';
+      const currentPath = location.pathname;
+
+      // 1. LIDERADO em Primeiro Login: Prioriza a tela de nova senha
+      if (appProfile.role === 'LIDERADO' && appProfile.first_login) {
+        if (currentPath !== targetFirstLogin) {
+          navigate(targetFirstLogin, { replace: true });
+        }
+        await fetchLideradoDashboardData(dbProfile.id);
+      } 
+      // 2. Usuário Logado em Rota Pública: Redireciona para o dashboard
+      else if (currentPath === '/login' || currentPath === '/' || currentPath === '/set-new-password') {
+        navigate(targetDashboard, { replace: true });
+      }
+      
+      // 3. Busca de Dados (após redirecionamentos iniciais)
+      if (appProfile.role === 'LIDER') {
+        await fetchTeamData(dbProfile.id);
+        setLideradoDashboardData(null);
+      } else if (appProfile.role === 'LIDERADO') {
+        // Se já buscou no passo 1, não precisa buscar de novo, a menos que não seja o primeiro login
+        if (!appProfile.first_login) {
+            await fetchLideradoDashboardData(dbProfile.id);
+        }
+      }
     };
 
     const getInitialSession = async () => {
+      setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
+      
       if (session) {
         await fetchProfileAndData(session.user);
       } else {
-        setLoading(false);
-        // Redireciona para a Landing Page se não houver sessão e não estiver já na landing ou login
-        if (location.pathname !== '/' && location.pathname !== '/login') {
+        setProfile(null);
+        // Se não houver sessão e estiver em uma rota protegida, redireciona para a Landing Page
+        if (location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/team') || location.pathname.startsWith('/evaluation') || location.pathname.startsWith('/settings')) {
           navigate('/', { replace: true });
         }
       }
+      setLoading(false);
     };
 
     getInitialSession();
@@ -336,15 +270,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       if (session) {
+        // Quando o estado muda para SIGNED_IN, re-executa a lógica de perfil e redirecionamento
         await fetchProfileAndData(session.user);
       } else {
+        // Limpa estados e redireciona para a Landing Page
         setProfile(null);
         setLiderados([]);
         setAvaliacoes([]);
         setPontuacoes([]);
         setMemberXYData([]);
         setLideradoDashboardData(null);
-        // Redireciona para a Landing Page se não houver sessão e não estiver já na landing ou login
         if (location.pathname !== '/' && location.pathname !== '/login') {
           navigate('/', { replace: true });
         }
@@ -354,7 +289,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  // Adicionado location.pathname e fetch functions como dependências para garantir que o efeito reaja a mudanças de rota e funções.
   }, [navigate, location.pathname, fetchLideradoDashboardData, fetchTeamData]);
 
   const saveEvaluation = async (input: SaveEvaluationInput) => {
@@ -426,7 +360,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }
