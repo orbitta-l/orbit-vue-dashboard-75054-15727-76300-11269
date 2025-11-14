@@ -28,12 +28,13 @@ const LiderDashboardWrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 const App = () => (
-  <AuthProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+  <BrowserRouter> {/* Mover BrowserRouter para aqui */}
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          {/* As rotas agora estão dentro de AuthProvider, que está dentro de BrowserRouter */}
           <Routes>
             {/* Rota raiz redireciona para Landing Page */}
             <Route path="/" element={<Landing />} />
@@ -68,10 +69,10 @@ const App = () => (
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </AuthProvider>
+  </BrowserRouter>
 );
 
 export default App;
