@@ -63,10 +63,10 @@ const CustomDot = (props: any) => {
       <circle
         cx={cx}
         cy={cy}
-        r={isSelected ? 9 : 6} // Tamanho ajustado: 6 (padrão), 9 (selecionado)
+        r={isSelected ? 11 : 6} // Aumentado o raio para 11 quando selecionado
         fill={color}
         stroke={color}
-        strokeWidth={isSelected ? 2 : 1}
+        strokeWidth={isSelected ? 3 : 1} // Aumentado o stroke para 3 quando selecionado
         style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
       />
     </g>
@@ -176,7 +176,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
             <div className="absolute top-0 left-0 -translate-x-2 -translate-y-6 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span></div></div>
             <div className="absolute top-0 right-0 translate-x-2 -translate-y-6 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span></div></div>
             <div className="absolute bottom-0 left-0 -translate-x-2 translate-y-2 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} <span className={cn("ml-1 font-bold", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span></div></div>
-            <div className="absolute bottom-0 right-0 translate-x-2 translate-y-2 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} <span className={cn("ml-1 font-bold", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span></div></div>
+            <div className="absolute bottom-0 right-0 translate-x-2 translate-y-2 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} <span className="ml-1 font-bold" style={{ color: 'white' }}>{quadrantCounts.M2 || 0}</span></div></div>
           </div>
         </div>
         
