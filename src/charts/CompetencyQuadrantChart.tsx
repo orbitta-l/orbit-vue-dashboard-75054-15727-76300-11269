@@ -21,10 +21,10 @@ interface CompetencyQuadrantChartProps {
   empty?: boolean;
 }
 
-// Mapeamento de cores e rótulos (Priorizando Azul e Laranja)
+// Mapeamento de cores e rótulos (Atualizado conforme solicitação)
 const QUADRANT_COLORS: Record<NivelMaturidade | 'N/A', string> = {
-  M1: "hsl(var(--accent) / 0.5)",      // Básico (Laranja Claro - Área de maior necessidade)
-  M2: "hsl(var(--accent))",           // Intermediário (Laranja Escuro - Comportamental Forte)
+  M1: "hsl(var(--destructive))",      // Básico (Vermelho - Crítico)
+  M2: "hsl(var(--accent))",           // Intermediário (Laranja - Comportamental Forte)
   M3: "hsl(var(--primary-dark))",     // Avançado (Azul Escuro - Técnico Forte)
   M4: "hsl(var(--primary))",          // Expect (Azul Primário - Ideal)
   'N/A': "hsl(var(--muted-foreground) / 0.5)", // Não Avaliado
@@ -40,11 +40,11 @@ const QUADRANT_LABELS: Record<NivelMaturidade | 'N/A', string> = {
 
 // Helper para determinar a cor do texto do badge (preto ou branco)
 const getTextColor = (maturity: NivelMaturidade | 'N/A') => {
-    // M1 (Laranja Claro) e M2 (Laranja Escuro) precisam de texto preto para contraste
+    // M1 (Vermelho) e M2 (Laranja)
     if (maturity === 'M1' || maturity === 'M2') {
-        return 'text-black';
+        return 'text-white'; // Usando branco para contraste no vermelho e laranja
     }
-    // M3 (Azul Escuro) e M4 (Azul Primário) precisam de texto branco
+    // M3 (Azul Escuro) e M4 (Azul Primário)
     return 'text-white';
 };
 
@@ -117,6 +117,9 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
     return null;
   };
 
+  // Definindo o ponto central para 2.0
+  const CENTER_POINT = 2.0;
+
   return (
     <Card className="p-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
@@ -140,7 +143,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   dataKey="eixo_y_comportamental" 
                   name="Comportamental" 
                   domain={[1, 4]} 
-                  ticks={[1, 2, 2.5, 3, 4]} 
+                  ticks={[1, 2, 3, 4]} // Removendo 2.5
                   label={{ value: "Média Comportamental (SOFT)", position: 'insideBottom', offset: -15, fill: 'hsl(var(--foreground))' }}
                   stroke="hsl(var(--foreground))"
                 />
@@ -149,26 +152,30 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   dataKey="eixo_x_tecnico_geral" 
                   name="Técnico" 
                   domain={[1, 4]} 
-                  ticks={[1, 2, 2.5, 3, 4]}
+                  ticks={[1, 2, 3, 4]} // Removendo 2.5
                   label={{ value: "Média Técnica (HARD)", angle: -90, position: 'insideLeft', offset: -15, fill: 'hsl(var(--foreground))' }}
                   stroke="hsl(var(--foreground))"
                 />
                 
-                {/* Linhas centrais destacadas */}
-                <ReferenceLine x={2.5} stroke="hsl(var(--foreground))" strokeDasharray="2 2" strokeWidth={2} />
-                <ReferenceLine y={2.5} stroke="hsl(var(--foreground))" strokeDasharray="2 2" strokeWidth={2} />
+                {/* Linhas centrais destacadas no 2.0 */}
+                <ReferenceLine x={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
+                <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
 
-                {/* Quadrantes com cores da paleta (M1 e M2 em tons de laranja, M3 e M4 em tons de azul) */}
-                <ReferenceArea x1={1} x2={2.5} y1={1} y2={2.5} fill={QUADRANT_COLORS.M1} fillOpacity={0.15} />
-                <ReferenceArea x1={2.5} x2={4} y1={1} y2={2.5} fill={QUADRANT_COLORS.M2} fillOpacity={0.2} />
-                <ReferenceArea x1={1} x2={2.5} y1={2.5} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.15} />
-                <ReferenceArea x1={2.5} x2={4} y1={2.5} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
+                {/* Quadrantes com cores atualizadas e preenchendo de 1 a 4 */}
+                {/* M1: Baixo Técnico (Y: 1-2), Baixo Comportamental (X: 1-2) -> Vermelho */}
+                <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1} fillOpacity={0.2} />
+                {/* M2: Baixo Técnico (Y: 1-2), Alto Comportamental (X: 2-4) -> Laranja */}
+                <ReferenceArea x1={CENTER_POINT} x2={4} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M2} fillOpacity={0.2} />
+                {/* M3: Alto Técnico (Y: 2-4), Baixo Comportamental (X: 1-2) -> Azul Escuro */}
+                <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.2} />
+                {/* M4: Alto Técnico (Y: 2-4), Alto Comportamental (X: 2-4) -> Azul Primário */}
+                <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
 
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
                 
                 {!empty && (
-                  <Scatter name="Liderados" data={teamMembers} onClick={handlePointClick}>
-                    {teamMembers.map((entry) => (
+                  <Scatter name="Liderados" data={filteredMembers} onClick={handlePointClick}>
+                    {filteredMembers.map((entry) => (
                       <Cell 
                         key={`cell-${entry.id_liderado}`} 
                         fill={QUADRANT_COLORS[entry.nivel_maturidade]}
