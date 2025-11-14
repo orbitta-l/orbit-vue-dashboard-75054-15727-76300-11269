@@ -15,7 +15,6 @@ import { ptBR } from "date-fns/locale";
 import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates";
 import { LideradoDashboard } from "@/types/mer";
 import { MOCK_COMPETENCIAS } from "@/data/mockData";
-import { HeaderProfile } from "@/components/HeaderProfile"; // Importa o novo componente
 
 export default function Home() {
   const navigate = useNavigate();
@@ -150,7 +149,7 @@ export default function Home() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
-      <HeaderProfile />
+      {/* Removido HeaderProfile */}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <MetricCard title="Membros da Equipe" value={metrics.teamMembers} icon={<Users className="w-5 h-5" />} />
