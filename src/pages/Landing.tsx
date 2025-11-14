@@ -8,8 +8,8 @@ import Navbars from "@/components/Navbar"
 export default function Landing() {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [currentLeaderIndex, setCurrentLeaderIndex] = useState(0);
-  const [currentEmployeeIndex, setCurrentEmployeeIndex] = useState(0);
+  // Removidos currentLeaderIndex e currentEmployeeIndex, pois Features gerencia seu próprio estado
+  // e os arrays leaderFeatures e employeeFeatures não são mais definidos aqui.
 
   useEffect(() => {
     const handleScroll = () => {
@@ -42,82 +42,14 @@ export default function Landing() {
     }
   }, []);
 
-  const leaderFeatures = [
-    {
-      icon: '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
-      title: 'Gráfico VERSUS',
-      description: 'Compare as competências atuais do colaborador com o perfil ideal do cargo de forma visual e intuitiva.'
-    },
-    {
-      icon: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
-      title: 'Painel de Maturidade',
-      description: 'Visualize a distribuição de maturidade (M1-M4) de toda a sua equipe em um único gráfico de quadrante.'
-    },
-    {
-      icon: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-      title: 'Contextualize novos membros',
-      description: 'Rapidamente com uma página central de objetivos, links e responsabilidades.'
-    },
-    {
-      icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-      title: 'Linha do Tempo',
-      description: 'Registre e consulte feedbacks e marcos de desenvolvimento em um histórico cronológico e de fácil acesso.'
-    }
-  ];
+  // Os arrays leaderFeatures e employeeFeatures foram removidos daqui,
+  // pois o componente Features já os define internamente.
 
-  const employeeFeatures = [
-    {
-      icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 4 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
-      title: 'Relatórios de Desempenho',
-      description: 'Acesse relatórios claros e objetivos sobre suas competências e evolução ao longo do tempo.'
-    },
-    {
-      icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-      title: 'Plano de Desenvolvimento',
-      description: 'Visualize suas lacunas e receba sugestões personalizadas de como evoluir profissionalmente.'
-    },
-    {
-      icon: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-      title: 'Histórico de Feedbacks',
-      description: 'Consulte todos os feedbacks recebidos e acompanhe seu progresso de forma transparente.'
-    }
-  ];
+  // As funções prevLeader, nextLeader, prevEmployee, nextEmployee foram removidas,
+  // pois não são mais necessárias aqui.
 
-  const prevLeader = () => {
-    setCurrentLeaderIndex((prev) => (prev === 0 ? leaderFeatures.length - 1 : prev - 1));
-  };
-
-  const nextLeader = () => {
-    setCurrentLeaderIndex((prev) => (prev === leaderFeatures.length - 1 ? 0 : prev + 1));
-  };
-
-  const prevEmployee = () => {
-    setCurrentEmployeeIndex((prev) => (prev === 0 ? employeeFeatures.length - 1 : prev - 1));
-  };
-
-  const nextEmployee = () => {
-    setCurrentEmployeeIndex((prev) => (prev === employeeFeatures.length - 1 ? 0 : prev + 1));
-  };
-const Navbar = () => {
-  const [activeSection, setActiveSection] = useState("inicio");
-
-  useEffect(() => {
-    const sections = document.querySelectorAll("section[id]");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { threshold: 0.5 } // ativa quando 50% da seção aparece
-    );
-
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
-  }, []);
-};
+  // A definição interna de Navbar foi removida, pois o componente Navbars já é importado.
+  
   return (
     <div>
       <Navbars />
@@ -172,7 +104,7 @@ const Navbar = () => {
             <div className="obstacle-card">
               <div className="obstacle-stat">64%</div>
               <div className="obstacle-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               </div>
               <h3>A Lacuna da Gestão</h3>
               <p>Apenas 64% das empresas brasileiras possuem um processo formal de avaliação de desempenho. Sem ele, líderes e equipes ficam sem uma direção clara para o crescimento, gerando um ciclo de ineficiência e incerteza.</p>
@@ -1115,7 +1047,7 @@ const Navbar = () => {
           background: #012973;
         }
 
-        .law-badge.light {
+.law-badge.light {
           background: #CFD0CE;
           color: #000303;
         }
