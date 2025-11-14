@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Search, Users, ArrowRight, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail, HeartHandshake, Check, User as UserIcon, Calendar as CalendarIcon, UserRound, CircleUser, Briefcase } from "lucide-react";
+import { Plus, Search, Users, ArrowRight, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail, HeartHandshake, Check, User as UserIcon, Calendar as CalendarIcon, UserRound, CircleUser } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
