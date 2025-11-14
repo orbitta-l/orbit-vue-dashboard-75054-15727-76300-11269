@@ -4,15 +4,23 @@ import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, ReferenceArea } from 'recharts';
-import { NivelMaturidade, LideradoDashboard } from "@/types/mer"; // Importa LideradoDashboard
+import { NivelMaturidade } from "@/types/mer";
 import { Button } from "@/components/ui/button"; 
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { MemberPopover } from "@/components/MemberPopover";
 
-// A interface MemberData agora é LideradoDashboard
+interface MemberData {
+  id_liderado: string;
+  nome_liderado: string;
+  cargo: string;
+  eixo_x_tecnico_geral: number;
+  eixo_y_comportamental: number;
+  nivel_maturidade: NivelMaturidade | 'N/A';
+}
+
 interface CompetencyQuadrantChartProps {
-  teamMembers: LideradoDashboard[];
+  teamMembers: MemberData[];
   empty?: boolean;
 }
 
@@ -45,11 +53,10 @@ function useDebounce(value: string, delay: number) {
 
 const CustomDot = (props: any) => {
   const { cx, cy, payload, selectedMemberId } = props;
-  // payload agora é do tipo LideradoDashboard
-  if (!payload.ultima_avaliacao || payload.ultima_avaliacao.maturidade_quadrante === 'N/A') return null;
+  if (!payload.nivel_maturidade || payload.nivel_maturidade === 'N/A') return null;
   
-  const isSelected = payload.id_usuario === selectedMemberId;
-  const color = QUADRANT_COLORS[payload.ultima_avaliacao.maturidade_quadrante as NivelMaturidade];
+  const isSelected = payload.id_liderado === selectedMemberId;
+  const color = QUADRANT_COLORS[payload.nivel_maturidade as NivelMaturidade];
 
   return (
     <g filter="url(#white-glow)">
@@ -74,25 +81,13 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const navigate = useNavigate();
 
-  // Filtra membros que foram avaliados
-  const evaluatedMembers = useMemo(() => teamMembers.filter(member => member.ultima_avaliacao && member.ultima_avaliacao.maturidade_quadrante !== 'N/A'), [teamMembers]);
-  
-  // Filtra membros pela barra de pesquisa
-  const filteredMembers = useMemo(() => evaluatedMembers.filter(member => 
-    member.nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || 
-    member.cargo_nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-  ), [evaluatedMembers, debouncedSearchTerm]);
-
-  // Contagem por quadrante
-  const quadrantCounts = useMemo(() => {
-    return filteredMembers.reduce((acc, member) => {
-      const key = member.ultima_avaliacao?.maturidade_quadrante;
-      if (key && key !== 'N/A') {
-        acc[key] = (acc[key] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<NivelMaturidade, number>);
-  }, [filteredMembers]);
+  const evaluatedMembers = useMemo(() => teamMembers.filter(member => member.nivel_maturidade !== 'N/A'), [teamMembers]);
+  const filteredMembers = useMemo(() => evaluatedMembers.filter(member => member.nome_liderado.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || member.cargo.toLowerCase().includes(debouncedSearchTerm.toLowerCase())), [evaluatedMembers, debouncedSearchTerm]);
+  const quadrantCounts = useMemo(() => filteredMembers.reduce((acc, member) => {
+    const key = member.nivel_maturidade;
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {} as Record<NivelMaturidade, number>), [filteredMembers]);
 
   useEffect(() => {
     if (selectedMemberId && listRefs.current[selectedMemberId]) {
@@ -101,13 +96,12 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   }, [selectedMemberId]);
 
   const handlePointClick = (data: any) => {
-    // data.payload é o objeto LideradoDashboard completo
-    const { id_usuario, cx, cy } = data.payload; 
-    if (selectedMemberId === id_usuario) {
+    const { id_liderado, cx, cy } = data;
+    if (selectedMemberId === id_liderado) {
       setSelectedMemberId(null);
       setSelectedPointPosition(null);
     } else {
-      setSelectedMemberId(id_usuario);
+      setSelectedMemberId(id_liderado);
       setSelectedPointPosition({ x: cx, y: cy });
     }
   };
@@ -123,7 +117,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
 
   const selectedMemberData = useMemo(() => {
     if (!selectedMemberId) return null;
-    return filteredMembers.find(m => m.id_usuario === selectedMemberId);
+    return filteredMembers.find(m => m.id_liderado === selectedMemberId);
   }, [selectedMemberId, filteredMembers]);
 
   const CENTER_POINT = 2.5;
@@ -141,7 +135,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
           <div className="relative w-full h-[480px]">
             {selectedMemberData && selectedPointPosition && (
               <MemberPopover
-                member={selectedMemberData} // Passa o objeto LideradoDashboard completo
+                member={selectedMemberData}
                 position={selectedPointPosition}
                 onClose={() => { setSelectedMemberId(null); setSelectedPointPosition(null); }}
                 onNavigate={() => navigate(`/team/${selectedMemberId}`)}
@@ -161,8 +155,8 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                     </filter>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" dataKey="ultima_avaliacao.media_comportamental_1a4" name="Comportamental" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Soft Skills", position: 'bottom', offset: 30, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
-                  <YAxis type="number" dataKey="ultima_avaliacao.media_tecnica_1a4" name="Técnico" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Hard Skills", angle: -90, position: 'left', offset: -10, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
+                  <XAxis type="number" dataKey="eixo_y_comportamental" name="Comportamental" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Soft Skills", position: 'bottom', offset: 30, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
+                  <YAxis type="number" dataKey="eixo_x_tecnico_geral" name="Técnico" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Hard Skills", angle: -90, position: 'left', offset: -10, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
                   <ReferenceLine x={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
                   <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
                   <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1} fillOpacity={0.2} />
@@ -191,9 +185,9 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
             </div>
             <div className="flex-1 overflow-y-auto space-y-1 pr-2">
               {filteredMembers.map(member => (
-                <div key={member.id_usuario} ref={(el) => (listRefs.current[member.id_usuario] = el)} className={`flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_usuario ? 'bg-muted' : 'hover:bg-muted/50'}`} onClick={() => handleListClick(member.id_usuario)}>
-                  <Avatar className="w-10 h-10"><AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.ultima_avaliacao?.maturidade_quadrante as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.ultima_avaliacao?.maturidade_quadrante as NivelMaturidade] }}>{getInitials(member.nome)}</AvatarFallback></Avatar>
-                  <div className="flex-1 min-w-0"><p className="text-base font-medium text-foreground truncate">{member.nome}</p><p className="text-sm text-muted-foreground truncate">{member.cargo_nome}</p></div>
+                <div key={member.id_liderado} ref={(el) => (listRefs.current[member.id_liderado] = el)} className={`flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`} onClick={() => handleListClick(member.id_liderado)}>
+                  <Avatar className="w-10 h-10"><AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade] }}>{getInitials(member.nome_liderado)}</AvatarFallback></Avatar>
+                  <div className="flex-1 min-w-0"><p className="text-base font-medium text-foreground truncate">{member.nome_liderado}</p><p className="text-sm text-muted-foreground truncate">{member.cargo}</p></div>
                 </div>
               ))}
                {filteredMembers.length === 0 && !empty && <p className="text-sm text-muted-foreground text-center py-4">Nenhum resultado.</p>}
