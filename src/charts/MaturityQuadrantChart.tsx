@@ -122,8 +122,8 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
     return null;
   };
 
-  // Definindo o ponto central para 2.0
-  const CENTER_POINT = 2.0;
+  // Definindo o ponto central para 2.5
+  const CENTER_POINT = 2.5;
   const hasEvaluatedMembers = evaluatedMembers.length > 0;
 
   // Estilo para rótulos opacos e centralizados
@@ -156,7 +156,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                     dataKey="eixo_y_comportamental" 
                     name="Comportamental" 
                     domain={[1, 4]} 
-                    ticks={[1, 2, 3, 4]}
+                    ticks={[1, 2, CENTER_POINT, 3, 4]} // Incluindo 2.5 nos ticks
                     label={{ 
                       value: "Média Comportamental (SOFT)", 
                       position: 'bottom',
@@ -171,7 +171,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                     dataKey="eixo_x_tecnico_geral" 
                     name="Técnico" 
                     domain={[1, 4]} 
-                    ticks={[1, 2, 3, 4]}
+                    ticks={[1, 2, CENTER_POINT, 3, 4]} // Incluindo 2.5 nos ticks
                     label={{ 
                       value: "Média Técnica (HARD)", 
                       angle: -90, 
@@ -183,9 +183,23 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                     stroke="hsl(var(--foreground))"
                   />
                   
-                  {/* Linhas centrais destacadas no 2.0 */}
+                  {/* Linhas centrais destacadas no 2.5 */}
                   <ReferenceLine x={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
                   <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
+
+                  {/* Quadrantes ajustados para 2.5 */}
+                  
+                  {/* M1: Básico (Inferior Esquerdo) -> X: 1-2.5, Y: 1-2.5 */}
+                  <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1} fillOpacity={0.2} />
+                  
+                  {/* M2: Intermediário (Inferior Direito) -> X: 2.5-4, Y: 1-2.5 */}
+                  <ReferenceArea x1={CENTER_POINT} x2={4} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M2} fillOpacity={0.2} />
+                  
+                  {/* M3: Avançado (Superior Direito) -> X: 2.5-4, Y: 2.5-4 */}
+                  <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.2} />
+                  
+                  {/* M4: Expect (Superior Esquerdo) -> X: 1-2.5, Y: 2.5-4 */}
+                  <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
 
                   <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
                   
@@ -204,20 +218,8 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
               </ResponsiveContainer>
             )}
             
-            {/* Rótulos das Extremidades */}
+            {/* Rótulos das Extremidades (REMOVIDOS) */}
             
-            {/* Eixo Y (Técnico) - Baixo e Alto */}
-            <div className="absolute top-1/2 left-0 transform -translate-x-full -translate-y-1/2 flex flex-col justify-between h-full py-10">
-                <span className="text-sm font-semibold text-muted-foreground/80 -translate-y-4">ALTO</span>
-                <span className="text-sm font-semibold text-muted-foreground/80 translate-y-4">BAIXO</span>
-            </div>
-
-            {/* Eixo X (Comportamental) - Baixo e Alto */}
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full flex justify-between w-full px-10">
-                <span className="text-sm font-semibold text-muted-foreground/80 -translate-x-4">BAIXO</span>
-                <span className="text-sm font-semibold text-muted-foreground/80 translate-x-4">ALTO</span>
-            </div>
-
             {/* Quadrant Badges com contagem */}
             
             {/* M4: Expect (Superior Esquerdo) */}
@@ -250,8 +252,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
           </div>
         </div>
         
-        {/* Painel Lateral com Altura Fixa e Rolagem Interna */}
-        <div className="md:col-span-3 space-y-4 flex flex-col h-[480px]"> {/* Altura fixa igual ao gráfico */}
+        <div className="md:col-span-3 space-y-4 flex flex-col h-[480px]">
           <div className="flex flex-col flex-1 min-h-0">
             <div className="relative mb-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -273,7 +274,6 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                 </Button>
               )}
             </div>
-            {/* A rolagem é aplicada aqui, e o flex-1 garante que ele ocupe o espaço restante */}
             <div className="flex-1 overflow-y-auto space-y-1 pr-2">
               {filteredMembers.map(member => (
                 <div 
