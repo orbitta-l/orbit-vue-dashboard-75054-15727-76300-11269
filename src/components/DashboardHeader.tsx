@@ -41,7 +41,7 @@ export function DashboardHeader() {
         </h1>
         {/* Novo texto pequeno */}
         <p className="text-sm text-muted-foreground mt-0.5">
-          Visão geral do desempenho e maturidade da sua equipe.
+          Acompanhe a evolução da sua equipe
         </p>
       </div>
 
