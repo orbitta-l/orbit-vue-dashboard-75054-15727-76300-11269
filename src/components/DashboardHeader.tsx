@@ -39,6 +39,10 @@ export function DashboardHeader() {
         )}>
           {greeting}, {userName}
         </h1>
+        {/* Novo texto pequeno */}
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Visão geral do desempenho e maturidade da sua equipe.
+        </p>
       </div>
 
       {/* Data e Hora (Direita) */}
