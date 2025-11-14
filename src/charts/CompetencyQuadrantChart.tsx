@@ -158,9 +158,9 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   label={{ 
                     value: "Média Comportamental (SOFT)", 
                     position: 'insideBottom', 
-                    offset: -15, 
+                    offset: -5, // Ajustado para melhor espaçamento
                     fill: 'hsl(var(--foreground))',
-                    style: { fontSize: '14px', fontWeight: 500 }
+                    style: { fontSize: '16px', fontWeight: 600 } // Aumentado o tamanho e peso
                   }}
                   stroke="hsl(var(--foreground))"
                 />
@@ -174,9 +174,9 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                     value: "Média Técnica (HARD)", 
                     angle: -90, 
                     position: 'insideLeft', 
-                    offset: -15, 
+                    offset: -5, // Ajustado para melhor espaçamento
                     fill: 'hsl(var(--foreground))',
-                    style: { fontSize: '14px', fontWeight: 500 }
+                    style: { fontSize: '16px', fontWeight: 600 } // Aumentado o tamanho e peso
                   }}
                   stroke="hsl(var(--foreground))"
                 />
