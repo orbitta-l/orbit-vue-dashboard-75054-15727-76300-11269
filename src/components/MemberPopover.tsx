@@ -43,10 +43,10 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
   // Verifica se a posição é uma coordenada relativa (string) para determinar se é o fallback de margem
   const isMarginFallback = typeof position.x === 'string' && typeof position.y === 'string';
 
-  // Se for fallback (seleção da lista), não aplica transformação para ancorar no canto superior esquerdo (5%, 5%)
+  // Se for fallback (seleção da lista), centraliza verticalmente (translateY(-50%)) e não aplica translate X.
   // Se for clique no ponto, ancora acima do ponto.
   const transformStyle = isMarginFallback
-    ? 'translate(0, 0)' 
+    ? 'translateY(-50%)' 
     : 'translate(-50%, -100%) translateY(-5px)'; 
 
   return (
