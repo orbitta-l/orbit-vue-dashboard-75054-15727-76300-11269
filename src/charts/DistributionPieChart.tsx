@@ -2,21 +2,30 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
-import { LideradoDashboard, PieChartFilterType } from "@/types/mer";
+import { LideradoDashboard, PieChartFilterType, NivelMaturidade } from "@/types/mer";
 
 interface DistributionPieChartProps {
   teamMembers: LideradoDashboard[];
   empty?: boolean;
 }
 
-// Cores institucionais: Azul (Primary), Laranja (Accent), Azul Escuro (Primary-Dark), Azul Claro (Chart-5)
-const CHART_COLORS = [
+// Cores institucionais para filtros gerais (não-maturidade)
+const INSTITUTIONAL_COLORS = [
   "hsl(var(--primary))",
   "hsl(var(--accent))",
   "hsl(var(--primary-dark))",
   "hsl(var(--chart-5))",
-  "hsl(var(--secondary))", // Adicionando secondary como fallback para mais de 4 categorias
+  "hsl(var(--secondary))",
 ];
+
+// Mapeamento específico para o filtro de Maturidade
+const MATURITY_COLORS: Record<NivelMaturidade | 'Não Avaliado', string> = {
+  M4: "hsl(var(--primary))",
+  M3: "hsl(var(--primary-dark))",
+  M2: "hsl(var(--color-m2-weak))", // Amarelo Fraco
+  M1: "hsl(var(--color-m1-weak))", // Vermelho Fraco
+  'Não Avaliado': "hsl(var(--muted-foreground))",
+};
 
 // Helper para classificar a idade em faixas
 const getAgeRange = (idade?: number | null): string => {
@@ -72,6 +81,16 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
       });
       return sortedEntries.map(([name, value]) => ({ name, value }));
     }
+    
+    // Ordena Maturidade para garantir que as cores M1-M4 sejam aplicadas corretamente
+    if (filter === 'maturidade') {
+        const order = ["M4", "M3", "M2", "M1", "Não Avaliado"];
+        const sortedEntries = Object.entries(counts).sort(([a], [b]) => {
+            return order.indexOf(a) - order.indexOf(b);
+        });
+        return sortedEntries.map(([name, value]) => ({ name, value }));
+    }
+
 
     return Object.entries(counts).map(([name, value]) => ({
       name,
@@ -96,6 +115,14 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
       default:
         return "Visão geral da composição da equipe.";
     }
+  };
+  
+  // Função para obter a cor correta
+  const getColor = (entryName: string, index: number) => {
+      if (filter === 'maturidade') {
+          return MATURITY_COLORS[entryName as keyof typeof MATURITY_COLORS] || INSTITUTIONAL_COLORS[index % INSTITUTIONAL_COLORS.length];
+      }
+      return INSTITUTIONAL_COLORS[index % INSTITUTIONAL_COLORS.length];
   };
 
   return (
@@ -127,10 +154,10 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
             fill={hasData ? undefined : placeholderColor}
             dataKey="value"
           >
-            {chartData.map((_, index) => (
+            {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={hasData ? CHART_COLORS[index % CHART_COLORS.length] : placeholderColor}
+                fill={hasData ? getColor(entry.name, index) : placeholderColor}
                 opacity={hasData ? 1 : 0.3}
               />
             ))}
