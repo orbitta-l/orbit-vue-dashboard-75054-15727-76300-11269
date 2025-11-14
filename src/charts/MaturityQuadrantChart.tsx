@@ -137,7 +137,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
     <Card className="p-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
         <div className="md:col-span-7">
-          <h3 className="text-lg font-semibold text-foreground">Matriz de Maturidade</h3>
+          <h3 className="text-lg font-semibold text-foreground">Matriz de Competências</h3>
           <p className="text-sm text-muted-foreground mb-4">Posicionamento do time com base na média de desempenho técnico vs. comportamental.</p>
           
           <div className="relative w-full h-[480px]">
@@ -161,7 +161,8 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                       value: "Média Comportamental (SOFT)", 
                       position: 'bottom',
                       offset: 30,
-                      style: labelStyle
+                      fill: 'hsl(var(--muted-foreground))',
+                      style: { fontSize: '14px', fontWeight: 500 }
                     }}
                     stroke="hsl(var(--foreground))"
                   />
@@ -176,7 +177,8 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                       angle: -90, 
                       position: 'left',
                       offset: -10,
-                      style: labelStyle
+                      fill: 'hsl(var(--muted-foreground))',
+                      style: { fontSize: '14px', fontWeight: 500 }
                     }}
                     stroke="hsl(var(--foreground))"
                   />
@@ -184,8 +186,6 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                   {/* Linhas centrais destacadas no 2.0 */}
                   <ReferenceLine x={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
                   <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
-
-                  {/* Quadrantes sem preenchimento de cor (ReferenceArea removida) */}
 
                   <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
                   
@@ -204,6 +204,20 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
               </ResponsiveContainer>
             )}
             
+            {/* Rótulos das Extremidades */}
+            
+            {/* Eixo Y (Técnico) - Baixo e Alto */}
+            <div className="absolute top-1/2 left-0 transform -translate-x-full -translate-y-1/2 flex flex-col justify-between h-full py-10">
+                <span className="text-sm font-semibold text-muted-foreground/80 -translate-y-4">ALTO</span>
+                <span className="text-sm font-semibold text-muted-foreground/80 translate-y-4">BAIXO</span>
+            </div>
+
+            {/* Eixo X (Comportamental) - Baixo e Alto */}
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full flex justify-between w-full px-10">
+                <span className="text-sm font-semibold text-muted-foreground/80 -translate-x-4">BAIXO</span>
+                <span className="text-sm font-semibold text-muted-foreground/80 translate-x-4">ALTO</span>
+            </div>
+
             {/* Quadrant Badges com contagem */}
             
             {/* M4: Expect (Superior Esquerdo) */}
