@@ -4,23 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, ReferenceArea } from 'recharts';
-import { NivelMaturidade } from "@/types/mer";
+import { NivelMaturidade, LideradoDashboard } from "@/types/mer";
 import { Button } from "@/components/ui/button"; 
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { MemberPopover } from "@/components/MemberPopover";
 
-interface MemberData {
-  id_liderado: string;
-  nome_liderado: string;
-  cargo: string;
-  eixo_x_tecnico_geral: number;
-  eixo_y_comportamental: number;
-  nivel_maturidade: NivelMaturidade | 'N/A';
-}
-
 interface CompetencyQuadrantChartProps {
-  teamMembers: MemberData[];
+  teamMembers: LideradoDashboard[];
   empty?: boolean;
 }
 
@@ -53,20 +44,24 @@ function useDebounce(value: string, delay: number) {
 
 const CustomDot = (props: any) => {
   const { cx, cy, payload, selectedMemberId } = props;
-  if (!payload.nivel_maturidade || payload.nivel_maturidade === 'N/A') return null;
+  if (!payload.ultima_avaliacao) return null;
   
-  const isSelected = payload.id_liderado === selectedMemberId;
-  const color = QUADRANT_COLORS[payload.nivel_maturidade as NivelMaturidade];
+  const isSelected = payload.id_usuario === selectedMemberId;
+  const color = QUADRANT_COLORS[payload.ultima_avaliacao.maturidade_quadrante as NivelMaturidade];
 
   return (
     <circle
       cx={cx}
       cy={cy}
-      r={isSelected ? 12 : 7}
+      r={isSelected ? 10 : 5}
       fill={color}
       stroke="#fff"
-      strokeWidth={isSelected ? 3 : 1.5}
-      style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
+      strokeWidth={1.5}
+      style={{ 
+        transition: 'all 0.3s ease', 
+        cursor: 'pointer',
+        filter: isSelected ? 'drop-shadow(0 0 4px rgba(255, 255, 255, 0.7))' : 'none',
+      }}
     />
   );
 };
@@ -79,11 +74,14 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const navigate = useNavigate();
 
-  const evaluatedMembers = useMemo(() => teamMembers.filter(member => member.nivel_maturidade !== 'N/A'), [teamMembers]);
-  const filteredMembers = useMemo(() => evaluatedMembers.filter(member => member.nome_liderado.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || member.cargo.toLowerCase().includes(debouncedSearchTerm.toLowerCase())), [evaluatedMembers, debouncedSearchTerm]);
+  const evaluatedMembers = useMemo(() => teamMembers.filter(member => member.ultima_avaliacao), [teamMembers]);
+  const filteredMembers = useMemo(() => evaluatedMembers.filter(member => member.nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || member.cargo_nome.toLowerCase().includes(debouncedSearchTerm.toLowerCase())), [evaluatedMembers, debouncedSearchTerm]);
+  
   const quadrantCounts = useMemo(() => filteredMembers.reduce((acc, member) => {
-    const key = member.nivel_maturidade;
-    acc[key] = (acc[key] || 0) + 1;
+    const key = member.ultima_avaliacao!.maturidade_quadrante;
+    if (key !== 'N/A') {
+      acc[key] = (acc[key] || 0) + 1;
+    }
     return acc;
   }, {} as Record<NivelMaturidade, number>), [filteredMembers]);
 
@@ -94,20 +92,31 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   }, [selectedMemberId]);
 
   const handlePointClick = (data: any) => {
-    const { id_liderado, cx, cy } = data;
-    if (selectedMemberId === id_liderado) {
+    const { id_usuario, cx, cy } = data;
+    if (selectedMemberId === id_usuario) {
       setSelectedMemberId(null);
       setSelectedPointPosition(null);
     } else {
-      setSelectedMemberId(id_liderado);
+      setSelectedMemberId(id_usuario);
       setSelectedPointPosition({ x: cx, y: cy });
     }
   };
 
   const selectedMemberData = useMemo(() => {
     if (!selectedMemberId) return null;
-    return filteredMembers.find(m => m.id_liderado === selectedMemberId);
+    return filteredMembers.find(m => m.id_usuario === selectedMemberId);
   }, [selectedMemberId, filteredMembers]);
+
+  const competencyAnalysis = useMemo(() => {
+    if (!selectedMemberData || selectedMemberData.competencias.length === 0) {
+      return { best: null, worst: null };
+    }
+    const sorted = [...selectedMemberData.competencias].sort((a, b) => a.pontuacao_1a4 - b.pontuacao_1a4);
+    return {
+      worst: sorted[0],
+      best: sorted[sorted.length - 1],
+    };
+  }, [selectedMemberData]);
 
   const CENTER_POINT = 2.5;
   const hasEvaluatedMembers = evaluatedMembers.length > 0;
@@ -125,6 +134,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
             {selectedMemberData && selectedPointPosition && (
               <MemberPopover
                 member={selectedMemberData}
+                competencyAnalysis={competencyAnalysis}
                 position={selectedPointPosition}
                 onClose={() => { setSelectedMemberId(null); setSelectedPointPosition(null); }}
                 onNavigate={() => navigate(`/team/${selectedMemberId}`)}
@@ -139,8 +149,8 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" dataKey="eixo_y_comportamental" name="Comportamental" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Soft Skills", position: 'bottom', offset: 30, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
-                  <YAxis type="number" dataKey="eixo_x_tecnico_geral" name="Técnico" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Hard Skills", angle: -90, position: 'left', offset: -10, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
+                  <XAxis type="number" dataKey="ultima_avaliacao.media_comportamental_1a4" name="Comportamental" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Soft Skills", position: 'bottom', offset: 30, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
+                  <YAxis type="number" dataKey="ultima_avaliacao.media_tecnica_1a4" name="Técnico" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Hard Skills", angle: -90, position: 'left', offset: -10, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
                   <ReferenceLine x={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
                   <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
                   <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1} fillOpacity={0.2} />
@@ -169,9 +179,9 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
             </div>
             <div className="flex-1 overflow-y-auto space-y-1 pr-2">
               {filteredMembers.map(member => (
-                <div key={member.id_liderado} ref={(el) => (listRefs.current[member.id_liderado] = el)} className={`flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`} onClick={() => handlePointClick({ id_liderado: member.id_liderado, cx: 0, cy: 0 })}>
-                  <Avatar className="w-10 h-10"><AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade] }}>{getInitials(member.nome_liderado)}</AvatarFallback></Avatar>
-                  <div className="flex-1 min-w-0"><p className="text-base font-medium text-foreground truncate">{member.nome_liderado}</p><p className="text-sm text-muted-foreground truncate">{member.cargo}</p></div>
+                <div key={member.id_usuario} ref={(el) => (listRefs.current[member.id_usuario] = el)} className={`flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_usuario ? 'bg-muted' : 'hover:bg-muted/50'}`} onClick={() => handlePointClick({ id_usuario: member.id_usuario, cx: 0, cy: 0 })}>
+                  <Avatar className="w-10 h-10"><AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.ultima_avaliacao!.maturidade_quadrante as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.ultima_avaliacao!.maturidade_quadrante as NivelMaturidade] }}>{getInitials(member.nome)}</AvatarFallback></Avatar>
+                  <div className="flex-1 min-w-0"><p className="text-base font-medium text-foreground truncate">{member.nome}</p><p className="text-sm text-muted-foreground truncate">{member.cargo_nome}</p></div>
                 </div>
               ))}
                {filteredMembers.length === 0 && !empty && <p className="text-sm text-muted-foreground text-center py-4">Nenhum resultado.</p>}
