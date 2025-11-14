@@ -109,16 +109,12 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   const handleListClick = (memberId: string) => {
     if (selectedMemberId === memberId) {
       setSelectedMemberId(null);
-      setSelectedPointPosition(null); // Garante que o popover desapareça
+      setSelectedPointPosition(null);
     } else {
       setSelectedMemberId(memberId);
-      // Ao clicar na lista, não temos coordenadas do gráfico. 
-      // Se o usuário quer que o balão apareça, precisamos de uma posição.
-      // Vamos forçar o balão a aparecer no centro do gráfico (50% x 50%) se for clicado na lista.
-      // No entanto, para manter a UX limpa, é melhor que o clique na lista apenas destaque o membro.
-      // Se o usuário quer o balão, ele deve clicar no ponto.
-      // Vou manter a lógica de que o clique na lista apenas destaca o item.
-      setSelectedPointPosition(null); 
+      // Define uma posição padrão para o popover aparecer no centro do gráfico (240px é metade de 480px de altura)
+      // Usamos 50% para X para ser responsivo à largura.
+      setSelectedPointPosition({ x: 50, y: 240 }); 
     }
   };
 
@@ -177,10 +173,10 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
             )}
             
             {/* Rótulos dos Quadrantes */}
-            <div className="absolute top-0 left-0 -translate-x-4 -translate-y-10 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span></div></div>
-            <div className="absolute top-0 right-0 translate-x-4 -translate-y-10 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span></div></div>
-            <div className="absolute bottom-0 left-0 -translate-x-4 translate-y-4 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} <span className={cn("ml-1 font-bold", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span></div></div>
-            <div className="absolute bottom-0 right-0 translate-x-4 translate-y-4 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} <span className={cn("ml-1 font-bold", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span></div></div>
+            <div className="absolute top-0 left-0 -translate-x-4 -translate-y-10 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span></div></div>
+            <div className="absolute top-0 right-0 translate-x-4 -translate-y-10 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span></div></div>
+            <div className="absolute bottom-0 left-0 -translate-x-4 translate-y-4 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} <span className={cn("ml-1 font-bold", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span></div></div>
+            <div className="absolute bottom-0 right-0 translate-x-4 translate-y-4 text-center"><div className={cn("px-3 py-1 rounded-md font-semibold text-xs", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} <span className={cn("ml-1 font-bold", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span></div></div>
           </div>
         </div>
         
