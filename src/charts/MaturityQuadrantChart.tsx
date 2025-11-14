@@ -132,6 +132,12 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
     fontWeight: 600, // Semibold
     fill: 'hsl(var(--muted-foreground) / 0.8)', // Opacidade leve
   };
+  
+  // Estilo para ticks opacos
+  const tickStyle = {
+    fill: 'hsl(var(--foreground) / 0.6)', // Cor mais opaca para os números
+    fontSize: '12px',
+  };
 
   return (
     <Card className="p-6 mb-8">
@@ -164,6 +170,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                       style: labelStyle
                     }}
                     stroke="hsl(var(--foreground))"
+                    tick={tickStyle} // Aplicando estilo opaco aos ticks
                   />
                   <YAxis 
                     type="number" 
@@ -179,6 +186,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                       style: labelStyle
                     }}
                     stroke="hsl(var(--foreground))"
+                    tick={tickStyle} // Aplicando estilo opaco aos ticks
                   />
                   
                   {/* Linhas centrais destacadas no 2.5 */}
