@@ -1,7 +1,7 @@
 import React from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { X, ArrowRight, Code, HeartHandshake } from 'lucide-react';
+import { X, ArrowRight } from 'lucide-react';
 import { NivelMaturidade } from '@/types/mer';
 
 interface MemberData {
@@ -62,10 +62,10 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
           </div>
         </div>
 
-        {/* RIGHT: Maturity Level */}
+        {/* RIGHT: Maturity Level (Colored) */}
         <div className="flex flex-col items-end justify-center h-full">
           <span 
-            className="text-xl font-medium leading-none" // Tamanho e peso reduzidos
+            className="text-xl font-medium leading-none"
             style={{ color: maturityColor }}
           >
             {member.nivel_maturidade}
@@ -73,30 +73,24 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
         </div>
       </div>
 
-      {/* Middle Section: Hard/Soft Skills Scores (Separated and Aligned) */}
-      <div className="flex flex-col gap-2 border-t border-border pt-3 pb-1 mt-1">
+      {/* Middle Section: Hard/Soft Skills Scores (Compact and Neutral) */}
+      <div className="flex flex-col gap-1 border-t border-border pt-2 pb-1">
         
         {/* Técnico (Hard Skills) */}
         <div className="flex justify-between items-center text-sm">
-          <div className="flex items-center gap-2 text-foreground">
-            <Code className="w-4 h-4 text-primary" />
-            <span className="font-medium">Técnico</span>
-          </div>
-          <span className="font-bold text-base text-primary">{member.eixo_x_tecnico_geral.toFixed(1)}<span className="text-xs text-muted-foreground font-normal">/4.0</span></span>
+          <span className="font-medium text-foreground">Técnico</span>
+          <span className="font-bold text-foreground">{member.eixo_x_tecnico_geral.toFixed(1)}<span className="text-xs text-muted-foreground font-normal">/4.0</span></span>
         </div>
 
         {/* Comportamental (Soft Skills) */}
         <div className="flex justify-between items-center text-sm">
-          <div className="flex items-center gap-2 text-foreground">
-            <HeartHandshake className="w-4 h-4 text-accent" />
-            <span className="font-medium">Comportamental</span>
-          </div>
-          <span className="font-bold text-base text-accent">{member.eixo_y_comportamental.toFixed(1)}<span className="text-xs text-muted-foreground font-normal">/4.0</span></span>
+          <span className="font-medium text-foreground">Comportamental</span>
+          <span className="font-bold text-foreground">{member.eixo_y_comportamental.toFixed(1)}<span className="text-xs text-muted-foreground font-normal">/4.0</span></span>
         </div>
       </div>
 
       {/* Navigation Button */}
-      <Button onClick={onNavigate} className="w-full gap-2 mt-2 h-8 text-sm">
+      <Button onClick={onNavigate} className="w-full gap-2 mt-1 h-8 text-sm">
         Ver Perfil <ArrowRight className="w-4 h-4" />
       </Button>
     </div>
