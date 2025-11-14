@@ -96,14 +96,14 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
 
       {/* Bottom Section: Actions */}
       <div className="flex justify-between gap-2 pt-3 border-t border-border/50">
-        {/* Botão Fechar (Outline, Menor) */}
+        {/* Botão Fechar (Ghost, Menor Largura, Mesma Altura) */}
         <Button 
           onClick={onClose} 
-          variant="outline" 
-          size="xs" // Usando size="xs" para torná-lo menor
+          variant="ghost" 
+          size="sm" // Usando sm como base
           className={cn(
-            "flex-1 text-xs h-7", // Altura reduzida para 7
-            "hover:bg-muted/50 hover:border-primary/50"
+            "w-1/3 text-xs h-8 px-2", // Forçando h-8 e largura menor
+            "text-muted-foreground hover:bg-muted/50"
           )}
         >
           Fechar
@@ -112,7 +112,7 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
         {/* Botão Ver Perfil (Filled, Maior, Destaque) */}
         <Button 
           onClick={onNavigate} 
-          className="flex-1 gap-1 h-8 text-sm font-semibold"
+          className="flex-1 gap-1 h-8 text-sm font-semibold" // Mantendo h-8
         >
           Ver Perfil <ArrowRight className="w-3.5 h-3.5" />
         </Button>
