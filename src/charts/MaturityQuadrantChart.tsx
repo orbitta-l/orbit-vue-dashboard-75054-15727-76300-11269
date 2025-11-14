@@ -63,7 +63,7 @@ const CustomDot = (props: any) => {
       <circle
         cx={cx}
         cy={cy}
-        r={isSelected ? 10 : 5} // Tamanho reduzido: 5 (padrão), 10 (selecionado)
+        r={isSelected ? 9 : 6} // Tamanho ajustado: 6 (padrão), 9 (selecionado)
         fill={color}
         stroke={color}
         strokeWidth={isSelected ? 2 : 1}
