@@ -1,6 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -17,7 +18,11 @@ export function DashboardHeader() {
 
   return (
     <div className="mb-8">
-      <h1 className="text-3xl font-bold text-foreground">
+      <h1 className={cn(
+        "text-3xl font-bold",
+        "bg-gradient-to-r from-primary to-primary/80", // Gradiente sutil de azul
+        "bg-clip-text text-transparent" // Aplica o gradiente ao texto
+      )}>
         {greeting}, {userName}
       </h1>
       <p className="text-muted-foreground text-sm capitalize">
