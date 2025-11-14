@@ -1,8 +1,7 @@
 import React from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { X, ArrowRight } from 'lucide-react';
+import { X, ArrowRight, Code, HeartHandshake } from 'lucide-react';
 import { NivelMaturidade } from '@/types/mer';
 
 interface MemberData {
@@ -21,11 +20,11 @@ interface MemberPopoverProps {
   onNavigate: () => void;
 }
 
-const QUADRANT_LABELS: Record<string, string> = {
-  M1: "Básico",
-  M2: "Intermediário",
-  M3: "Avançado",
-  M4: "Expect",
+const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
+  M1: "hsl(var(--destructive))",
+  M2: "hsl(var(--accent))",
+  M3: "hsl(var(--primary-dark))",
+  M4: "hsl(var(--primary))",
 };
 
 const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -33,7 +32,7 @@ const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').to
 export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, onClose, onNavigate }) => {
   if (!member || !position || member.nivel_maturidade === 'N/A') return null;
 
-  const maturityLabel = QUADRANT_LABELS[member.nivel_maturidade] || 'N/A';
+  const maturityColor = QUADRANT_COLORS[member.nivel_maturidade];
 
   return (
     <div
@@ -48,36 +47,49 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
         <X className="h-4 w-4" />
       </Button>
       
-      <div className="flex items-center gap-3">
-        <Avatar className="w-12 h-12">
-          <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">
-            {getInitials(member.nome_liderado)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <p className="font-semibold text-base text-foreground">{member.nome_liderado}</p>
-          <p className="text-xs text-muted-foreground">{member.cargo}</p>
+      {/* Top Section: Profile vs Maturity */}
+      <div className="flex justify-between items-start pt-1 pb-2">
+        {/* LEFT: Profile, Name, Cargo */}
+        <div className="flex items-start gap-3">
+          <Avatar className="w-10 h-10 flex-shrink-0">
+            <AvatarFallback className="text-md bg-primary/10 text-primary font-semibold">
+              {getInitials(member.nome_liderado)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col justify-center min-w-0 pt-0.5">
+            <p className="font-semibold text-base text-foreground leading-tight truncate">{member.nome_liderado}</p>
+            <p className="text-xs text-muted-foreground opacity-80 leading-tight truncate">{member.cargo}</p>
+          </div>
+        </div>
+
+        {/* RIGHT: Large Maturity Level */}
+        <div className="flex flex-col items-end justify-center h-full">
+          <span 
+            className="text-3xl font-extrabold leading-none" 
+            style={{ color: maturityColor }}
+          >
+            {member.nivel_maturidade}
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 text-center text-sm">
-        <div>
-          <p className="text-xs text-muted-foreground">Maturidade</p>
-          <Badge className="text-sm mt-0.5">{member.nivel_maturidade}</Badge>
-          <p className="text-xs text-muted-foreground mt-0.5">{maturityLabel}</p>
+      {/* Bottom Section: Hard/Soft Skills Scores */}
+      <div className="flex justify-between items-center border-t border-border pt-2">
+        <div className="flex items-center gap-1 text-sm text-foreground">
+          <Code className="w-4 h-4 text-primary" /> {/* Hard Skills Icon */}
+          <span className="font-medium">{member.eixo_x_tecnico_geral.toFixed(1)}</span>
+          <span className="text-xs text-muted-foreground">/4.0</span>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Hard Skills</p>
-          <Badge className="text-sm mt-0.5">{member.eixo_x_tecnico_geral.toFixed(1)}</Badge>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Soft Skills</p>
-          <Badge className="text-sm mt-0.5">{member.eixo_y_comportamental.toFixed(1)}</Badge>
+        <div className="flex items-center gap-1 text-sm text-foreground">
+          <HeartHandshake className="w-4 h-4 text-accent" /> {/* Soft Skills Icon */}
+          <span className="font-medium">{member.eixo_y_comportamental.toFixed(1)}</span>
+          <span className="text-xs text-muted-foreground">/4.0</span>
         </div>
       </div>
 
-      <Button onClick={onNavigate} className="w-full gap-2 mt-2">
-        Ver mais <ArrowRight className="w-4 h-4" />
+      {/* Navigation Button */}
+      <Button onClick={onNavigate} className="w-full gap-2 mt-2 h-8 text-sm">
+        Ver Perfil <ArrowRight className="w-4 h-4" />
       </Button>
     </div>
   );
