@@ -16,7 +16,8 @@ interface MemberData {
 
 interface MemberPopoverProps {
   member: MemberData;
-  position: { x: number; y: number };
+  // Alterado o tipo para aceitar string ou number
+  position: { x: string | number; y: string | number };
   onClose: () => void;
   onNavigate: () => void;
 }
@@ -34,38 +35,50 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
   if (!member || !position || member.nivel_maturidade === 'N/A') return null;
 
   const maturityColor = QUADRANT_COLORS[member.nivel_maturidade];
+  
+  // Converte coordenadas para string CSS (adiciona 'px' se for número)
+  const xPos = typeof position.x === 'number' ? `${position.x}px` : position.x;
+  const yPos = typeof position.y === 'number' ? `${position.y}px` : position.y;
+
+  // Se a posição for centralizada ('50%'), a seta não deve aparecer, pois não está ancorada a um ponto específico.
+  const isCentered = xPos === '50%' && yPos === '50%';
 
   return (
     <div
       className="absolute z-20 p-4 bg-card rounded-lg shadow-2xl border w-60 flex flex-col animate-in fade-in-50 zoom-in-95"
       style={{
-        left: position.x,
-        top: position.y,
-        // Centraliza horizontalmente e posiciona 5px acima do ponto
-        transform: 'translate(-50%, -100%) translateY(-5px)', 
+        left: xPos,
+        top: yPos,
+        // Se for centralizado, move 50% para cima e 50% para a esquerda (para centralizar o popover)
+        // Se for ancorado a um ponto, move 50% para a esquerda, 100% para cima e mais 5px de offset.
+        transform: isCentered 
+          ? 'translate(-50%, -50%)' 
+          : 'translate(-50%, -100%) translateY(-5px)', 
       }}
     >
-      {/* Seta Conectora */}
-      <div 
-        className="absolute bottom-0 left-1/2 h-4 w-4 -translate-x-1/2 translate-y-full"
-        style={{
-          clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
-          backgroundColor: 'hsl(var(--card))',
-          border: '1px solid hsl(var(--border))',
-          borderTop: 'none',
-        }}
-      >
-        {/* Borda da Seta (para simular a borda do popover) */}
+      {/* Seta Conectora - Oculta se estiver centralizado */}
+      {!isCentered && (
         <div 
-          className="absolute inset-0"
+          className="absolute bottom-0 left-1/2 h-4 w-4 -translate-x-1/2 translate-y-full"
           style={{
             clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
-            backgroundColor: 'hsl(var(--border))',
-            transform: 'scale(1.1)',
-            zIndex: -1,
+            backgroundColor: 'hsl(var(--card))',
+            border: '1px solid hsl(var(--border))',
+            borderTop: 'none',
           }}
-        />
-      </div>
+        >
+          {/* Borda da Seta (para simular a borda do popover) */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+              backgroundColor: 'hsl(var(--border))',
+              transform: 'scale(1.1)',
+              zIndex: -1,
+            }}
+          />
+        </div>
+      )}
       
       {/* Top Section: Profile & Maturity Level */}
       <div className="flex justify-between items-center pb-3 border-b border-border/50">

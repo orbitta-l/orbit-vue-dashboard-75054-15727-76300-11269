@@ -77,7 +77,8 @@ const CustomDot = (props: any) => {
 export default function MaturityQuadrantChart({ teamMembers, empty = false }: CompetencyQuadrantChartProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
-  const [selectedPointPosition, setSelectedPointPosition] = useState<{ x: number; y: number } | null>(null);
+  // Alterado o tipo para aceitar string (para porcentagens)
+  const [selectedPointPosition, setSelectedPointPosition] = useState<{ x: string | number; y: string | number } | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 200);
   const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const navigate = useNavigate();
@@ -113,8 +114,8 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
       setSelectedPointPosition(null);
     } else {
       setSelectedMemberId(memberId);
-      // Posição de fallback para o centro do gráfico (50% da largura, 240px de altura)
-      setSelectedPointPosition({ x: 50, y: 240 }); 
+      // Posição de fallback para o centro do gráfico (50% da largura, 50% da altura)
+      setSelectedPointPosition({ x: '50%', y: '50%' }); 
     }
   };
 
