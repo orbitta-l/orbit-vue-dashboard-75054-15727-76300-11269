@@ -40,8 +40,12 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
   const xPos = typeof position.x === 'number' ? `${position.x}px` : position.x;
   const yPos = typeof position.y === 'number' ? `${position.y}px` : position.y;
 
-  // Se a posição for centralizada ('50%'), a seta não deve aparecer, pois não está ancorada a um ponto específico.
-  const isCentered = xPos === '50%' && yPos === '50%';
+  // Verifica se a posição é uma coordenada relativa (string) para determinar se é o fallback de margem
+  const isMarginFallback = typeof position.x === 'string' && typeof position.y === 'string';
+
+  const transformStyle = isMarginFallback
+    ? 'translateY(-50%)' // Alinha verticalmente ao centro (50% de Y) e mantém X em 10%
+    : 'translate(-50%, -100%) translateY(-5px)'; // Ancorado acima do ponto
 
   return (
     <div
@@ -49,15 +53,11 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
       style={{
         left: xPos,
         top: yPos,
-        // Se for centralizado, move 50% para cima e 50% para a esquerda (para centralizar o popover)
-        // Se for ancorado a um ponto, move 50% para a esquerda, 100% para cima e mais 5px de offset.
-        transform: isCentered 
-          ? 'translate(-50%, -50%)' 
-          : 'translate(-50%, -100%) translateY(-5px)', 
+        transform: transformStyle, 
       }}
     >
-      {/* Seta Conectora - Oculta se estiver centralizado */}
-      {!isCentered && (
+      {/* Seta Conectora - Oculta se for o fallback de margem */}
+      {!isMarginFallback && (
         <div 
           className="absolute bottom-0 left-1/2 h-4 w-4 -translate-x-1/2 translate-y-full"
           style={{
