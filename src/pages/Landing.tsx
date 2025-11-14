@@ -125,7 +125,7 @@ const Navbar = () => {
       {/* Hero Section */}
       <section id="inicio" className="hero">
         <div className="hero-content">
-          <h1>Desbloqueie o Potencial da Sua Equipe</h1>
+          <h1>Conectando talentos em uma só órbita</h1>
           <p>Transforme a gestão de talentos com insights claros e caminhos de desenvolvimento personalizados.</p>
           <button className="hero-button" onClick={() => navigate('/login')}>
             <span>COMEÇAR AGORA</span>
