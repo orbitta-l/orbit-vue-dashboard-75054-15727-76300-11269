@@ -10,16 +10,29 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/context/AuthContext";
 import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
 import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { supabase } from "@/lib/supabaseClient"; // Importar o cliente Supabase
 
 export default function MemberDetail() {
   const { memberId } = useParams();
   const navigate = useNavigate();
-  const { teamData } = useAuth();
+  const { teamData, fetchTeamData } = useAuth(); // Adicionado fetchTeamData para atualizar a lista
   
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedEspecializacao, setSelectedEspecializacao] = useState<string>("all");
   const [radarViewMode, setRadarViewMode] = useState<"all" | "soft" | "custom">("all");
   const [selectedHardCategories, setSelectedHardCategories] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState(false); // Estado para o loading do botão de exclusão
   
   const liderado = teamData.find(m => m.id_usuario === memberId);
 
@@ -123,12 +136,38 @@ export default function MemberDetail() {
         }))
     : [];
 
-  const handleDeleteMember = () => {
-    toast({
-      title: "Funcionalidade em desenvolvimento",
-      description: `A remoção de ${liderado.nome} ainda não está implementada.`,
-      variant: "destructive",
-    });
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-liderado', {
+        body: { liderado_id: Number(memberId) },
+        method: 'POST',
+      });
+
+      if (error) {
+        throw new Error(error.message || "Erro desconhecido ao deletar liderado.");
+      }
+      
+      if (data && (data as any).ok) {
+        toast({
+          title: "Liderado excluído!",
+          description: `${liderado.nome} foi removido com sucesso da sua equipe.`,
+        });
+        await fetchTeamData(); // Atualiza os dados da equipe no contexto
+        navigate("/team", { replace: true }); // Redireciona para a página da equipe
+      } else {
+        throw new Error((data as any)?.error || "Resposta inesperada da função de exclusão.");
+      }
+    } catch (err: any) {
+      console.error("Erro ao deletar liderado:", err);
+      toast({
+        title: "Erro ao excluir liderado",
+        description: err.message || "Não foi possível remover o liderado. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleEvaluateMember = () => {
@@ -147,10 +186,28 @@ export default function MemberDetail() {
             <ClipboardCheck className="w-4 h-4" />
             Avaliar Competências
           </Button>
-          <Button variant="destructive" onClick={handleDeleteMember} className="gap-2">
-            <Trash2 className="w-4 h-4" />
-            Excluir Liderado
-          </Button>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="gap-2" disabled={isDeleting}>
+                {isDeleting ? "Excluindo..." : <><Trash2 className="w-4 h-4" /> Excluir Liderado</>}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Tem certeza que deseja excluir {liderado.nome}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação é irreversível. Todos os dados de perfil, avaliações e pontuações de {liderado.nome} serão permanentemente removidos do sistema.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
+                  {isDeleting ? "Excluindo..." : "Confirmar Exclusão"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
