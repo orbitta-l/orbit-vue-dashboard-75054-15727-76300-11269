@@ -14,7 +14,7 @@ const CHART_COLORS = [
   "hsl(var(--chart-2))",
   "hsl(var(--chart-3))",
   "hsl(var(--chart-4))",
-  "hsl(var(--chart-1) / 0.6)",
+  "hsl(var(--chart-5))", // Usando a nova variável
 ];
 
 // Helper para classificar a idade em faixas
@@ -82,10 +82,28 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
 
   const placeholderColor = "var(--color-muted)";
 
+  const getDescription = () => {
+    switch (filter) {
+      case "maturidade":
+        return "Distribuição dos membros da equipe por nível de maturidade (M1 a M4).";
+      case "categoria":
+        return "Distribuição dos membros por categoria técnica dominante.";
+      case "sexo":
+        return "Distribuição da equipe por gênero declarado.";
+      case "faixaEtaria":
+        return "Distribuição dos membros por faixa etária.";
+      default:
+        return "Visão geral da composição da equipe.";
+    }
+  };
+
   return (
     <Card className="p-6 mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-foreground">Distribuição da Equipe</h3>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">Distribuição da Equipe</h3>
+          <p className="text-sm text-muted-foreground">{getDescription()}</p>
+        </div>
         <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="maturidade">Maturidade</TabsTrigger>
