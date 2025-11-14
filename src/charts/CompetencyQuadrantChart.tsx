@@ -22,7 +22,7 @@ interface CompetencyQuadrantChartProps {
   empty?: boolean;
 }
 
-// Mapeamento de cores e rótulos (Atualizado conforme solicitação)
+// Mapeamento de cores e rótulos (Mantido, mas a posição visual será alterada)
 const QUADRANT_COLORS: Record<NivelMaturidade | 'N/A', string> = {
   M1: "hsl(var(--destructive))",      // Básico (Vermelho - Crítico)
   M2: "hsl(var(--accent))",           // Intermediário (Laranja - Comportamental Forte)
@@ -150,7 +150,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                     position: 'insideBottom', 
                     offset: -15, 
                     fill: 'hsl(var(--foreground))',
-                    style: { fontSize: '14px', fontWeight: 500 } // Tipografia mais clara
+                    style: { fontSize: '14px', fontWeight: 500 }
                   }}
                   stroke="hsl(var(--foreground))"
                 />
@@ -166,7 +166,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                     position: 'insideLeft', 
                     offset: -15, 
                     fill: 'hsl(var(--foreground))',
-                    style: { fontSize: '14px', fontWeight: 500 } // Tipografia mais clara
+                    style: { fontSize: '14px', fontWeight: 500 }
                   }}
                   stroke="hsl(var(--foreground))"
                 />
@@ -176,14 +176,18 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                 <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
 
                 {/* Quadrantes com cores atualizadas e preenchendo de 1 a 4 */}
-                {/* M1: Baixo Técnico (Y: 1-2), Baixo Comportamental (X: 1-2) -> Vermelho */}
+                
+                {/* M1: Básico (Inferior Esquerdo) -> X: 1-2, Y: 1-2 */}
                 <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1} fillOpacity={0.2} />
-                {/* M2: Baixo Técnico (Y: 1-2), Alto Comportamental (X: 2-4) -> Laranja */}
+                
+                {/* M2: Intermediário (Inferior Direito) -> X: 2-4, Y: 1-2 */}
                 <ReferenceArea x1={CENTER_POINT} x2={4} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M2} fillOpacity={0.2} />
-                {/* M3: Alto Técnico (Y: 2-4), Baixo Comportamental (X: 1-2) -> Azul Escuro */}
-                <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.2} />
-                {/* M4: Alto Técnico (Y: 2-4), Alto Comportamental (X: 2-4) -> Azul Primário */}
-                <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
+                
+                {/* M3: Avançado (Superior Direito) -> X: 2-4, Y: 2-4 (INVERTIDO) */}
+                <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.2} />
+                
+                {/* M4: Expect (Superior Esquerdo) -> X: 1-2, Y: 2-4 (INVERTIDO) */}
+                <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
 
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
                 
@@ -205,28 +209,28 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
             
             {/* Quadrant Badges com contagem sem parênteses e reposicionamento */}
             
-            {/* M3: Avançado (Canto Superior Esquerdo) */}
+            {/* M4: Expect (Superior Esquerdo) - Novo Posicionamento */}
             <div className="absolute top-0 left-0 translate-x-[-10px] translate-y-[-10px] text-center">
-              <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>
-                {QUADRANT_LABELS.M3} <span className="text-accent ml-1">{quadrantCounts.M3 || 0}</span>
-              </div>
-            </div>
-            
-            {/* M4: Expect (Canto Superior Direito) */}
-            <div className="absolute top-0 right-0 translate-x-[10px] translate-y-[-10px] text-center">
               <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>
                 {QUADRANT_LABELS.M4} <span className="text-accent ml-1">{quadrantCounts.M4 || 0}</span>
               </div>
             </div>
             
-            {/* M1: Básico (Canto Inferior Esquerdo) */}
+            {/* M3: Avançado (Superior Direito) - Novo Posicionamento */}
+            <div className="absolute top-0 right-0 translate-x-[10px] translate-y-[-10px] text-center">
+              <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>
+                {QUADRANT_LABELS.M3} <span className="text-accent ml-1">{quadrantCounts.M3 || 0}</span>
+              </div>
+            </div>
+            
+            {/* M1: Básico (Inferior Esquerdo) - Mantido */}
             <div className="absolute bottom-0 left-0 translate-x-[-10px] translate-y-[10px] text-center">
               <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>
                 {QUADRANT_LABELS.M1} <span className="text-accent ml-1">{quadrantCounts.M1 || 0}</span>
               </div>
             </div>
             
-            {/* M2: Intermediário (Canto Inferior Direito) */}
+            {/* M2: Intermediário (Inferior Direito) - Mantido */}
             <div className="absolute bottom-0 right-0 translate-x-[10px] translate-y-[10px] text-center">
               <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>
                 {QUADRANT_LABELS.M2} <span className="text-accent ml-1">{quadrantCounts.M2 || 0}</span>
