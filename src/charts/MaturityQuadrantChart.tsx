@@ -51,9 +51,9 @@ const getTextColor = (maturity: NivelMaturidade | 'N/A') => {
 
 // Helper para determinar a cor do texto da CONTAGEM
 const getCountTextColor = (maturity: NivelMaturidade | 'N/A') => {
-    // M2 (Laranja) agora usa texto branco para contraste
     if (maturity === 'M2') {
-        return 'text-white'; 
+        // Laranja (M2) precisa de texto escuro para contraste
+        return 'text-primary-dark'; 
     }
     // Outros quadrantes (M1, M3, M4) têm fundos escuros, então usamos branco
     return 'text-white';
@@ -158,9 +158,9 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   label={{ 
                     value: "Média Comportamental (SOFT)", 
                     position: 'insideBottom', 
-                    offset: -5, 
+                    offset: -5, // Ajustado para melhor espaçamento
                     fill: 'hsl(var(--foreground))',
-                    style: { fontSize: '16px', fontWeight: 600 }
+                    style: { fontSize: '16px', fontWeight: 600 } // Aumentado o tamanho e peso
                   }}
                   stroke="hsl(var(--foreground))"
                 />
@@ -174,9 +174,9 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                     value: "Média Técnica (HARD)", 
                     angle: -90, 
                     position: 'insideLeft', 
-                    offset: -5, 
+                    offset: -5, // Ajustado para melhor espaçamento
                     fill: 'hsl(var(--foreground))',
-                    style: { fontSize: '16px', fontWeight: 600 }
+                    style: { fontSize: '16px', fontWeight: 600 } // Aumentado o tamanho e peso
                   }}
                   stroke="hsl(var(--foreground))"
                 />

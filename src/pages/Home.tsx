@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import CompetencyQuadrantChart from "@/charts/CompetencyQuadrantChart";
+import MaturityQuadrantChart from "@/charts/MaturityQuadrantChart";
 import DistributionPieChart from "@/charts/DistributionPieChart";
 import KnowledgeGapsSection from "@/charts/KnowledgeGapsSection";
 import RecentEvaluationsSection from "@/charts/RecentEvaluationsSection";
@@ -170,7 +170,7 @@ export default function Home() {
         </Card>
       )}
 
-      <CompetencyQuadrantChart
+      <MaturityQuadrantChart
         empty={isPrimeiroAcesso}
         teamMembers={dashboardData.quadrante as any} // Cast temporário, pois o tipo MemberData no chart precisa ser atualizado
       />
