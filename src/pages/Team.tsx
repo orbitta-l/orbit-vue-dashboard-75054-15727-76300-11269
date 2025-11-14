@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Search, Users, ArrowRight, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail, HeartHandshake, Check, User as UserIcon, Calendar as CalendarIcon, UserRound, CircleUser } from "lucide-react";
+import { Plus, Search, Users, ArrowRight, Filter, X, Code, Smartphone, Brain, Cloud, Shield, Palette, Star, PersonStanding, CircleUserRound, Mail, HeartHandshake, Check, User as UserIcon, Calendar as CalendarIcon, UserRound, CircleUser, Briefcase } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -99,6 +99,14 @@ export default function Team() {
     const current = activeFilters.maturity;
     const newMaturity = current.includes(value) ? current.filter(m => m !== value) : [...current, value];
     setFilter('maturity', newMaturity);
+  };
+
+  const handleCargoChange = (cargoId: string) => {
+    const current = activeFilters.cargo;
+    const newCargos = current.includes(cargoId)
+      ? current.filter(c => c !== cargoId)
+      : [...current, cargoId];
+    setFilter('cargo', newCargos);
   };
 
   const handleToggleComparisonMode = () => {
@@ -286,6 +294,52 @@ export default function Team() {
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1 max-w-md"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Buscar liderado pelo nome..." value={searchName} onChange={(e) => setSearchName(e.target.value)} className="pl-10 w-full" />{searchName && <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-3 hover:bg-transparent" onClick={() => setSearchName("")}><X className="w-4 h-4 text-muted-foreground" /></Button>}</div>
           <div className="flex gap-3">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="relative gap-2">
+                  <Briefcase className="w-4 h-4" />
+                  Cargo
+                  {activeFilters.cargo.length > 0 && (
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full">
+                      {activeFilters.cargo.length}
+                    </Badge>
+                  )}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Filtrar por Cargo</DialogTitle>
+                  <DialogDescription>Selecione um ou mais cargos para visualizar.</DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-2 gap-4 py-4">
+                  {filterOptions.cargos.map((cargo) => {
+                    const isSelected = activeFilters.cargo.includes(cargo.id);
+                    return (
+                      <button
+                        key={cargo.id}
+                        onClick={() => handleCargoChange(cargo.id)}
+                        className={cn(
+                          "p-4 rounded-lg border-2 flex flex-col items-center justify-center gap-2 transition-all relative",
+                          isSelected
+                            ? "border-primary bg-primary/10"
+                            : "border-border hover:border-primary/50 hover:bg-muted/50"
+                        )}
+                      >
+                        <Briefcase className={cn("w-6 h-6", isSelected ? "text-primary" : "text-muted-foreground")} />
+                        <span className={cn("text-sm font-medium text-center", isSelected ? "text-primary" : "text-foreground")}>
+                          {cargo.name}
+                        </span>
+                        {isSelected && (
+                          <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                            <Check className="w-3 h-3 text-primary-foreground" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </DialogContent>
+            </Dialog>
             <Sheet><SheetTrigger asChild><Button variant="outline" className="relative gap-2"><Filter className="w-4 h-4" />Filtros{activeFilterCount > 0 && <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center rounded-full">{activeFilterCount}</Badge>}</Button></SheetTrigger><FilterSidebar /></Sheet>
             {activeFilterCount > 0 && <Button variant="ghost" className="gap-2 text-destructive hover:bg-destructive/10" onClick={resetFilters}><X className="w-4 h-4" />Limpar Filtros</Button>}
             {isComparisonMode ? <><Button variant="outline" onClick={handleToggleComparisonMode}>Cancelar</Button><Button onClick={handleNavigateToCompare} disabled={selectedMembersForComparison.length < 2 || selectedMembersForComparison.length > 4} className="gap-2">Comparar ({selectedMembersForComparison.length})</Button></> : <Button variant="secondary" onClick={handleToggleComparisonMode} className="gap-2"><ArrowRight className="w-4 h-4" /> Versus</Button>}

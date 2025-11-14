@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { LideradoDashboard, NivelMaturidade, SexoTipo } from "@/types/mer";
 import { technicalTemplate } from "@/data/evaluationTemplates";
+import { MOCK_CARGOS } from "@/data/mockData";
 
 export interface ActiveFilters {
   maturity: NivelMaturidade[];
@@ -9,6 +10,7 @@ export interface ActiveFilters {
   competency: string;
   age: string;
   gender: SexoTipo | 'all';
+  cargo: string[];
 }
 
 const initialFilters: ActiveFilters = {
@@ -18,6 +20,7 @@ const initialFilters: ActiveFilters = {
   competency: 'all',
   age: 'all',
   gender: 'all',
+  cargo: [],
 };
 
 const AGE_RANGES: Record<string, { min: number, max: number }> = {
@@ -40,7 +43,7 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
 
   const activeFilterCount = useMemo(() => {
     return Object.entries(activeFilters).filter(([key, value]) => {
-      if (key === 'maturity') return Array.isArray(value) && value.length > 0;
+      if (key === 'maturity' || key === 'cargo') return Array.isArray(value) && value.length > 0;
       return value !== 'all' && value !== '';
     }).length;
   }, [activeFilters]);
@@ -55,15 +58,13 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
     }
 
     members = members.filter(member => {
-      const { ultima_avaliacao, sexo, idade, competencias } = member;
-      const { maturity, category, specialization, competency, age, gender } = activeFilters;
+      const { ultima_avaliacao, sexo, idade, competencias, id_cargo } = member;
+      const { maturity, category, specialization, competency, age, gender, cargo } = activeFilters;
 
       if (maturity.length > 0 && ultima_avaliacao) {
-        // Garante que maturidade_quadrante é um NivelMaturidade antes de verificar a inclusão
         if (ultima_avaliacao.maturidade_quadrante !== 'N/A') {
             if (!maturity.includes(ultima_avaliacao.maturidade_quadrante)) return false;
         } else {
-            // Se o filtro de maturidade está ativo, mas o membro não foi avaliado, ele não deve ser incluído.
             return false;
         }
       }
@@ -74,6 +75,8 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
         const range = AGE_RANGES[age];
         if (idade < range.min || idade > range.max) return false;
       }
+      
+      if (cargo.length > 0 && !cargo.includes(id_cargo)) return false;
 
       if (ultima_avaliacao) {
         const categoryName = category !== 'all'
@@ -182,6 +185,8 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
             .flatMap(s => s.competencias.map(comp => ({ id: comp.id_competencia, name: comp.nome_competencia })))
         )
       : [];
+      
+    const cargos = MOCK_CARGOS.filter(c => c.ativo).map(c => ({ id: c.id_cargo, name: c.nome_cargo }));
 
     return {
       categories: allCategories,
@@ -190,6 +195,7 @@ export function useTeamFilters(teamData: LideradoDashboard[], searchName: string
       ageRanges: Object.keys(AGE_RANGES),
       genders: ['FEMININO', 'MASCULINO', 'NAO_BINARIO', 'NAO_INFORMADO'] as SexoTipo[],
       maturities: ['M1', 'M2', 'M3', 'M4'] as NivelMaturidade[],
+      cargos,
     };
   }, [activeFilters.category, activeFilters.specialization]);
 
