@@ -67,9 +67,9 @@ export default function SetNewPassword() {
 
       // 2. Atualizar o status first_login na tabela public.usuario
       // Usamos o retorno para garantir que o perfil foi atualizado no contexto
-      const { success: updateStatusSuccess, error: updateStatusError } = await updateFirstLoginStatus(profile.id_usuario);
+      const { success: updateStatusSuccess, updatedProfile, error: updateStatusError } = await updateFirstLoginStatus(profile.id_usuario);
 
-      if (!updateStatusSuccess) {
+      if (!updateStatusSuccess || !updatedProfile) {
         throw new Error(updateStatusError || 'Falha ao atualizar status de primeiro login.');
       }
 
@@ -80,7 +80,8 @@ export default function SetNewPassword() {
       });
       
       // Redireciona após o sucesso garantido
-      navigate('/dashboard-liderado', { replace: true });
+      const dashboard = updatedProfile.role === 'LIDER' ? '/dashboard-lider' : '/dashboard-liderado';
+      navigate(dashboard, { replace: true });
 
     } catch (error: any) {
       console.error('Erro ao definir nova senha:', error);
