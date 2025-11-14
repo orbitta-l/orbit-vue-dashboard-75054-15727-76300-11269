@@ -250,7 +250,8 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
           </div>
         </div>
         
-        <div className="md:col-span-3 space-y-4 flex flex-col">
+        {/* Painel Lateral com Altura Fixa e Rolagem Interna */}
+        <div className="md:col-span-3 space-y-4 flex flex-col h-[480px]"> {/* Altura fixa igual ao gráfico */}
           <div className="flex flex-col flex-1 min-h-0">
             <div className="relative mb-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -272,6 +273,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                 </Button>
               )}
             </div>
+            {/* A rolagem é aplicada aqui, e o flex-1 garante que ele ocupe o espaço restante */}
             <div className="flex-1 overflow-y-auto space-y-1 pr-2">
               {filteredMembers.map(member => (
                 <div 
