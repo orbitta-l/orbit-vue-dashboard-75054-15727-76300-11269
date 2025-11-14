@@ -67,7 +67,7 @@ export default function Landing() {
 
   const employeeFeatures = [
     {
-      icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+      icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 4 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
       title: 'Relatórios de Desempenho',
       description: 'Acesse relatórios claros e objetivos sobre suas competências e evolução ao longo do tempo.'
     },
@@ -127,7 +127,10 @@ const Navbar = () => {
         <div className="hero-content">
           <h1>Conectando talentos em uma só órbita</h1>
           <p>Tenha total transparência do seu nível atual e de como você pode chegar a um estágio superior.</p>
-          <button className="hero-button" onClick={() => navigate('/login')}>
+          <button className="hero-button" onClick={() => {
+            console.log('Landing: Hero button clicked, navigating to /login');
+            navigate('/login');
+          }}>
             <span>COMEÇAR AGORA</span>
           </button>
         </div>
@@ -169,7 +172,7 @@ const Navbar = () => {
             <div className="obstacle-card">
               <div className="obstacle-stat">64%</div>
               <div className="obstacle-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
               </div>
               <h3>A Lacuna da Gestão</h3>
               <p>Apenas 64% das empresas brasileiras possuem um processo formal de avaliação de desempenho. Sem ele, líderes e equipes ficam sem uma direção clara para o crescimento, gerando um ciclo de ineficiência e incerteza.</p>

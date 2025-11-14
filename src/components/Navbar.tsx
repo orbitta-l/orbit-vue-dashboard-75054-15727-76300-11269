@@ -80,7 +80,10 @@ const Navbar = () => {
         </div>
 
         {/* Botão */}
-        <button className="navbar-button" onClick={() => navigate("/login")}>
+        <button className="navbar-button" onClick={() => {
+          console.log('Navbar: Acessar Plataforma button clicked, navigating to /login');
+          navigate("/login");
+        }}>
           Acessar Plataforma
         </button>
       </nav>
