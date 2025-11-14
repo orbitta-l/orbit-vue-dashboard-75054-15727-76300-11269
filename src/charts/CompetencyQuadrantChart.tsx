@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, ReferenceArea, Cell } from 'recharts';
 import { NivelMaturidade } from "@/types/mer";
 import { Button } from "@/components/ui/button"; 
+import { cn } from "@/lib/utils";
 
 interface MemberData {
   id_liderado: string;
@@ -124,7 +125,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
     <Card className="p-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
         <div className="md:col-span-7">
-          <h3 className="text-lg font-semibold text-foreground">Matriz de Competências (Maturidade)</h3>
+          <h3 className="text-lg font-semibold text-foreground">Matriz de Maturidade</h3>
           <p className="text-sm text-muted-foreground mb-4">Posicionamento do time com base na média de desempenho técnico vs. comportamental.</p>
           
           <div className="relative w-full h-[480px]">
@@ -143,8 +144,14 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   dataKey="eixo_y_comportamental" 
                   name="Comportamental" 
                   domain={[1, 4]} 
-                  ticks={[1, 2, 3, 4]} // Removendo 2.5
-                  label={{ value: "Média Comportamental (SOFT)", position: 'insideBottom', offset: -15, fill: 'hsl(var(--foreground))' }}
+                  ticks={[1, 2, 3, 4]}
+                  label={{ 
+                    value: "Média Comportamental (SOFT)", 
+                    position: 'insideBottom', 
+                    offset: -15, 
+                    fill: 'hsl(var(--foreground))',
+                    style: { fontSize: '14px', fontWeight: 500 } // Tipografia mais clara
+                  }}
                   stroke="hsl(var(--foreground))"
                 />
                 <YAxis 
@@ -152,8 +159,15 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   dataKey="eixo_x_tecnico_geral" 
                   name="Técnico" 
                   domain={[1, 4]} 
-                  ticks={[1, 2, 3, 4]} // Removendo 2.5
-                  label={{ value: "Média Técnica (HARD)", angle: -90, position: 'insideLeft', offset: -15, fill: 'hsl(var(--foreground))' }}
+                  ticks={[1, 2, 3, 4]}
+                  label={{ 
+                    value: "Média Técnica (HARD)", 
+                    angle: -90, 
+                    position: 'insideLeft', 
+                    offset: -15, 
+                    fill: 'hsl(var(--foreground))',
+                    style: { fontSize: '14px', fontWeight: 500 } // Tipografia mais clara
+                  }}
                   stroke="hsl(var(--foreground))"
                 />
                 
@@ -188,18 +202,35 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                 )}
               </ScatterChart>
             </ResponsiveContainer>
-            {/* Quadrant Badges com novos rótulos e cores - Ajustando o posicionamento */}
-            <div className="absolute top-10 left-10 text-center">
-              <div className={`px-3 py-1 rounded-md font-bold text-sm ${getTextColor('M3')}`} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} ({quadrantCounts.M3 || 0})</div>
+            
+            {/* Quadrant Badges com contagem sem parênteses e reposicionamento */}
+            
+            {/* M3: Avançado (Canto Superior Esquerdo) */}
+            <div className="absolute top-0 left-0 translate-x-[-10px] translate-y-[-10px] text-center">
+              <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>
+                {QUADRANT_LABELS.M3} <span className="text-accent ml-1">{quadrantCounts.M3 || 0}</span>
+              </div>
             </div>
-            <div className="absolute top-10 right-10 text-center">
-              <div className={`px-3 py-1 rounded-md font-bold text-sm ${getTextColor('M4')}`} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} ({quadrantCounts.M4 || 0})</div>
+            
+            {/* M4: Expect (Canto Superior Direito) */}
+            <div className="absolute top-0 right-0 translate-x-[10px] translate-y-[-10px] text-center">
+              <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>
+                {QUADRANT_LABELS.M4} <span className="text-accent ml-1">{quadrantCounts.M4 || 0}</span>
+              </div>
             </div>
-            <div className="absolute bottom-10 left-10 text-center">
-              <div className={`px-3 py-1 rounded-md font-bold text-sm ${getTextColor('M1')}`} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} ({quadrantCounts.M1 || 0})</div>
+            
+            {/* M1: Básico (Canto Inferior Esquerdo) */}
+            <div className="absolute bottom-0 left-0 translate-x-[-10px] translate-y-[10px] text-center">
+              <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>
+                {QUADRANT_LABELS.M1} <span className="text-accent ml-1">{quadrantCounts.M1 || 0}</span>
+              </div>
             </div>
-            <div className="absolute bottom-10 right-10 text-center">
-              <div className={`px-3 py-1 rounded-md font-bold text-sm ${getTextColor('M2')}`} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} ({quadrantCounts.M2 || 0})</div>
+            
+            {/* M2: Intermediário (Canto Inferior Direito) */}
+            <div className="absolute bottom-0 right-0 translate-x-[10px] translate-y-[10px] text-center">
+              <div className={cn("px-3 py-1 rounded-md font-bold text-sm", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>
+                {QUADRANT_LABELS.M2} <span className="text-accent ml-1">{quadrantCounts.M2 || 0}</span>
+              </div>
             </div>
           </div>
         </div>
