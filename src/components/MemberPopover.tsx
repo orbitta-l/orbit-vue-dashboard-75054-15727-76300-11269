@@ -37,11 +37,12 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
 
   return (
     <div
-      className="absolute z-20 p-4 bg-card rounded-lg shadow-2xl border w-60 flex flex-col animate-in fade-in-50 zoom-in-95" // Alterado w-64 para w-60
+      className="absolute z-20 p-4 bg-card rounded-lg shadow-2xl border w-60 flex flex-col animate-in fade-in-50 zoom-in-95"
       style={{
         left: position.x,
         top: position.y,
-        transform: 'translate(-50%, -100%) translateY(-15px)', // Posiciona acima do ponto
+        // Centraliza horizontalmente e posiciona acima do ponto
+        transform: 'translate(-50%, -100%) translateY(-15px)', 
       }}
     >
       
@@ -95,14 +96,14 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
 
       {/* Bottom Section: Actions */}
       <div className="flex justify-between gap-2 pt-3 border-t border-border/50">
-        {/* Botão Fechar (Outline, Discreto) - Ajustado para hover mais sutil */}
+        {/* Botão Fechar (Outline, Menor) */}
         <Button 
           onClick={onClose} 
           variant="outline" 
-          size="sm" 
+          size="xs" // Usando size="xs" para torná-lo menor
           className={cn(
-            "flex-1 text-xs h-8",
-            "hover:bg-muted/50 hover:border-primary/50" // Hover mais sutil
+            "flex-1 text-xs h-7", // Altura reduzida para 7
+            "hover:bg-muted/50 hover:border-primary/50"
           )}
         >
           Fechar
