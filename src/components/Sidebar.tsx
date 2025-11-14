@@ -6,6 +6,7 @@ import logo from "@/assets/logo.png";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { getCargoNameById } from "@/utils/cargoUtils";
+import { Badge } from "./ui/badge"; // Importando Badge
 
 const navItems = [
   { to: "/dashboard-lider", icon: Home, label: "Dashboard" },
@@ -33,7 +34,6 @@ export const Sidebar = () => {
   
   const userName = profile?.nome || "Usuário";
   const userEmail = profile?.email || 'email@exemplo.com';
-  const userRole = profile?.role === 'LIDER' ? 'Líder' : 'Liderado';
   const userCargo = profile?.id_cargo ? getCargoNameById(profile.id_cargo) : 'N/A';
 
   return (
@@ -43,31 +43,32 @@ export const Sidebar = () => {
         <img src={logo} alt="ORBITTA Logo" className="h-8" />
       </div>
 
-      {/* Profile Block */}
-      <div className="p-4 border-b border-sidebar-border/50">
-        <div className="flex flex-col items-center text-center mb-3">
-            <Avatar className="w-16 h-16 mb-2">
-                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xl">
-                    {getInitials(userName)}
-                </AvatarFallback>
-            </Avatar>
-            <p className="text-lg font-semibold text-sidebar-foreground truncate max-w-full">{userName}</p>
+      {/* Profile Block - Centralizado e Reduzido */}
+      <div className="p-4 border-b border-sidebar-border/50 flex flex-col items-center text-center">
+        
+        {/* Avatar Reduzido */}
+        <Avatar className="w-12 h-12 mb-2">
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                {getInitials(userName)}
+            </AvatarFallback>
+        </Avatar>
+        
+        {/* Nome Centralizado */}
+        <p className="text-base font-semibold text-sidebar-foreground truncate max-w-full mb-1">{userName}</p>
+        
+        {/* E-mail Opaco */}
+        <div className="flex items-center gap-1 text-sm text-sidebar-foreground/60 mb-2">
+            <Mail className="w-3 h-3" />
+            <span className="truncate">{userEmail}</span>
         </div>
         
-        <div className="space-y-1 text-sm">
-            <div className="flex items-center gap-2 text-sidebar-foreground/80">
-                <UserIcon className="w-4 h-4 text-sidebar-foreground/60" />
-                <span className="truncate">{userRole}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sidebar-foreground/80">
-                <Briefcase className="w-4 h-4 text-sidebar-foreground/60" />
-                <span className="truncate">{userCargo}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sidebar-foreground/80">
-                <Mail className="w-4 h-4 text-sidebar-foreground/60" />
-                <span className="truncate">{userEmail}</span>
-            </div>
-        </div>
+        {/* Cargo em Badge Sutil */}
+        <Badge 
+            variant="secondary" 
+            className="text-xs font-medium bg-sidebar-accent/50 text-sidebar-foreground/80 hover:bg-sidebar-accent/70"
+        >
+            {userCargo}
+        </Badge>
       </div>
 
       {/* Main Navigation Items */}
