@@ -22,40 +22,28 @@ interface CompetencyQuadrantChartProps {
   empty?: boolean;
 }
 
-// Mapeamento de cores e rótulos (Mantido)
-const QUADRANT_COLORS: Record<NivelMaturidade | 'N/A', string> = {
+// Mapeamento de cores e rótulos (Removido N/A)
+const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
   M1: "hsl(var(--destructive))",      // Básico (Vermelho - Crítico)
   M2: "hsl(var(--accent))",           // Intermediário (Laranja - Comportamental Forte)
   M3: "hsl(var(--primary-dark))",     // Avançado (Azul Escuro - Técnico Forte)
   M4: "hsl(var(--primary))",          // Expect (Azul Primário - Ideal)
-  'N/A': "hsl(var(--muted-foreground) / 0.5)", // Não Avaliado
 };
 
-const QUADRANT_LABELS: Record<NivelMaturidade | 'N/A', string> = {
+const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
   M1: "Básico",
   M2: "Intermediário",
   M3: "Avançado",
   M4: "Expect",
-  'N/A': "Não Avaliado",
 };
 
-// Helper para determinar a cor do texto do badge (preto ou branco)
-const getTextColor = (maturity: NivelMaturidade | 'N/A') => {
-    // M1 (Vermelho) e M2 (Laranja)
-    if (maturity === 'M1' || maturity === 'M2') {
-        return 'text-white'; // Usando branco para contraste no vermelho e laranja
-    }
-    // M3 (Azul Escuro) e M4 (Azul Primário)
+// Helper para determinar a cor do texto do badge (branco para todos os fundos escuros)
+const getTextColor = (maturity: NivelMaturidade) => {
     return 'text-white';
 };
 
-// Helper para determinar a cor do texto da CONTAGEM
-const getCountTextColor = (maturity: NivelMaturidade | 'N/A') => {
-    // M2 (Laranja) agora usa texto branco para contraste
-    if (maturity === 'M2') {
-        return 'text-white'; 
-    }
-    // Outros quadrantes (M1, M3, M4) têm fundos escuros, então usamos branco
+// Helper para determinar a cor do texto da CONTAGEM (branco para todos os fundos escuros)
+const getCountTextColor = (maturity: NivelMaturidade) => {
     return 'text-white';
 };
 
@@ -81,18 +69,24 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   const debouncedSearchTerm = useDebounce(searchTerm, 200);
   const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  // 1. Filtra membros não avaliados
+  const evaluatedMembers = useMemo(() => 
+    teamMembers.filter(member => member.nivel_maturidade !== 'N/A'), 
+    [teamMembers]
+  );
+
   const filteredMembers = useMemo(() => 
-    teamMembers.filter(member =>
+    evaluatedMembers.filter(member =>
       member.nome_liderado.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
       member.cargo.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-    ), [teamMembers, debouncedSearchTerm]);
+    ), [evaluatedMembers, debouncedSearchTerm]);
 
   const quadrantCounts = useMemo(() => {
     return filteredMembers.reduce((acc, member) => {
       const key = member.nivel_maturidade;
       acc[key] = (acc[key] || 0) + 1;
       return acc;
-    }, {} as Record<NivelMaturidade | 'N/A', number>);
+    }, {} as Record<NivelMaturidade, number>);
   }, [filteredMembers]);
 
   useEffect(() => {
@@ -111,8 +105,8 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      const maturidadeLabel = QUADRANT_LABELS[data.nivel_maturidade as NivelMaturidade | 'N/A'] || 'N/A';
-      const maturidadeColor = QUADRANT_COLORS[data.nivel_maturidade as NivelMaturidade | 'N/A'] || 'hsl(var(--foreground))';
+      const maturidadeLabel = QUADRANT_LABELS[data.nivel_maturidade as NivelMaturidade] || 'N/A';
+      const maturidadeColor = QUADRANT_COLORS[data.nivel_maturidade as NivelMaturidade] || 'hsl(var(--foreground))';
       
       return (
         <div className="p-3 bg-card border rounded-lg shadow-lg text-sm">
@@ -130,6 +124,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
 
   // Definindo o ponto central para 2.0
   const CENTER_POINT = 2.0;
+  const hasEvaluatedMembers = evaluatedMembers.length > 0;
 
   return (
     <Card className="p-6 mb-8">
@@ -139,108 +134,95 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
           <p className="text-sm text-muted-foreground mb-4">Posicionamento do time com base na média de desempenho técnico vs. comportamental.</p>
           
           <div className="relative w-full h-[480px]">
-            {empty && (
+            {empty || !hasEvaluatedMembers ? (
               <div className="absolute inset-0 flex items-center justify-center bg-muted/30 rounded-lg z-10">
                 <p className="text-muted-foreground text-center">
                   Sem avaliações ainda.<br/>Faça a primeira avaliação para popular este gráfico.
                 </p>
               </div>
-            )}
-            <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 20, right: 20, bottom: 40, left: 20 }}> {/* Margens ajustadas */}
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  type="number" 
-                  dataKey="eixo_y_comportamental" 
-                  name="Comportamental" 
-                  domain={[1, 4]} 
-                  ticks={[1, 2, 3, 4]}
-                  label={{ 
-                    value: "Média Comportamental (SOFT)", 
-                    position: 'bottom', // Posição ajustada para 'bottom'
-                    offset: 30, // Offset aumentado para afastar do eixo
-                    fill: 'hsl(var(--foreground))',
-                    style: { fontSize: '16px', fontWeight: 600 }
-                  }}
-                  stroke="hsl(var(--foreground))"
-                />
-                <YAxis 
-                  type="number" 
-                  dataKey="eixo_x_tecnico_geral" 
-                  name="Técnico" 
-                  domain={[1, 4]} 
-                  ticks={[1, 2, 3, 4]}
-                  label={{ 
-                    value: "Média Técnica (HARD)", 
-                    angle: -90, 
-                    position: 'left', // Posição ajustada para 'left'
-                    offset: -10, // Offset ajustado para afastar do eixo
-                    fill: 'hsl(var(--foreground))',
-                    style: { fontSize: '16px', fontWeight: 600 }
-                  }}
-                  stroke="hsl(var(--foreground))"
-                />
-                
-                {/* Linhas centrais destacadas no 2.0 */}
-                <ReferenceLine x={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
-                <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <ScatterChart margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    type="number" 
+                    dataKey="eixo_y_comportamental" 
+                    name="Comportamental" 
+                    domain={[1, 4]} 
+                    ticks={[1, 2, 3, 4]}
+                    label={{ 
+                      value: "Média Comportamental (SOFT)", 
+                      position: 'bottom',
+                      offset: 30,
+                      fill: 'hsl(var(--foreground))',
+                      style: { fontSize: '16px', fontWeight: 600 }
+                    }}
+                    stroke="hsl(var(--foreground))"
+                  />
+                  <YAxis 
+                    type="number" 
+                    dataKey="eixo_x_tecnico_geral" 
+                    name="Técnico" 
+                    domain={[1, 4]} 
+                    ticks={[1, 2, 3, 4]}
+                    label={{ 
+                      value: "Média Técnica (HARD)", 
+                      angle: -90, 
+                      position: 'left',
+                      offset: -10,
+                      fill: 'hsl(var(--foreground))',
+                      style: { fontSize: '16px', fontWeight: 600 }
+                    }}
+                    stroke="hsl(var(--foreground))"
+                  />
+                  
+                  {/* Linhas centrais destacadas no 2.0 */}
+                  <ReferenceLine x={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
+                  <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
 
-                {/* Quadrantes preenchendo de 1 a 4 */}
-                
-                {/* M1: Básico (Inferior Esquerdo) -> X: 1-2, Y: 1-2 */}
-                <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1} fillOpacity={0.2} />
-                
-                {/* M2: Intermediário (Inferior Direito) -> X: 2-4, Y: 1-2 */}
-                <ReferenceArea x1={CENTER_POINT} x2={4} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M2} fillOpacity={0.2} />
-                
-                {/* M3: Avançado (Superior Direito) -> X: 2-4, Y: 2-4 */}
-                <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.2} />
-                
-                {/* M4: Expect (Superior Esquerdo) -> X: 1-2, Y: 2-4 */}
-                <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
+                  {/* Quadrantes sem preenchimento de cor (ReferenceArea removida) */}
 
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
-                
-                {!empty && (
+                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
+                  
                   <Scatter name="Liderados" data={filteredMembers} onClick={handlePointClick}>
                     {filteredMembers.map((entry) => (
                       <Cell 
                         key={`cell-${entry.id_liderado}`} 
-                        fill={QUADRANT_COLORS[entry.nivel_maturidade]}
+                        fill={QUADRANT_COLORS[entry.nivel_maturidade as NivelMaturidade]}
                         stroke="#fff"
                         strokeWidth={selectedMemberId === entry.id_liderado ? 3 : 1}
                         className="transition-all duration-300"
                       />
                     ))}
                   </Scatter>
-                )}
-              </ScatterChart>
-            </ResponsiveContainer>
+                </ScatterChart>
+              </ResponsiveContainer>
+            )}
             
-            {/* Quadrant Badges com contagem sem parênteses e reposicionamento */}
+            {/* Quadrant Badges com contagem */}
             
-            {/* M4: Expect (Superior Esquerdo) - Novo Posicionamento */}
+            {/* M4: Expect (Superior Esquerdo) */}
             <div className="absolute top-0 left-0 translate-x-[-10px] translate-y-[-10px] text-center">
               <div className={cn("px-3 py-1 rounded-md font-semibold text-sm", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>
                 {QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span>
               </div>
             </div>
             
-            {/* M3: Avançado (Superior Direito) - Novo Posicionamento */}
+            {/* M3: Avançado (Superior Direito) */}
             <div className="absolute top-0 right-0 translate-x-[10px] translate-y-[-10px] text-center">
               <div className={cn("px-3 py-1 rounded-md font-semibold text-sm", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>
                 {QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span>
               </div>
             </div>
             
-            {/* M1: Básico (Inferior Esquerdo) - Mantido */}
+            {/* M1: Básico (Inferior Esquerdo) */}
             <div className="absolute bottom-0 left-0 translate-x-[-10px] translate-y-[10px] text-center">
               <div className={cn("px-3 py-1 rounded-md font-semibold text-sm", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>
                 {QUADRANT_LABELS.M1} <span className={cn("ml-1 font-bold", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span>
               </div>
             </div>
             
-            {/* M2: Intermediário (Inferior Direito) - Mantido */}
+            {/* M2: Intermediário (Inferior Direito) */}
             <div className="absolute bottom-0 right-0 translate-x-[10px] translate-y-[10px] text-center">
               <div className={cn("px-3 py-1 rounded-md font-semibold text-sm", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>
                 {QUADRANT_LABELS.M2} <span className={cn("ml-1 font-bold", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span>
@@ -280,7 +262,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                   onClick={() => setSelectedMemberId(member.id_liderado)}
                 >
                   <Avatar className="w-8 h-8">
-                    <AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade] }}>
+                    <AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade] }}>
                       {getInitials(member.nome_liderado)}
                     </AvatarFallback>
                   </Avatar>
