@@ -1,10 +1,11 @@
-import { Home, Users, ClipboardCheck, LogOut, Settings, Mail, User } from "lucide-react";
+import { Home, Users, ClipboardCheck, LogOut, Settings, Mail, Briefcase, User as UserIcon } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback } from "./ui/avatar";
+import { getCargoNameById } from "@/utils/cargoUtils";
 
 const navItems = [
   { to: "/dashboard-lider", icon: Home, label: "Dashboard" },
@@ -33,6 +34,7 @@ export const Sidebar = () => {
   const userName = profile?.nome || "Usuário";
   const userEmail = profile?.email || 'email@exemplo.com';
   const userRole = profile?.role === 'LIDER' ? 'Líder' : 'Liderado';
+  const userCargo = profile?.id_cargo ? getCargoNameById(profile.id_cargo) : 'N/A';
 
   return (
     <aside className="fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 z-20 w-56">
@@ -41,7 +43,34 @@ export const Sidebar = () => {
         <img src={logo} alt="ORBITTA Logo" className="h-8" />
       </div>
 
-      {/* Main Navigation Items (Aligned to Top) */}
+      {/* Profile Block (New Top Position) */}
+      <div className="p-4 border-b border-sidebar-border/50">
+        <div className="flex flex-col items-center text-center mb-3">
+            <Avatar className="w-16 h-16 mb-2">
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xl">
+                    {getInitials(userName)}
+                </AvatarFallback>
+            </Avatar>
+            <p className="text-lg font-semibold text-sidebar-foreground truncate max-w-full">{userName}</p>
+        </div>
+        
+        <div className="space-y-1 text-sm">
+            <div className="flex items-center gap-2 text-sidebar-foreground/80">
+                <UserIcon className="w-4 h-4 text-sidebar-foreground/60" />
+                <span className="truncate">{userRole}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sidebar-foreground/80">
+                <Briefcase className="w-4 h-4 text-sidebar-foreground/60" />
+                <span className="truncate">{userCargo}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sidebar-foreground/80">
+                <Mail className="w-4 h-4 text-sidebar-foreground/60" />
+                <span className="truncate">{userEmail}</span>
+            </div>
+        </div>
+      </div>
+
+      {/* Main Navigation Items */}
       <div className="flex-1 p-3 overflow-y-auto">
         <nav className="space-y-1">
           {navItems.map((item) => (
@@ -70,7 +99,7 @@ export const Sidebar = () => {
         </nav>
       </div>
 
-      {/* Bottom Section (Settings and Logout) */}
+      {/* Bottom Section (Settings and Logout) - Profile Footer REMOVED */}
       <div className="p-3 border-t border-sidebar-border space-y-1">
         {/* Settings */}
         <NavLink
@@ -96,21 +125,6 @@ export const Sidebar = () => {
           <LogOut className="w-5 h-5 text-accent" />
           <span>Sair</span>
         </button>
-        
-        {/* Profile Footer */}
-        <div className="pt-3 mt-3 border-t border-sidebar-border/50">
-            <div className="flex items-center gap-3">
-                <Avatar className="w-10 h-10">
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                        {getInitials(userName)}
-                    </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                    <p className="text-sm font-medium text-sidebar-foreground truncate">{userName}</p>
-                    <p className="text-xs text-sidebar-foreground/60 truncate">{userRole}</p>
-                </div>
-            </div>
-        </div>
       </div>
     </aside>
   );
