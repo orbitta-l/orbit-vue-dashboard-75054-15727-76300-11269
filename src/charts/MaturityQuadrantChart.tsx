@@ -153,7 +153,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 40, right: 20, bottom: 40, left: 20 }}>
                   <defs>
-                    {/* Ajustado o filtro para um brilho mais sutil e branco */}
+                    {/* DEFINIÇÃO DO FILTRO SVG RESTAURADA */}
                     <filter id="white-glow" x="-50%" y="-50%" width="200%" height="200%">
                       <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="white" floodOpacity="1" />
                     </filter>
