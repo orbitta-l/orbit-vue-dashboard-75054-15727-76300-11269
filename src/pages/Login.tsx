@@ -64,16 +64,8 @@ function RightPanel() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redireciona se o perfil for carregado (o que implica autenticação)
-  useEffect(() => {
-    if (profile) {
-      const dashboard =
-        profile.role === "LIDER"
-          ? "/dashboard-lider"
-          : "/dashboard-liderado";
-      navigate(dashboard, { replace: true });
-    }
-  }, [profile, navigate]);
+  // O redirecionamento automático para usuários logados foi removido daqui.
+  // Agora, se um usuário logado acessar /login, ele verá o formulário.
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -87,7 +79,17 @@ function RightPanel() {
           title: "Login realizado com sucesso!",
           description: "Redirecionando para seu dashboard...",
         });
-        // O useEffect cuidará do redirecionamento quando o perfil for carregado
+        // Após o login bem-sucedido, redireciona para o dashboard apropriado
+        if (profile) { // Verifica o perfil após o login
+          const dashboard =
+            profile.role === "LIDER"
+              ? "/dashboard-lider"
+              : "/dashboard-liderado";
+          navigate(dashboard, { replace: true });
+        } else {
+          // Fallback caso o perfil não esteja imediatamente disponível (improvável)
+          navigate("/dashboard-lider", { replace: true }); 
+        }
       } else {
         toast({
           variant: "destructive",
