@@ -232,19 +232,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchLideradoDashboardData(dbProfile.id);
       } 
       // 2. Usuário Logado em Rota Pública: Redireciona para o dashboard
-      // ADICIONADO: currentPath !== targetDashboard para evitar loop se o useEffect re-executar após o navigate
-      else if (currentPath !== targetDashboard) {
-        if (currentPath === '/login' || currentPath === '/' || currentPath === targetFirstLogin) {
-            navigate(targetDashboard, { replace: true });
-        }
+      else if (currentPath === '/login' || currentPath === '/' || currentPath === '/set-new-password') {
+        navigate(targetDashboard, { replace: true });
       }
       
       // 3. Busca de Dados (após redirecionamentos iniciais)
       if (appProfile.role === 'LIDER') {
         await fetchTeamData(dbProfile.id);
         setLideradoDashboardData(null);
-      } else if (appProfile.role === 'LIDERADO' && !appProfile.first_login) {
-        await fetchLideradoDashboardData(dbProfile.id);
+      } else if (appProfile.role === 'LIDERADO') {
+        // Se já buscou no passo 1, não precisa buscar de novo, a menos que não seja o primeiro login
+        if (!appProfile.first_login) {
+            await fetchLideradoDashboardData(dbProfile.id);
+        }
       }
     };
 
