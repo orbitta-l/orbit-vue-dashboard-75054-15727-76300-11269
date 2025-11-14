@@ -122,14 +122,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setLideradoDashboardData(null);
     }
-  }, []);
+  }, []); // Removida a dependência 'profile'
 
-  const fetchTeamData = useCallback(async (liderId?: number) => {
-    const id = liderId || (profile ? Number(profile.id_usuario) : undefined);
-    if (!id) return;
+  // Refatorado: Agora aceita o ID do líder explicitamente.
+  const fetchTeamData = useCallback(async (liderId: number) => {
+    if (!liderId) return;
 
-    // 1. Buscar dados do dashboard do líder (usando RPC)
-    const { data: dashboardData, error: dashboardError } = await supabase.rpc('get_leader_dashboard_data', { p_leader_id: id });
+    // 1. Buscar dados do dashboard do líder (inclui liderados, avaliações, pontuações e memberXYData)
+    const { data: dashboardData, error: dashboardError } = await supabase.rpc('get_leader_dashboard_data', { p_leader_id: liderId });
 
     if (dashboardError) {
         console.error("Erro ao buscar dados do dashboard do líder:", dashboardError);
@@ -177,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Mapear Member XY Data
     setMemberXYData((rawData.memberXYData || []) as MemberXYData[]);
 
-  }, [profile]);
+  }, []); // Removida a dependência 'profile'
 
   const updateFirstLoginStatus = useCallback(async (userId: string) => {
     try {
@@ -206,7 +206,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (profileError || !profileData) {
         console.error("Erro ao buscar perfil via RPC ou perfil não encontrado:", profileError);
         setProfile(null);
-        // Se o perfil não for encontrado, forçamos o logout para limpar a sessão
         if (!profileData) await supabase.auth.signOut();
         return;
       }
@@ -238,6 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // 3. Busca de Dados (após redirecionamentos iniciais)
       if (appProfile.role === 'LIDER') {
+        // Passa o ID do líder explicitamente para fetchTeamData
         await fetchTeamData(dbProfile.id);
         setLideradoDashboardData(null);
       } else if (appProfile.role === 'LIDERADO') {
@@ -302,8 +302,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       if (error) throw error;
       const maturidade = data[0]?.maturidade as NivelMaturidade | 'N/A';
-      if (profile?.role === 'LIDER') await fetchTeamData(); 
+      
+      // Chamada de atualização de dados: usa o ID do perfil atual
+      if (profile?.role === 'LIDER' && profile.id_usuario) await fetchTeamData(Number(profile.id_usuario)); 
       if (profile?.role === 'LIDERADO' && profile.id_usuario === input.lideradoId) await fetchLideradoDashboardData(Number(profile.id_usuario));
+      
       return { success: true, maturidade };
     } catch (e: any) {
       return { success: false, error: e.message || "Erro desconhecido." };
@@ -355,7 +358,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [profile, liderados, avaliacoes, pontuacoes, memberXYData]);
 
   const value = {
-    session, profile, isAuthenticated: !!session, login, logout, liderados, avaliacoes, pontuacoes, teamData, lideradoDashboardData, isPrimeiroAcesso, loading, fetchTeamData: () => fetchTeamData(), fetchLideradoDashboardData, saveEvaluation, updateFirstLoginStatus,
+    session, profile, isAuthenticated: !!session, login, logout, liderados, avaliacoes, pontuacoes, teamData, lideradoDashboardData, isPrimeiroAcesso, loading, fetchTeamData: () => profile?.id_usuario ? fetchTeamData(Number(profile.id_usuario)) : Promise.resolve(), fetchLideradoDashboardData, saveEvaluation, updateFirstLoginStatus,
   };
 
   return (
