@@ -50,7 +50,7 @@ interface AuthContextType {
   fetchLideradoDashboardData: (lideradoId: number) => Promise<void>;
   loading: boolean;
   saveEvaluation: (input: SaveEvaluationInput) => Promise<{ success: boolean; maturidade?: NivelMaturidade | 'N/A'; error?: string }>;
-  updateFirstLoginStatus: (userId: string) => Promise<{ success: boolean; error?: string }>; // Nova função
+  updateFirstLoginStatus: (userId: string) => Promise<{ success: boolean; error?: string; updatedProfile?: Usuario }>; // Nova função
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -189,13 +189,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       
       // Atualiza o perfil no contexto para refletir a mudança
-      setProfile(prev => prev ? { ...prev, first_login: false } : null);
-      return { success: true };
+      let updatedProfile: Usuario | null = null;
+      setProfile(prev => {
+        if (prev) {
+          updatedProfile = { ...prev, first_login: false };
+          return updatedProfile;
+        }
+        return null;
+      });
+      
+      // Se o perfil foi atualizado e é um liderado, busca os dados do dashboard
+      if (updatedProfile && updatedProfile.role === 'LIDERADO') {
+        await fetchLideradoDashboardData(Number(updatedProfile.id_usuario));
+      }
+
+      return { success: true, updatedProfile };
     } catch (e: any) {
       console.error("Erro ao atualizar status de primeiro login:", e);
       return { success: false, error: e.message };
     }
-  }, []);
+  }, [fetchLideradoDashboardData]);
 
   useEffect(() => {
     const fetchProfileAndData = async (user: User) => {
