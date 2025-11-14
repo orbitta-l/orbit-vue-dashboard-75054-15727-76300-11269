@@ -111,7 +111,7 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
         
         {/* Técnico (Hard Skills) */}
         <div className="flex justify-between items-center text-sm">
-          <span className="font-semibold text-foreground opacity-80 flex items-center gap-1.5">
+          <span className="font-medium text-foreground opacity-80 flex items-center gap-1.5">
             <Code className="w-3.5 h-3.5 text-muted-foreground" />
             Técnico
           </span>
@@ -120,7 +120,7 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
 
         {/* Comportamental (Soft Skills) */}
         <div className="flex justify-between items-center text-sm">
-          <span className="font-semibold text-foreground opacity-80 flex items-center gap-1.5">
+          <span className="font-medium text-foreground opacity-80 flex items-center gap-1.5">
             <HeartHandshake className="w-3.5 h-3.5 text-muted-foreground" />
             Comportamental
           </span>
