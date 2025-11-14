@@ -51,9 +51,9 @@ const getTextColor = (maturity: NivelMaturidade | 'N/A') => {
 
 // Helper para determinar a cor do texto da CONTAGEM
 const getCountTextColor = (maturity: NivelMaturidade | 'N/A') => {
+    // M2 (Laranja) agora usa texto branco para contraste
     if (maturity === 'M2') {
-        // Laranja (M2) precisa de texto escuro para contraste
-        return 'text-primary-dark'; 
+        return 'text-white'; 
     }
     // Outros quadrantes (M1, M3, M4) têm fundos escuros, então usamos branco
     return 'text-white';
@@ -75,7 +75,7 @@ function useDebounce(value: string, delay: number) {
   return debouncedValue;
 }
 
-export default function CompetencyQuadrantChart({ teamMembers, empty = false }: CompetencyQuadrantChartProps) {
+export default function MaturityQuadrantChart({ teamMembers, empty = false }: CompetencyQuadrantChartProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 200);
@@ -147,7 +147,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
               </div>
             )}
             <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 50, right: 50, bottom: 50, left: 50 }}>
+              <ScatterChart margin={{ top: 20, right: 20, bottom: 40, left: 20 }}> {/* Margens ajustadas */}
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   type="number" 
@@ -157,10 +157,10 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   ticks={[1, 2, 3, 4]}
                   label={{ 
                     value: "Média Comportamental (SOFT)", 
-                    position: 'insideBottom', 
-                    offset: -5, // Ajustado para melhor espaçamento
+                    position: 'bottom', // Posição ajustada para 'bottom'
+                    offset: 30, // Offset aumentado para afastar do eixo
                     fill: 'hsl(var(--foreground))',
-                    style: { fontSize: '16px', fontWeight: 600 } // Aumentado o tamanho e peso
+                    style: { fontSize: '16px', fontWeight: 600 }
                   }}
                   stroke="hsl(var(--foreground))"
                 />
@@ -173,10 +173,10 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   label={{ 
                     value: "Média Técnica (HARD)", 
                     angle: -90, 
-                    position: 'insideLeft', 
-                    offset: -5, // Ajustado para melhor espaçamento
+                    position: 'left', // Posição ajustada para 'left'
+                    offset: -10, // Offset ajustado para afastar do eixo
                     fill: 'hsl(var(--foreground))',
-                    style: { fontSize: '16px', fontWeight: 600 } // Aumentado o tamanho e peso
+                    style: { fontSize: '16px', fontWeight: 600 }
                   }}
                   stroke="hsl(var(--foreground))"
                 />
@@ -185,7 +185,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                 <ReferenceLine x={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
                 <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
 
-                {/* Quadrantes com cores atualizadas e preenchendo de 1 a 4 */}
+                {/* Quadrantes preenchendo de 1 a 4 */}
                 
                 {/* M1: Básico (Inferior Esquerdo) -> X: 1-2, Y: 1-2 */}
                 <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1} fillOpacity={0.2} />
@@ -193,10 +193,10 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                 {/* M2: Intermediário (Inferior Direito) -> X: 2-4, Y: 1-2 */}
                 <ReferenceArea x1={CENTER_POINT} x2={4} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M2} fillOpacity={0.2} />
                 
-                {/* M3: Avançado (Superior Direito) -> X: 2-4, Y: 2-4 (INVERTIDO) */}
+                {/* M3: Avançado (Superior Direito) -> X: 2-4, Y: 2-4 */}
                 <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.2} />
                 
-                {/* M4: Expect (Superior Esquerdo) -> X: 1-2, Y: 2-4 (INVERTIDO) */}
+                {/* M4: Expect (Superior Esquerdo) -> X: 1-2, Y: 2-4 */}
                 <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
 
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
