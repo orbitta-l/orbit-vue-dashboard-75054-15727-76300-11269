@@ -36,19 +36,16 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
 
   return (
     <div
-      className="absolute z-20 p-3 bg-card rounded-lg shadow-2xl border w-64 flex flex-col animate-in fade-in-50 zoom-in-95"
+      className="absolute z-20 p-4 bg-card rounded-lg shadow-2xl border w-64 flex flex-col animate-in fade-in-50 zoom-in-95"
       style={{
         left: position.x,
         top: position.y,
         transform: 'translate(-50%, -100%) translateY(-15px)', // Posiciona acima do ponto
       }}
     >
-      <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-6 w-6" onClick={onClose}>
-        <X className="h-4 w-4" />
-      </Button>
       
       {/* Top Section: Profile & Maturity Level */}
-      <div className="flex justify-between items-center pt-1 pb-2">
+      <div className="flex justify-between items-center pb-3 border-b border-border/50">
         {/* LEFT: Profile, Name, Cargo */}
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10 flex-shrink-0">
@@ -73,8 +70,8 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
         </div>
       </div>
 
-      {/* Middle Section: Hard/Soft Skills Scores (Compact and Subtle) */}
-      <div className="flex flex-col border-t border-border pt-2 pb-1 opacity-90">
+      {/* Middle Section: Hard/Soft Skills Scores */}
+      <div className="flex flex-col pt-3 pb-4 space-y-1">
         
         {/* Técnico (Hard Skills) */}
         <div className="flex justify-between items-center text-sm">
@@ -95,10 +92,26 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
         </div>
       </div>
 
-      {/* Navigation Button */}
-      <Button onClick={onNavigate} className="w-full gap-2 mt-2 h-8 text-sm">
-        Ver Perfil <ArrowRight className="w-4 h-4" />
-      </Button>
+      {/* Bottom Section: Actions */}
+      <div className="flex justify-between gap-2 pt-3 border-t border-border/50">
+        {/* Botão Fechar (Outline, Discreto) */}
+        <Button 
+          onClick={onClose} 
+          variant="outline" 
+          size="sm" 
+          className="flex-1 text-xs h-8"
+        >
+          Fechar
+        </Button>
+        
+        {/* Botão Ver Perfil (Filled, Maior, Destaque) */}
+        <Button 
+          onClick={onNavigate} 
+          className="flex-1 gap-1 h-8 text-sm font-semibold"
+        >
+          Ver Perfil <ArrowRight className="w-3.5 h-3.5" />
+        </Button>
+      </div>
     </div>
   );
 };
