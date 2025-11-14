@@ -27,7 +27,8 @@ const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
   M4: "hsl(var(--primary))",
 };
 
-const getInitials = (name: string) => member.nome_liderado.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+// Corrigido: Usando 'name' como parâmetro
+const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
 export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, onClose, onNavigate }) => {
   if (!member || !position || member.nivel_maturidade === 'N/A') return null;
@@ -65,7 +66,7 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
         {/* RIGHT: Maturity & Scores (Aligned) */}
         <div className="flex flex-col items-end justify-center h-full">
           <span 
-            className="text-2xl font-semibold leading-none mb-1" // Tamanho e peso reduzidos
+            className="text-2xl font-semibold leading-none mb-1" // Nível de Maturidade
             style={{ color: maturityColor }}
           >
             {member.nivel_maturidade}
