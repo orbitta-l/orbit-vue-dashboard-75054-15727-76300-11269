@@ -57,13 +57,14 @@ const CustomDot = (props: any) => {
   
   const isSelected = payload.id_liderado === selectedMemberId;
   const color = QUADRANT_COLORS[payload.nivel_maturidade as NivelMaturidade];
+  const radius = isSelected ? 8 : 6; // Aumenta o raio quando selecionado
 
   return (
     <g filter={isSelected ? "url(#white-glow)" : undefined}>
       <circle
         cx={cx}
         cy={cy}
-        r={6} // Raio fixo em 6
+        r={radius} // Raio dinâmico
         fill={color}
         stroke={color}
         strokeWidth={isSelected ? 2 : 1} // Aumenta o stroke para 2 quando selecionado
