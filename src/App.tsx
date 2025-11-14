@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import DashboardLiderado from "./pages/DashboardLiderado";
+import SetNewPassword from "./pages/SetNewPassword"; // Importar a nova página
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
             
             {/* Rotas públicas */}
             <Route path="/login" element={<Login />} />
+            <Route path="/set-new-password" element={<SetNewPassword />} /> {/* Nova rota */}
             
             {/* Dashboards protegidos com RBAC */}
             <Route 

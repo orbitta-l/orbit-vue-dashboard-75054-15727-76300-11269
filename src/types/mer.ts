@@ -23,6 +23,7 @@ export interface Usuario {
   data_nascimento: string; // YYYY-MM-DD
   ativo: boolean;
   avatar_url?: string | null;
+  first_login?: boolean; // Adicionado first_login
 }
 
 export interface Cargo {
@@ -132,6 +133,7 @@ export interface LideradoDashboard extends Usuario {
     tipo: CompetenciaTipo;
     categoria_nome?: string;
     especializacao_nome?: string;
+    nota_ideal?: number; // Adicionado nota_ideal
   })[];
   categoria_dominante?: string;
   especializacao_dominante?: string;

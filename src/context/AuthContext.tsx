@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Session, User } from '@supabase/supabase-js';
 import { Usuario, Avaliacao, PontuacaoAvaliacao, LideradoDashboard, calcularIdade, NivelMaturidade } from '@/types/mer';
 import { MOCK_CARGOS, MOCK_COMPETENCIAS, MOCK_ESPECIALIZACOES, MOCK_CATEGORIAS } from '@/data/mockData';
+import { useNavigate } from 'react-router-dom'; // Importar useNavigate
 
 // Contrato de Input para o RPC de salvar avaliação
 interface CompetenciaScore {
@@ -49,6 +50,7 @@ interface AuthContextType {
   fetchLideradoDashboardData: (lideradoId: number) => Promise<void>;
   loading: boolean;
   saveEvaluation: (input: SaveEvaluationInput) => Promise<{ success: boolean; maturidade?: NivelMaturidade | 'N/A'; error?: string }>;
+  updateFirstLoginStatus: (userId: string) => Promise<{ success: boolean; error?: string }>; // Nova função
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [memberXYData, setMemberXYData] = useState<MemberXYData[]>([]);
   const [lideradoDashboardData, setLideradoDashboardData] = useState<LideradoDashboard | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // Usar useNavigate aqui
 
   const fetchLideradoDashboardData = useCallback(async (lideradoId: number) => {
     const { data, error } = await supabase.rpc('get_liderado_dashboard_data', { p_liderado_id: lideradoId });
@@ -92,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatar_url: profileData.avatar_url,
         idade: profileData.idade,
         cargo_nome: profileData.cargo_nome,
+        first_login: profileData.first_login, // Adicionado first_login
         ultima_avaliacao: ultimaAvaliacaoData ? {
           media_comportamental_1a4: ultimaAvaliacaoData.media_comportamental_1a4,
           media_tecnica_1a4: ultimaAvaliacaoData.media_tecnica_1a4,
@@ -237,6 +241,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [profile]);
 
+  const updateFirstLoginStatus = useCallback(async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('usuario')
+        .update({ first_login: false })
+        .eq('id', Number(userId));
+
+      if (error) throw error;
+      
+      // Atualiza o perfil no contexto para refletir a mudança
+      setProfile(prev => prev ? { ...prev, first_login: false } : null);
+      return { success: true };
+    } catch (e: any) {
+      console.error("Erro ao atualizar status de primeiro login:", e);
+      return { success: false, error: e.message };
+    }
+  }, []);
+
   useEffect(() => {
     const fetchProfileAndData = async (user: User) => {
       setLoading(true);
@@ -254,6 +276,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ...dbProfile,
           id_usuario: String(dbProfile.id),
           lider_id: dbProfile.lider_id ? String(dbProfile.lider_id) : null,
+          first_login: dbProfile.first_login, // Mapear first_login
         };
         setProfile(appProfile);
   
@@ -261,7 +284,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await fetchTeamData(dbProfile.id);
           setLideradoDashboardData(null);
         } else if (appProfile.role === 'LIDERADO') {
-          await fetchLideradoDashboardData(dbProfile.id);
+          // Redirecionar para SetNewPassword se for o primeiro login
+          if (appProfile.first_login) {
+            navigate('/set-new-password', { replace: true });
+          } else {
+            await fetchLideradoDashboardData(dbProfile.id);
+          }
           setLiderados([]);
           setAvaliacoes([]);
           setPontuacoes([]);
@@ -276,8 +304,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       if (session) {
         await fetchProfileAndData(session.user);
+      } else {
+        setLoading(false); // Se não há sessão, não está carregando
       }
-      setLoading(false);
     };
 
     getInitialSession();
@@ -293,6 +322,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPontuacoes([]);
         setMemberXYData([]);
         setLideradoDashboardData(null);
+        // Redirecionar para a página de login se não houver sessão
+        navigate('/login', { replace: true });
       }
     });
 
@@ -301,7 +332,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   // AVISO: O array de dependências está vazio de propósito para que este efeito rode apenas uma vez.
   // A lógica de atualização é gerenciada pelo listener onAuthStateChange.
-  }, []);
+  }, [navigate, fetchLideradoDashboardData, fetchTeamData]); // Adicionado navigate e fetch functions como dependências
 
   const saveEvaluation = async (input: SaveEvaluationInput) => {
     if (!session) return { success: false, error: "Usuário não autenticado." };
@@ -367,7 +398,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [profile, liderados, avaliacoes, pontuacoes, memberXYData]);
 
   const value = {
-    session, profile, isAuthenticated: !!session, login, logout, liderados, avaliacoes, pontuacoes, teamData, lideradoDashboardData, isPrimeiroAcesso, loading, fetchTeamData: () => fetchTeamData(), fetchLideradoDashboardData, saveEvaluation,
+    session, profile, isAuthenticated: !!session, login, logout, liderados, avaliacoes, pontuacoes, teamData, lideradoDashboardData, isPrimeiroAcesso, loading, fetchTeamData: () => fetchTeamData(), fetchLideradoDashboardData, saveEvaluation, updateFirstLoginStatus,
   };
 
   return (
