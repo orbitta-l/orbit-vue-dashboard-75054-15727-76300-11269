@@ -126,11 +126,11 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   const CENTER_POINT = 2.5;
   const hasEvaluatedMembers = evaluatedMembers.length > 0;
 
-  // Estilo para rótulos opacos e centralizados
+  // Estilo para rótulos opacos e semibold
   const labelStyle = { 
     fontSize: '14px', 
-    fontWeight: 500,
-    fill: 'hsl(var(--muted-foreground))', // Cor mais suave
+    fontWeight: 600, // Semibold
+    fill: 'hsl(var(--muted-foreground) / 0.8)', // Opacidade leve
   };
 
   return (
@@ -158,11 +158,10 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                     domain={[1, 4]} 
                     ticks={[1, 2, CENTER_POINT, 3, 4]} // Incluindo 2.5 nos ticks
                     label={{ 
-                      value: "Média Comportamental (SOFT)", 
+                      value: "Soft Skills", 
                       position: 'bottom',
                       offset: 30,
-                      fill: 'hsl(var(--muted-foreground))',
-                      style: { fontSize: '14px', fontWeight: 500 }
+                      style: labelStyle
                     }}
                     stroke="hsl(var(--foreground))"
                   />
@@ -173,12 +172,11 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                     domain={[1, 4]} 
                     ticks={[1, 2, CENTER_POINT, 3, 4]} // Incluindo 2.5 nos ticks
                     label={{ 
-                      value: "Média Técnica (HARD)", 
+                      value: "Hard Skills", 
                       angle: -90, 
                       position: 'left',
                       offset: -10,
-                      fill: 'hsl(var(--muted-foreground))',
-                      style: { fontSize: '14px', fontWeight: 500 }
+                      style: labelStyle
                     }}
                     stroke="hsl(var(--foreground))"
                   />
@@ -217,8 +215,6 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                 </ScatterChart>
               </ResponsiveContainer>
             )}
-            
-            {/* Rótulos das Extremidades (REMOVIDOS) */}
             
             {/* Quadrant Badges com contagem */}
             
