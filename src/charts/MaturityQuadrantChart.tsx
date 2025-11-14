@@ -126,6 +126,13 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   const CENTER_POINT = 2.0;
   const hasEvaluatedMembers = evaluatedMembers.length > 0;
 
+  // Estilo para rótulos opacos e centralizados
+  const labelStyle = { 
+    fontSize: '14px', 
+    fontWeight: 500,
+    fill: 'hsl(var(--muted-foreground))', // Cor mais suave
+  };
+
   return (
     <Card className="p-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
@@ -154,8 +161,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                       value: "Média Comportamental (SOFT)", 
                       position: 'bottom',
                       offset: 30,
-                      fill: 'hsl(var(--foreground))',
-                      style: { fontSize: '16px', fontWeight: 600 }
+                      style: labelStyle
                     }}
                     stroke="hsl(var(--foreground))"
                   />
@@ -170,8 +176,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                       angle: -90, 
                       position: 'left',
                       offset: -10,
-                      fill: 'hsl(var(--foreground))',
-                      style: { fontSize: '16px', fontWeight: 600 }
+                      style: labelStyle
                     }}
                     stroke="hsl(var(--foreground))"
                   />
