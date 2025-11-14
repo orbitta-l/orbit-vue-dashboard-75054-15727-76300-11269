@@ -1,4 +1,4 @@
-import { Home, Users, ClipboardCheck, LogOut, Settings, Mail, Briefcase, User as UserIcon } from "lucide-react";
+import { Home, Users, ClipboardCheck, LogOut, Settings, Mail, Briefcase, User as UserIcon, Calendar } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -43,7 +43,7 @@ export const Sidebar = () => {
         <img src={logo} alt="ORBITTA Logo" className="h-8" />
       </div>
 
-      {/* Profile Block (New Top Position) */}
+      {/* Profile Block */}
       <div className="p-4 border-b border-sidebar-border/50">
         <div className="flex flex-col items-center text-center mb-3">
             <Avatar className="w-16 h-16 mb-2">
@@ -99,7 +99,7 @@ export const Sidebar = () => {
         </nav>
       </div>
 
-      {/* Bottom Section (Settings and Logout) - Profile Footer REMOVED */}
+      {/* Bottom Section (Settings and Logout) */}
       <div className="p-3 border-t border-sidebar-border space-y-1">
         {/* Settings */}
         <NavLink
