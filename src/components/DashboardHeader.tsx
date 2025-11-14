@@ -48,13 +48,13 @@ export function DashboardHeader() {
       {/* Data e Hora (Direita) */}
       <div className="flex flex-col items-end gap-1 text-sm text-muted-foreground pt-1">
         <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary/80" />
+            <Calendar className="w-4 h-4 text-accent" />
             <p className="capitalize">
               {currentDate}
             </p>
         </div>
         <div className="flex items-center gap-2 text-xs">
-            <Clock className="w-3 h-3 text-primary/60" />
+            <Clock className="w-3 h-3 text-accent/80" />
             <p>
               {formattedTime}
             </p>
