@@ -32,6 +32,10 @@ export function DashboardHeader() {
     <div className="mb-8 flex justify-between items-start">
       {/* Título Principal (Esquerda) */}
       <div>
+        {/* Nova linha de boas-vindas */}
+        <p className="text-sm font-medium text-accent mb-1">
+          Seja bem vindo!
+        </p>
         <h1 className={cn(
           "text-3xl font-bold",
           "bg-gradient-to-r from-primary-dark to-primary", // Gradiente mais escuro
