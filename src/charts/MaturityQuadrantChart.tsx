@@ -129,6 +129,12 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   const labelStyle = { fontSize: '14px', fontWeight: 600, fill: 'hsl(var(--muted-foreground) / 0.8)' };
   const tickStyle = { fill: 'hsl(var(--foreground) / 0.6)', fontSize: '12px' };
 
+  const renderQuadrantBadge = (maturity: NivelMaturidade) => (
+    <div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor(maturity))} style={{ backgroundColor: QUADRANT_COLORS[maturity] }}>
+      {QUADRANT_LABELS[maturity]} <span className={cn("ml-1 font-bold", getCountTextColor(maturity))}>({quadrantCounts[maturity] || 0})</span>
+    </div>
+  );
+
   return (
     <Card className="p-6 mb-8">
       <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
@@ -176,10 +182,10 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
             )}
             
             {/* Rótulos dos Quadrantes - Ajustados para ficarem mais próximos */}
-            <div className="absolute top-0 left-0 -translate-x-2 -translate-y-6 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span></div></div>
-            <div className="absolute top-0 right-0 translate-x-2 -translate-y-6 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span></div></div>
-            <div className="absolute bottom-0 left-0 -translate-x-2 translate-y-2 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} <span className={cn("ml-1 font-bold", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span></div></div>
-            <div className="absolute bottom-0 right-0 translate-x-2 translate-y-2 text-center"><div className={cn("px-2 py-0.5 rounded-md font-semibold text-xs", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} <span className="ml-1 font-bold" style={{ color: 'white' }}>{quadrantCounts.M2 || 0}</span></div></div>
+            <div className="absolute top-0 left-0 -translate-x-2 -translate-y-6 text-center">{renderQuadrantBadge('M4')}</div>
+            <div className="absolute top-0 right-0 translate-x-2 -translate-y-6 text-center">{renderQuadrantBadge('M3')}</div>
+            <div className="absolute bottom-0 left-0 -translate-x-2 translate-y-2 text-center">{renderQuadrantBadge('M1')}</div>
+            <div className="absolute bottom-0 right-0 translate-x-2 translate-y-2 text-center">{renderQuadrantBadge('M2')}</div>
           </div>
         </div>
         
