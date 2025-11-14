@@ -151,6 +151,11 @@ export default function Home() {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <DashboardHeader />
+      
+      {/* Novo Texto Introdutório */}
+      <p className="text-lg text-muted-foreground mb-8 max-w-4xl">
+        Este é o seu painel de controle. Visualize a matriz de maturidade da sua equipe, identifique gaps de conhecimento e acompanhe o progresso individual e coletivo.
+      </p>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <MetricCard title="Membros da Equipe" value={metrics.teamMembers} icon={<Users className="w-5 h-5" />} />
