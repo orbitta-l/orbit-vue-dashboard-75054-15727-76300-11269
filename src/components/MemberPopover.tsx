@@ -27,7 +27,6 @@ const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
   M4: "hsl(var(--primary))",
 };
 
-// Corrigido: Usando 'name' como parâmetro
 const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
 export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, onClose, onNavigate }) => {
@@ -48,7 +47,7 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
         <X className="h-4 w-4" />
       </Button>
       
-      {/* Top Section: Profile vs Maturity & Scores */}
+      {/* Top Section: Profile & Maturity Level */}
       <div className="flex justify-between items-start pt-1 pb-2">
         {/* LEFT: Profile, Name, Cargo */}
         <div className="flex items-start gap-3">
@@ -63,28 +62,36 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
           </div>
         </div>
 
-        {/* RIGHT: Maturity & Scores (Aligned) */}
+        {/* RIGHT: Maturity Level */}
         <div className="flex flex-col items-end justify-center h-full">
           <span 
-            className="text-2xl font-semibold leading-none mb-1" // Nível de Maturidade
+            className="text-xl font-medium leading-none" // Tamanho e peso reduzidos
             style={{ color: maturityColor }}
           >
             {member.nivel_maturidade}
           </span>
-          
-          {/* Scores Alinhados */}
-          <div className="flex flex-col items-end text-xs space-y-0.5">
-            <div className="flex items-center gap-1 text-foreground">
-              <Code className="w-3 h-3 text-primary" />
-              <span className="font-medium">Técnico:</span>
-              <span className="font-bold">{member.eixo_x_tecnico_geral.toFixed(1)}</span>
-            </div>
-            <div className="flex items-center gap-1 text-foreground">
-              <HeartHandshake className="w-3 h-3 text-accent" />
-              <span className="font-medium">Comportamental:</span>
-              <span className="font-bold">{member.eixo_y_comportamental.toFixed(1)}</span>
-            </div>
+        </div>
+      </div>
+
+      {/* Middle Section: Hard/Soft Skills Scores (Separated and Aligned) */}
+      <div className="flex flex-col gap-2 border-t border-border pt-3 pb-1 mt-1">
+        
+        {/* Técnico (Hard Skills) */}
+        <div className="flex justify-between items-center text-sm">
+          <div className="flex items-center gap-2 text-foreground">
+            <Code className="w-4 h-4 text-primary" />
+            <span className="font-medium">Técnico</span>
           </div>
+          <span className="font-bold text-base text-primary">{member.eixo_x_tecnico_geral.toFixed(1)}<span className="text-xs text-muted-foreground font-normal">/4.0</span></span>
+        </div>
+
+        {/* Comportamental (Soft Skills) */}
+        <div className="flex justify-between items-center text-sm">
+          <div className="flex items-center gap-2 text-foreground">
+            <HeartHandshake className="w-4 h-4 text-accent" />
+            <span className="font-medium">Comportamental</span>
+          </div>
+          <span className="font-bold text-base text-accent">{member.eixo_y_comportamental.toFixed(1)}<span className="text-xs text-muted-foreground font-normal">/4.0</span></span>
         </div>
       </div>
 
