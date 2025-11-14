@@ -113,9 +113,10 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
       setSelectedPointPosition(null);
     } else {
       setSelectedMemberId(memberId);
-      // Define uma posição padrão para o popover aparecer no centro do gráfico (240px é metade de 480px de altura)
-      // Usamos 50% para X para ser responsivo à largura.
-      setSelectedPointPosition({ x: 50, y: 240 }); 
+      // Ao clicar na lista, não temos as coordenadas SVG do ponto.
+      // Definimos a posição como null para que o popover não apareça em um lugar aleatório.
+      // O usuário deve clicar no ponto do gráfico para ver o popover ancorado.
+      setSelectedPointPosition(null); 
     }
   };
 
@@ -137,6 +138,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
           <p className="text-sm text-muted-foreground mb-8">Posicionamento do time com base na média de desempenho técnico vs. comportamental.</p>
           
           <div className="relative w-full h-[480px]">
+            {/* Renderiza o popover APENAS se houver um ponto selecionado (cx, cy) */}
             {selectedMemberData && selectedPointPosition && (
               <MemberPopover
                 member={selectedMemberData}

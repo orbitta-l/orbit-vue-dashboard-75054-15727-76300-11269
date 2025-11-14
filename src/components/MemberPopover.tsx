@@ -45,6 +45,27 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
         transform: 'translate(-50%, -100%) translateY(-15px)', 
       }}
     >
+      {/* Seta Conectora */}
+      <div 
+        className="absolute bottom-0 left-1/2 h-4 w-4 -translate-x-1/2 translate-y-full"
+        style={{
+          clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+          backgroundColor: 'hsl(var(--card))',
+          border: '1px solid hsl(var(--border))',
+          borderTop: 'none',
+        }}
+      >
+        {/* Borda da Seta (para simular a borda do popover) */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+            backgroundColor: 'hsl(var(--border))',
+            transform: 'scale(1.1)',
+            zIndex: -1,
+          }}
+        />
+      </div>
       
       {/* Top Section: Profile & Maturity Level */}
       <div className="flex justify-between items-center pb-3 border-b border-border/50">
