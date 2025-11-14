@@ -3,10 +3,12 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, ReferenceArea, Cell } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer, ReferenceArea } from 'recharts';
 import { NivelMaturidade } from "@/types/mer";
 import { Button } from "@/components/ui/button"; 
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+import { MemberPopover } from "@/components/MemberPopover";
 
 interface MemberData {
   id_liderado: string;
@@ -22,12 +24,11 @@ interface CompetencyQuadrantChartProps {
   empty?: boolean;
 }
 
-// Mapeamento de cores e rótulos (Removido N/A)
 const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
-  M1: "hsl(var(--destructive))",      // Básico (Vermelho - Crítico)
-  M2: "hsl(var(--accent))",           // Intermediário (Laranja - Comportamental Forte)
-  M3: "hsl(var(--primary-dark))",     // Avançado (Azul Escuro - Técnico Forte)
-  M4: "hsl(var(--primary))",          // Expect (Azul Primário - Ideal)
+  M1: "hsl(var(--destructive))",
+  M2: "hsl(var(--accent))",
+  M3: "hsl(var(--primary-dark))",
+  M4: "hsl(var(--primary))",
 };
 
 const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
@@ -37,107 +38,81 @@ const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
   M4: "Expect",
 };
 
-// Helper para determinar a cor do texto do badge (branco para todos os fundos escuros)
-const getTextColor = (maturity: NivelMaturidade) => {
-    return 'text-white';
-};
-
-// Helper para determinar a cor do texto da CONTAGEM (branco para todos os fundos escuros)
-const getCountTextColor = (maturity: NivelMaturidade) => {
-    return 'text-white';
-};
-
+const getTextColor = (maturity: NivelMaturidade) => 'text-white';
+const getCountTextColor = (maturity: NivelMaturidade) => 'text-white';
 const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
-// Custom Hook for debouncing
 function useDebounce(value: string, delay: number) {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => {
-      clearTimeout(handler);
-    };
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
   }, [value, delay]);
   return debouncedValue;
 }
 
+const CustomDot = (props: any) => {
+  const { cx, cy, payload, selectedMemberId } = props;
+  if (!payload.nivel_maturidade || payload.nivel_maturidade === 'N/A') return null;
+  
+  const isSelected = payload.id_liderado === selectedMemberId;
+  const color = QUADRANT_COLORS[payload.nivel_maturidade as NivelMaturidade];
+
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={isSelected ? 12 : 7}
+      fill={color}
+      stroke="#fff"
+      strokeWidth={isSelected ? 3 : 1.5}
+      style={{ transition: 'all 0.3s ease', cursor: 'pointer' }}
+    />
+  );
+};
+
 export default function MaturityQuadrantChart({ teamMembers, empty = false }: CompetencyQuadrantChartProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [selectedPointPosition, setSelectedPointPosition] = useState<{ x: number; y: number } | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 200);
   const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const navigate = useNavigate();
 
-  // 1. Filtra membros não avaliados
-  const evaluatedMembers = useMemo(() => 
-    teamMembers.filter(member => member.nivel_maturidade !== 'N/A'), 
-    [teamMembers]
-  );
-
-  const filteredMembers = useMemo(() => 
-    evaluatedMembers.filter(member =>
-      member.nome_liderado.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-      member.cargo.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
-    ), [evaluatedMembers, debouncedSearchTerm]);
-
-  const quadrantCounts = useMemo(() => {
-    return filteredMembers.reduce((acc, member) => {
-      const key = member.nivel_maturidade;
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {} as Record<NivelMaturidade, number>);
-  }, [filteredMembers]);
+  const evaluatedMembers = useMemo(() => teamMembers.filter(member => member.nivel_maturidade !== 'N/A'), [teamMembers]);
+  const filteredMembers = useMemo(() => evaluatedMembers.filter(member => member.nome_liderado.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || member.cargo.toLowerCase().includes(debouncedSearchTerm.toLowerCase())), [evaluatedMembers, debouncedSearchTerm]);
+  const quadrantCounts = useMemo(() => filteredMembers.reduce((acc, member) => {
+    const key = member.nivel_maturidade;
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {} as Record<NivelMaturidade, number>), [filteredMembers]);
 
   useEffect(() => {
     if (selectedMemberId && listRefs.current[selectedMemberId]) {
-      listRefs.current[selectedMemberId]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-      });
+      listRefs.current[selectedMemberId]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, [selectedMemberId]);
 
   const handlePointClick = (data: any) => {
-    setSelectedMemberId(data.id_liderado);
-  };
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      const maturidadeLabel = QUADRANT_LABELS[data.nivel_maturidade as NivelMaturidade] || 'N/A';
-      const maturidadeColor = QUADRANT_COLORS[data.nivel_maturidade as NivelMaturidade] || 'hsl(var(--foreground))';
-      
-      return (
-        <div className="p-3 bg-card border rounded-lg shadow-lg text-sm">
-          <p className="font-bold text-foreground">{data.nome_liderado}</p>
-          <p className="text-muted-foreground">{data.cargo}</p>
-          <p className="text-xs mt-2 pt-2 border-t">
-            Maturidade: <span className="font-semibold" style={{ color: maturidadeColor }}>{maturidadeLabel} ({data.nivel_maturidade})</span>
-          </p>
-          <p className="text-xs">Comportamental: {data.eixo_y_comportamental.toFixed(1)} | Técnico: {data.eixo_x_tecnico_geral.toFixed(1)}</p>
-        </div>
-      );
+    const { id_liderado, cx, cy } = data;
+    if (selectedMemberId === id_liderado) {
+      setSelectedMemberId(null);
+      setSelectedPointPosition(null);
+    } else {
+      setSelectedMemberId(id_liderado);
+      setSelectedPointPosition({ x: cx, y: cy });
     }
-    return null;
   };
 
-  // Definindo o ponto central para 2.5
+  const selectedMemberData = useMemo(() => {
+    if (!selectedMemberId) return null;
+    return filteredMembers.find(m => m.id_liderado === selectedMemberId);
+  }, [selectedMemberId, filteredMembers]);
+
   const CENTER_POINT = 2.5;
   const hasEvaluatedMembers = evaluatedMembers.length > 0;
-
-  // Estilo para rótulos opacos e semibold
-  const labelStyle = { 
-    fontSize: '14px', 
-    fontWeight: 600, // Semibold
-    fill: 'hsl(var(--muted-foreground) / 0.8)', // Opacidade leve
-  };
-  
-  // Estilo para ticks opacos
-  const tickStyle = {
-    fill: 'hsl(var(--foreground) / 0.6)', // Cor mais opaca para os números
-    fontSize: '12px',
-  };
+  const labelStyle = { fontSize: '14px', fontWeight: 600, fill: 'hsl(var(--muted-foreground) / 0.8)' };
+  const tickStyle = { fill: 'hsl(var(--foreground) / 0.6)', fontSize: '12px' };
 
   return (
     <Card className="p-6 mb-8">
@@ -147,112 +122,41 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
           <p className="text-sm text-muted-foreground mb-4">Posicionamento do time com base na média de desempenho técnico vs. comportamental.</p>
           
           <div className="relative w-full h-[480px]">
+            {selectedMemberData && selectedPointPosition && (
+              <MemberPopover
+                member={selectedMemberData}
+                position={selectedPointPosition}
+                onClose={() => { setSelectedMemberId(null); setSelectedPointPosition(null); }}
+                onNavigate={() => navigate(`/team/${selectedMemberId}`)}
+              />
+            )}
+
             {empty || !hasEvaluatedMembers ? (
               <div className="absolute inset-0 flex items-center justify-center bg-muted/30 rounded-lg z-10">
-                <p className="text-muted-foreground text-center">
-                  Sem avaliações ainda.<br/>Faça a primeira avaliação para popular este gráfico.
-                </p>
+                <p className="text-muted-foreground text-center">Sem avaliações ainda.<br/>Faça a primeira avaliação para popular este gráfico.</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    type="number" 
-                    dataKey="eixo_y_comportamental" 
-                    name="Comportamental" 
-                    domain={[1, 4]} 
-                    ticks={[1, 2, CENTER_POINT, 3, 4]} // Incluindo 2.5 nos ticks
-                    label={{ 
-                      value: "Soft Skills", 
-                      position: 'bottom',
-                      offset: 30,
-                      style: labelStyle
-                    }}
-                    stroke="hsl(var(--foreground))"
-                    tick={tickStyle} // Aplicando estilo opaco aos ticks
-                  />
-                  <YAxis 
-                    type="number" 
-                    dataKey="eixo_x_tecnico_geral" 
-                    name="Técnico" 
-                    domain={[1, 4]} 
-                    ticks={[1, 2, CENTER_POINT, 3, 4]} // Incluindo 2.5 nos ticks
-                    label={{ 
-                      value: "Hard Skills", 
-                      angle: -90, 
-                      position: 'left',
-                      offset: -10,
-                      style: labelStyle
-                    }}
-                    stroke="hsl(var(--foreground))"
-                    tick={tickStyle} // Aplicando estilo opaco aos ticks
-                  />
-                  
-                  {/* Linhas centrais destacadas no 2.5 */}
+                  <XAxis type="number" dataKey="eixo_y_comportamental" name="Comportamental" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Soft Skills", position: 'bottom', offset: 30, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
+                  <YAxis type="number" dataKey="eixo_x_tecnico_geral" name="Técnico" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Hard Skills", angle: -90, position: 'left', offset: -10, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
                   <ReferenceLine x={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
                   <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
-
-                  {/* Quadrantes ajustados para 2.5 */}
-                  
-                  {/* M1: Básico (Inferior Esquerdo) -> X: 1-2.5, Y: 1-2.5 */}
                   <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1} fillOpacity={0.2} />
-                  
-                  {/* M2: Intermediário (Inferior Direito) -> X: 2.5-4, Y: 1-2.5 */}
                   <ReferenceArea x1={CENTER_POINT} x2={4} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M2} fillOpacity={0.2} />
-                  
-                  {/* M3: Avançado (Superior Direito) -> X: 2.5-4, Y: 2.5-4 */}
                   <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.2} />
-                  
-                  {/* M4: Expect (Superior Esquerdo) -> X: 1-2.5, Y: 2.5-4 */}
                   <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
-
-                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
-                  
-                  <Scatter name="Liderados" data={filteredMembers} onClick={handlePointClick}>
-                    {filteredMembers.map((entry) => (
-                      <Cell 
-                        key={`cell-${entry.id_liderado}`} 
-                        fill={QUADRANT_COLORS[entry.nivel_maturidade as NivelMaturidade]}
-                        stroke="#fff"
-                        strokeWidth={selectedMemberId === entry.id_liderado ? 3 : 1}
-                        className="transition-all duration-300"
-                      />
-                    ))}
-                  </Scatter>
+                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={() => null} />
+                  <Scatter name="Liderados" data={filteredMembers} onClick={handlePointClick} shape={<CustomDot selectedMemberId={selectedMemberId} />} />
                 </ScatterChart>
               </ResponsiveContainer>
             )}
             
-            {/* Quadrant Badges - Ajustando o deslocamento para aproximar */}
-            
-            {/* M4: Expect (Superior Esquerdo) */}
-            <div className="absolute top-0 left-0 -translate-x-4 -translate-y-4 text-center">
-              <div className={cn("px-4 py-2 rounded-md font-semibold text-sm", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>
-                {QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span>
-              </div>
-            </div>
-            
-            {/* M3: Avançado (Superior Direito) */}
-            <div className="absolute top-0 right-0 translate-x-4 -translate-y-4 text-center">
-              <div className={cn("px-4 py-2 rounded-md font-semibold text-sm", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>
-                {QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span>
-              </div>
-            </div>
-            
-            {/* M1: Básico (Inferior Esquerdo) */}
-            <div className="absolute bottom-0 left-0 -translate-x-4 translate-y-4 text-center">
-              <div className={cn("px-4 py-2 rounded-md font-semibold text-sm", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>
-                {QUADRANT_LABELS.M1} <span className={cn("ml-1 font-bold", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span>
-              </div>
-            </div>
-            
-            {/* M2: Intermediário (Inferior Direito) */}
-            <div className="absolute bottom-0 right-0 translate-x-4 translate-y-4 text-center">
-              <div className={cn("px-4 py-2 rounded-md font-semibold text-sm", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>
-                {QUADRANT_LABELS.M2} <span className={cn("ml-1 font-bold", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span>
-              </div>
-            </div>
+            <div className="absolute top-0 left-0 -translate-x-4 -translate-y-4 text-center"><div className={cn("px-4 py-2 rounded-md font-semibold text-sm", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>{QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span></div></div>
+            <div className="absolute top-0 right-0 translate-x-4 -translate-y-4 text-center"><div className={cn("px-4 py-2 rounded-md font-semibold text-sm", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>{QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span></div></div>
+            <div className="absolute bottom-0 left-0 -translate-x-4 translate-y-4 text-center"><div className={cn("px-4 py-2 rounded-md font-semibold text-sm", getTextColor('M1'))} style={{ backgroundColor: QUADRANT_COLORS.M1 }}>{QUADRANT_LABELS.M1} <span className={cn("ml-1 font-bold", getCountTextColor('M1'))}>{quadrantCounts.M1 || 0}</span></div></div>
+            <div className="absolute bottom-0 right-0 translate-x-4 translate-y-4 text-center"><div className={cn("px-4 py-2 rounded-md font-semibold text-sm", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>{QUADRANT_LABELS.M2} <span className={cn("ml-1 font-bold", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span></div></div>
           </div>
         </div>
         
@@ -260,46 +164,17 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
           <div className="flex flex-col flex-1 min-h-0">
             <div className="relative mb-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome ou cargo..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-              {searchTerm && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-3 hover:bg-transparent"
-                  onClick={() => setSearchTerm("")}
-                >
-                  <X className="w-4 h-4 text-muted-foreground" />
-                </Button>
-              )}
+              <Input placeholder="Buscar por nome ou cargo..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+              {searchTerm && <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-1/2 -translate-y-1/2 h-full px-3 hover:bg-transparent" onClick={() => setSearchTerm("")}><X className="w-4 h-4 text-muted-foreground" /></Button>}
             </div>
             <div className="flex-1 overflow-y-auto space-y-1 pr-2">
               {filteredMembers.map(member => (
-                <div 
-                  key={member.id_liderado}
-                  ref={(el) => (listRefs.current[member.id_liderado] = el)}
-                  className={`flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`}
-                  onClick={() => setSelectedMemberId(member.id_liderado)}
-                >
-                  <Avatar className="w-10 h-10">
-                    <AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade] }}>
-                      {getInitials(member.nome_liderado)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-base font-medium text-foreground truncate">{member.nome_liderado}</p>
-                    <p className="text-sm text-muted-foreground truncate">{member.cargo}</p>
-                  </div>
+                <div key={member.id_liderado} ref={(el) => (listRefs.current[member.id_liderado] = el)} className={`flex items-center gap-4 p-3 rounded-md cursor-pointer transition-colors ${selectedMemberId === member.id_liderado ? 'bg-muted' : 'hover:bg-muted/50'}`} onClick={() => handlePointClick({ id_liderado: member.id_liderado, cx: 0, cy: 0 })}>
+                  <Avatar className="w-10 h-10"><AvatarFallback style={{ backgroundColor: `${QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade]}40`, color: QUADRANT_COLORS[member.nivel_maturidade as NivelMaturidade] }}>{getInitials(member.nome_liderado)}</AvatarFallback></Avatar>
+                  <div className="flex-1 min-w-0"><p className="text-base font-medium text-foreground truncate">{member.nome_liderado}</p><p className="text-sm text-muted-foreground truncate">{member.cargo}</p></div>
                 </div>
               ))}
-               {filteredMembers.length === 0 && !empty && (
-                <p className="text-sm text-muted-foreground text-center py-4">Nenhum resultado.</p>
-              )}
+               {filteredMembers.length === 0 && !empty && <p className="text-sm text-muted-foreground text-center py-4">Nenhum resultado.</p>}
             </div>
           </div>
         </div>
