@@ -27,7 +27,7 @@ const QUADRANT_COLORS: Record<NivelMaturidade, string> = {
   M4: "hsl(var(--primary))",
 };
 
-const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+const getInitials = (name: string) => member.nome_liderado.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
 export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, onClose, onNavigate }) => {
   if (!member || !position || member.nivel_maturidade === 'N/A') return null;
@@ -47,7 +47,7 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
         <X className="h-4 w-4" />
       </Button>
       
-      {/* Top Section: Profile vs Maturity */}
+      {/* Top Section: Profile vs Maturity & Scores */}
       <div className="flex justify-between items-start pt-1 pb-2">
         {/* LEFT: Profile, Name, Cargo */}
         <div className="flex items-start gap-3">
@@ -62,28 +62,28 @@ export const MemberPopover: React.FC<MemberPopoverProps> = ({ member, position, 
           </div>
         </div>
 
-        {/* RIGHT: Large Maturity Level */}
+        {/* RIGHT: Maturity & Scores (Aligned) */}
         <div className="flex flex-col items-end justify-center h-full">
           <span 
-            className="text-3xl font-extrabold leading-none" 
+            className="text-2xl font-semibold leading-none mb-1" // Tamanho e peso reduzidos
             style={{ color: maturityColor }}
           >
             {member.nivel_maturidade}
           </span>
-        </div>
-      </div>
-
-      {/* Bottom Section: Hard/Soft Skills Scores */}
-      <div className="flex justify-between items-center border-t border-border pt-2">
-        <div className="flex items-center gap-1 text-sm text-foreground">
-          <Code className="w-4 h-4 text-primary" /> {/* Hard Skills Icon */}
-          <span className="font-medium">{member.eixo_x_tecnico_geral.toFixed(1)}</span>
-          <span className="text-xs text-muted-foreground">/4.0</span>
-        </div>
-        <div className="flex items-center gap-1 text-sm text-foreground">
-          <HeartHandshake className="w-4 h-4 text-accent" /> {/* Soft Skills Icon */}
-          <span className="font-medium">{member.eixo_y_comportamental.toFixed(1)}</span>
-          <span className="text-xs text-muted-foreground">/4.0</span>
+          
+          {/* Scores Alinhados */}
+          <div className="flex flex-col items-end text-xs space-y-0.5">
+            <div className="flex items-center gap-1 text-foreground">
+              <Code className="w-3 h-3 text-primary" />
+              <span className="font-medium">Técnico:</span>
+              <span className="font-bold">{member.eixo_x_tecnico_geral.toFixed(1)}</span>
+            </div>
+            <div className="flex items-center gap-1 text-foreground">
+              <HeartHandshake className="w-3 h-3 text-accent" />
+              <span className="font-medium">Comportamental:</span>
+              <span className="font-bold">{member.eixo_y_comportamental.toFixed(1)}</span>
+            </div>
+          </div>
         </div>
       </div>
 
