@@ -177,10 +177,10 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
           <div className="space-y-4 mb-4 p-4 border rounded-lg bg-muted/20 w-full max-w-3xl"> {/* Limita a largura do painel */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Filtro de Categoria usando Select */}
-              <div>
+              <div className="flex flex-col items-center"> {/* Centraliza o conteúdo da coluna */}
                 <Label className="text-sm font-medium mb-2 block">Filtrar por Categoria</Label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-full md:w-64"> {/* Estilizado com largura definida */}
+                  <SelectTrigger className="w-full max-w-xs"> {/* Usando max-w-xs para dar um tamanho estilizado */}
                     <SelectValue placeholder="Todas as Categorias" />
                   </SelectTrigger>
                   <SelectContent>
@@ -195,10 +195,10 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
             
               {/* Filtro de Especialização usando Select */}
               {selectedCategory !== 'all' && availableSpecializations.length > 1 && (
-                <div>
+                <div className="flex flex-col items-center"> {/* Centraliza o conteúdo da coluna */}
                   <Label className="text-sm font-medium mb-2 block">Filtrar por Especialização</Label>
                   <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
-                    <SelectTrigger className="w-full md:w-64"> {/* Estilizado com largura definida */}
+                    <SelectTrigger className="w-full max-w-xs"> {/* Usando max-w-xs para dar um tamanho estilizado */}
                       <SelectValue placeholder="Todas as Especializações" />
                     </SelectTrigger>
                     <SelectContent>
@@ -213,14 +213,16 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
             
             {/* Botão para limpar filtros - Exibido apenas se houver filtro ativo */}
             {isFilterActive && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => { setSelectedCategory('all'); setSelectedSpecialization('all'); }}
-                className="gap-1 text-destructive hover:bg-destructive/10"
-              >
-                <X className="w-4 h-4" /> Limpar Filtros
-              </Button>
+              <div className="flex justify-center"> {/* Centraliza o botão de limpar */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => { setSelectedCategory('all'); setSelectedSpecialization('all'); }}
+                  className="gap-1 text-destructive hover:bg-destructive/10"
+                >
+                  <X className="w-4 h-4" /> Limpar Filtros
+                </Button>
+              </div>
             )}
           </div>
         </div>
