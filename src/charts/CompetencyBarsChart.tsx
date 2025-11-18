@@ -218,8 +218,9 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
           <YAxis 
             type="number" 
             domain={[0, 4]} 
-            ticks={[0, 1, 2, 2.5, 3, 4]} 
+            ticks={[0, 1, 2, 3, 4]} // Removido o 2.5
             stroke={empty ? "hsl(var(--muted) / 0.5)" : "hsl(var(--foreground))"} 
+            tick={{ fill: 'hsl(var(--muted-foreground) / 0.8)', fontSize: 11 }} // Diminuído e opacificado
           />
           
           {/* Tooltip nativo do Recharts, ativado por hover */}
