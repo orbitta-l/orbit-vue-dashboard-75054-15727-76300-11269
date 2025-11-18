@@ -43,7 +43,7 @@ export function DashboardHeader() {
       {/* Título Principal (Esquerda) */}
       <div>
         <h1 className={cn(
-          "text-3xl font-bold",
+          "text-3xl font-bold transition-all duration-500", // Adicionado transition-all
           "bg-gradient-to-r", // Adicionado bg-gradient-to-r aqui
           gradientClass, // Classe dinâmica
           "bg-clip-text text-transparent"

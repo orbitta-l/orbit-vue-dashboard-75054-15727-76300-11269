@@ -40,14 +40,14 @@ export const Sidebar = () => {
     <aside className="fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300 z-20 w-56">
       {/* Logo Section (Top) */}
       <div className="relative flex items-center justify-center h-16 border-b border-sidebar-border px-4">
-        <img src={logo} alt="ORBITTA Logo" className="h-8" />
+        <img src={logo} alt="ORBITTA Logo" className="h-8 transition-transform duration-300 hover:scale-105" />
       </div>
 
       {/* Profile Block - Centralizado e Reduzido */}
-      <div className="p-4 border-b border-sidebar-border/50 flex flex-col items-center text-center">
+      <div className="p-4 border-b border-sidebar-border/50 flex flex-col items-center text-center transition-all duration-300 hover:bg-sidebar-accent/10">
         
         {/* Avatar Reduzido */}
-        <Avatar className="w-12 h-12 mb-2">
+        <Avatar className="w-12 h-12 mb-2 transition-transform duration-300 hover:scale-105">
             <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
                 {getInitials(userName)}
             </AvatarFallback>
@@ -65,7 +65,7 @@ export const Sidebar = () => {
         {/* Cargo em Badge Sutil */}
         <Badge 
             variant="secondary" 
-            className="text-xs font-medium bg-sidebar-accent/50 text-sidebar-foreground/80 hover:bg-sidebar-accent/70"
+            className="text-xs font-medium bg-sidebar-accent/50 text-sidebar-foreground/80 hover:bg-sidebar-accent/70 transition-colors"
         >
             {userCargo}
         </Badge>
@@ -81,9 +81,9 @@ export const Sidebar = () => {
               end={item.to === "/dashboard-lider"}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 w-full",
+                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-300 w-full", // Aumentado duration para 300ms
                   isActive
-                    ? "bg-primary text-primary-foreground font-medium"
+                    ? "bg-primary text-primary-foreground font-medium shadow-md"
                     : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )
               }
@@ -91,7 +91,7 @@ export const Sidebar = () => {
               {({ isActive }) => (
                 <>
                   {/* Ícones principais em cinza claro (text-sidebar-foreground/60) */}
-                  <item.icon className={cn("w-5 h-5", isActive ? "text-primary-foreground" : "text-sidebar-foreground/60")} />
+                  <item.icon className={cn("w-5 h-5 transition-colors duration-300", isActive ? "text-primary-foreground" : "text-sidebar-foreground/60")} />
                   <span>{item.label}</span>
                 </>
               )}
@@ -107,23 +107,23 @@ export const Sidebar = () => {
           to="/settings"
           className={({ isActive }) =>
             cn(
-              "flex items-center gap-3 px-3 py-2 w-full rounded-lg transition-all duration-200",
+              "flex items-center gap-3 px-3 py-2 w-full rounded-lg transition-all duration-300", // Aumentado duration para 300ms
               isActive
                 ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                 : "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             )
           }
         >
-          <Settings className="w-5 h-5 text-sidebar-foreground/60" />
+          <Settings className="w-5 h-5 text-sidebar-foreground/60 transition-colors duration-300" />
           <span>Configurações</span>
         </NavLink>
         
         {/* Logout (Botão Laranja) */}
         <button 
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2 w-full rounded-lg bg-transparent hover:bg-accent/20 transition-all duration-200 text-accent hover:text-accent-foreground"
+          className="flex items-center gap-3 px-3 py-2 w-full rounded-lg bg-transparent hover:bg-accent/20 transition-all duration-300 text-accent hover:text-accent-foreground" // Aumentado duration para 300ms
         >
-          <LogOut className="w-5 h-5 text-accent" />
+          <LogOut className="w-5 h-5 text-accent transition-colors duration-300" />
           <span>Sair</span>
         </button>
       </div>
