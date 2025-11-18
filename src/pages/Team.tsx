@@ -255,7 +255,21 @@ export default function Team() {
   const renderMemberCard = (member: LideradoDashboard & { isTalent: boolean }) => {
     const isEvaluated = !!member.ultima_avaliacao;
     const maturity = member.ultima_avaliacao?.maturidade_quadrante || 'N/A';
-    const topCompetencies = member.competencias.filter(c => c.pontuacao_1a4 > 0).sort((a, b) => b.pontuacao_1a4 - a.pontuacao_1a4).slice(0, 3);
+    
+    // Calcular média geral
+    const overallAverage = isEvaluated 
+      ? ((member.ultima_avaliacao!.media_tecnica_1a4 + member.ultima_avaliacao!.media_comportamental_1a4) / 2).toFixed(1)
+      : 'N/A';
+
+    // Encontrar melhor competência comportamental
+    const bestSoftSkill = member.competencias
+      .filter(c => c.tipo === 'COMPORTAMENTAL' && c.pontuacao_1a4 > 0)
+      .sort((a, b) => b.pontuacao_1a4 - a.pontuacao_1a4)[0];
+
+    // Encontrar melhor competência técnica
+    const bestHardSkill = member.competencias
+      .filter(c => c.tipo === 'TECNICA' && c.pontuacao_1a4 > 0)
+      .sort((a, b) => b.pontuacao_1a4 - a.pontuacao_1a4)[0];
 
     const isSelected = selectedMembersForComparison.includes(member.id_usuario);
 
@@ -294,34 +308,56 @@ export default function Team() {
           </div>
         )}
 
-        {/* Profile Info (Avatar, Name, Email, Cargo) */}
-        <div className="flex items-center gap-4 mb-4 mt-8"> {/* Adicionado mt-8 para dar espaço ao badge de maturidade */}
-          <Avatar className="w-14 h-14 flex-shrink-0">
+        {/* Profile Info (Avatar, Name, Email, Cargo) - Centralizado */}
+        <div className="flex flex-col items-center text-center gap-2 mb-4 mt-8"> {/* Adicionado mt-8 para dar espaço ao badge de maturidade */}
+          <Avatar className="w-16 h-16 flex-shrink-0"> {/* Avatar um pouco maior */}
             <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xl">
               {getInitials(member.nome)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-lg text-foreground truncate">{member.nome}</h3>
-            <p className="text-sm text-muted-foreground truncate">{member.cargo_nome}</p>
-            <p className="text-xs text-muted-foreground truncate">{member.email}</p>
+            <h3 className="font-bold text-xl text-foreground truncate">{member.nome}</h3> {/* Nome destacado */}
+            <p className="text-xs text-muted-foreground opacity-70 truncate">{member.email}</p> {/* Email opaco e pequeno */}
+            <Badge variant="secondary" className="text-xs mt-1"> {/* Cargo com background */}
+              {member.cargo_nome}
+            </Badge>
           </div>
         </div>
 
         <Separator className="my-4" /> {/* Divisor */}
 
-        {/* Top Competencies */}
-        <div className="min-h-[60px]"> {/* Altura mínima para evitar layout shift */}
-          {isEvaluated && topCompetencies.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {topCompetencies.map(comp => (
-                <Badge key={comp.id_competencia} className={cn("text-xs font-medium", getGapColorClass(comp.pontuacao_1a4))} variant="outline">
-                  {comp.nome_competencia} ({comp.pontuacao_1a4.toFixed(1)})
+        {/* Performance Metrics (Star, Best Soft/Hard Skills) */}
+        <div className="space-y-2 text-sm">
+          {isEvaluated ? (
+            <>
+              <div className="flex items-center gap-2 text-foreground">
+                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                <span className="font-semibold">Média Geral:</span>
+                <Badge variant="outline" className={cn("text-xs font-medium", getGapColorClass(parseFloat(overallAverage)))}>
+                  {overallAverage}
                 </Badge>
-              ))}
-            </div>
+              </div>
+              {bestSoftSkill && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <HeartHandshake className="w-4 h-4 text-primary-light" />
+                  <span className="font-medium">Melhor Comportamental:</span>
+                  <Badge variant="outline" className={cn("text-xs font-medium", getGapColorClass(bestSoftSkill.pontuacao_1a4))}>
+                    {bestSoftSkill.nome_competencia} ({bestSoftSkill.pontuacao_1a4.toFixed(1)})
+                  </Badge>
+                </div>
+              )}
+              {bestHardSkill && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Code className="w-4 h-4 text-primary-light" />
+                  <span className="font-medium">Melhor Técnica:</span>
+                  <Badge variant="outline" className={cn("text-xs font-medium", getGapColorClass(bestHardSkill.pontuacao_1a4))}>
+                    {bestHardSkill.nome_competencia} ({bestHardSkill.pontuacao_1a4.toFixed(1)})
+                  </Badge>
+                </div>
+              )}
+            </>
           ) : (
-            <p className="text-sm text-muted-foreground text-center">Aguardando primeira avaliação.</p>
+            <p className="text-sm text-muted-foreground text-center">Aguardando primeira avaliação para detalhes de desempenho.</p>
           )}
         </div>
       </Card>
