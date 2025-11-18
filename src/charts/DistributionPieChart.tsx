@@ -66,7 +66,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
         case "maturidade":
           key = member.ultima_avaliacao?.maturidade_quadrante || "Não Avaliado";
           break;
-        case "categoria":
+        case "categoria": // Este é o filtro que você quer renomear
           key = member.categoria_dominante || "Não definida";
           break;
         case "sexo":
@@ -117,26 +117,9 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
   };
 
   // Custom Label para mostrar apenas a porcentagem
-  const renderCustomLabel = ({ percent, x, y, midAngle, outerRadius, fill }: any) => {
+  const renderCustomLabel = ({ percent }: { percent: number }) => {
     if (!hasData) return "Sem dados";
-    
-    const radius = outerRadius * 1.2; // Move o rótulo um pouco para fora
-    const RADIAN = Math.PI / 180;
-    const ex = x + radius * Math.cos(-midAngle * RADIAN);
-    const ey = y + radius * Math.sin(-midAngle * RADIAN);
-    
-    return (
-      <text
-        x={ex}
-        y={ey}
-        fill="hsl(var(--foreground))" // Cor do texto baseada no foreground
-        textAnchor={ex > x ? 'start' : 'end'}
-        dominantBaseline="central"
-        className="font-semibold opacity-80" // Adicionando classes Tailwind
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
+    return `${(percent * 100).toFixed(0)}%`;
   };
 
   return (
@@ -154,7 +137,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
         <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0 flex items-center justify-center">
           <TabsList className="flex flex-col h-auto p-3 space-y-4 bg-muted/50">
             <TabsTrigger value="maturidade" className="w-full justify-start">Maturidade</TabsTrigger>
-            <TabsTrigger value="categoria" className="w-full justify-start">Categoria</TabsTrigger>
+            <TabsTrigger value="categoria" className="w-full justify-start">Área Dominante</TabsTrigger> {/* RENOMEADO AQUI */}
             <TabsTrigger value="sexo" className="w-full justify-start">Gênero</TabsTrigger>
             <TabsTrigger value="faixaEtaria" className="w-full justify-start">Faixa Etária</TabsTrigger>
           </TabsList>
