@@ -185,20 +185,27 @@ export default function Home() {
         data={dashboardData.barras}
       />
 
-      <DistributionPieChart
-        empty={isPrimeiroAcesso}
-        teamMembers={dashboardData.pizza}
-      />
+      {/* Novo layout de grid para o gráfico de pizza e avaliações recentes */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-2">
+          <DistributionPieChart
+            empty={isPrimeiroAcesso}
+            teamMembers={dashboardData.pizza}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <RecentEvaluationsSection
+            empty={isPrimeiroAcesso}
+            evaluations={dashboardData.recentes}
+            onEvaluationClick={(lideradoId) => navigate(`/team/${lideradoId}`)}
+          />
+        </div>
+      </div>
 
+      {/* A seção KnowledgeGapsSection foi movida para baixo para manter a ordem visual */}
       <KnowledgeGapsSection
         empty={isPrimeiroAcesso}
         teamMembers={dashboardData.gaps}
-      />
-
-      <RecentEvaluationsSection
-        empty={isPrimeiroAcesso}
-        evaluations={dashboardData.recentes}
-        onEvaluationClick={(lideradoId) => navigate(`/team/${lideradoId}`)}
       />
     </div>
   );
