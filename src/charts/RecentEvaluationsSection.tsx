@@ -38,8 +38,8 @@ export default function RecentEvaluationsSection({
         <ClipboardCheck className="w-5 h-5 text-primary" />
         Avaliações Recentes
       </h3>
-      {/* Alterado variant para 'link' e removido classes de hover de background */}
-      <Button onClick={handleNewEvaluation} variant="link" size="sm" className="gap-1 text-primary p-0 h-auto">
+      {/* Aplicando text-accent e font-semibold */}
+      <Button onClick={handleNewEvaluation} variant="link" size="sm" className="gap-1 text-accent font-semibold p-0 h-auto">
         <Plus className="w-4 h-4" />
         Nova Avaliação
       </Button>
