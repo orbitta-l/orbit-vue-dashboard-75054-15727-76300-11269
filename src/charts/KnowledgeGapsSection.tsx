@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, Code, HeartHandshake, TrendingDown, TrendingUp } from "lucide-react";
 import { LideradoDashboard } from "@/types/mer";
-import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
+import { getGapColorClass } from "@/utils/colorUtils";
 
 interface KnowledgeGapsSectionProps {
   teamMembers: LideradoDashboard[];
@@ -70,12 +70,12 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
     <div key={gap.nome_competencia} className="space-y-1.5">
       <div className="flex items-center justify-between text-sm">
         <div className="flex-1 min-w-0">
-          <span className={`font-medium ${getGapColorClass(gap.media_score)} truncate`}>{gap.nome_competencia}</span>
+          <span className={`font-medium text-foreground truncate`}>{gap.nome_competencia}</span>
           {gap.tipo === 'TECNICA' && gap.nome_categoria && (
             <span className="text-xs text-muted-foreground ml-2 hidden sm:inline-block truncate">({gap.nome_categoria})</span>
           )}
         </div>
-        <span className={`font-semibold text-xs px-2 py-0.5 rounded-full`} style={{ backgroundColor: getGapColor(gap.media_score), color: gap.media_score >= 3.5 ? 'white' : 'hsl(var(--foreground))' }}>
+        <span className={`font-semibold text-sm ${getGapColorClass(gap.media_score)}`}>
           {gap.media_score.toFixed(1)}
         </span>
       </div>
@@ -106,25 +106,31 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
 
     return (
       <Card className="p-6 h-full flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h4 className="text-md font-semibold text-foreground flex items-center gap-2"><Icon className="w-5 h-5" />Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}</h4>
-          <Button variant="ghost" size="sm" onClick={() => setExpanded(!isExpanded)} className="gap-1 text-accent font-semibold">
-            {isExpanded ? "Recolher" : "Ver inteiro"}
-            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </Button>
-        </div>
+        <h4 className="text-md font-semibold text-foreground flex items-center gap-2 mb-4"><Icon className="w-5 h-5" />Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}</h4>
 
         <div className="flex-1 flex flex-col">
           {!isExpanded ? (
             <>
-              <h5 className="text-sm font-semibold text-destructive mb-3 flex items-center gap-2"><TrendingDown className="w-4 h-4" />Áreas Críticas</h5>
+              <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><TrendingDown className="w-4 h-4 text-destructive" />Áreas Críticas</h5>
               <div className="space-y-3 mb-4">{worstGaps.map(renderGapItem)}</div>
               <div className="border-t border-dashed border-border my-4"></div>
-              <h5 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4" />Destaques</h5>
+              <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" />Destaques</h5>
               <div className="space-y-3">{bestGaps.map(renderGapItem)}</div>
+              <div className="mt-auto pt-4">
+                <Button variant="outline" size="sm" onClick={() => setExpanded(true)} className="w-full gap-1">
+                  Ver lista completa <ChevronDown className="w-4 h-4" />
+                </Button>
+              </div>
             </>
           ) : (
-            <div className="space-y-3 overflow-y-auto flex-1 pr-2">{fullList.map(renderGapItem)}</div>
+            <>
+              <div className="space-y-3 overflow-y-auto flex-1 pr-2">{fullList.map(renderGapItem)}</div>
+              <div className="mt-auto pt-4">
+                <Button variant="outline" size="sm" onClick={() => setExpanded(false)} className="w-full gap-1">
+                  Recolher <ChevronUp className="w-4 h-4" />
+                </Button>
+              </div>
+            </>
           )}
         </div>
       </Card>
