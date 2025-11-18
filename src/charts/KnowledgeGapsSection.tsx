@@ -66,7 +66,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
   const gapsComportamentais = calcularGaps('COMPORTAMENTAL');
 
   const renderGapItem = (gap: ReturnType<typeof calcularGaps>[0]) => (
-    <div key={gap.nome_competencia} className="space-y-1.5 p-2 rounded-md transition-colors hover:bg-muted/50">
+    <div key={gap.nome_competencia} className="space-y-1.5 p-2 rounded-md transition-colors"> {/* Removido hover:bg-muted/50 */}
       <div className="flex items-center justify-between text-sm">
         <div className="flex-1 min-w-0">
           <span className={`font-medium text-foreground truncate`}>{gap.nome_competencia}</span>
@@ -102,7 +102,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
     const fullList = gaps;
 
     return (
-      <Card className="p-6 h-full flex flex-col">
+      <Card className="p-6 h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1"> {/* Adicionado hover aqui */}
         <h4 className="text-md font-semibold text-foreground flex items-center gap-2 mb-4"><Icon className="w-5 h-5" />Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}</h4>
 
         <div className="flex-1 flex flex-col">
