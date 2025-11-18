@@ -30,8 +30,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>("all");
   
-  // Estado para controlar a cor da barra no hover
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null); 
+  // Removido: [hoveredIndex, setHoveredIndex] = useState<number | null>(null); 
   
   const availableCategories = useMemo(() => {
     if (empty) return [];
@@ -198,13 +197,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
         <BarChart 
           data={chartData.data} 
           margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-          // Controla o estado de hover para a cor
-          onMouseEnter={(state) => {
-            if (state.activeTooltipIndex !== undefined) {
-              setHoveredIndex(state.activeTooltipIndex);
-            }
-          }}
-          onMouseLeave={() => setHoveredIndex(null)}
+          // Removidos onMouseEnter e onMouseLeave
         >
           <CartesianGrid strokeDasharray="3 3" stroke={empty ? "hsl(var(--muted) / 0.2)" : "hsl(var(--border))"} />
           <XAxis 
@@ -218,9 +211,9 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
           <YAxis 
             type="number" 
             domain={[0, 4]} 
-            ticks={[0, 1, 2, 3, 4]} // Removido o 2.5
+            ticks={[0, 1, 2, 3, 4]} 
             stroke={empty ? "hsl(var(--muted) / 0.5)" : "hsl(var(--foreground))"} 
-            tick={{ fill: 'hsl(var(--muted-foreground) / 0.8)', fontSize: 11 }} // Diminuído e opacificado
+            tick={{ fill: 'hsl(var(--muted-foreground) / 0.8)', fontSize: 11 }} 
           />
           
           {/* Tooltip nativo do Recharts, ativado por hover */}
@@ -244,15 +237,13 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                 fill={
                   empty 
                     ? "hsl(var(--color-muted))" 
-                    : index === hoveredIndex
-                      ? COLOR_BELOW_AVERAGE // Laranja no hover
-                      : entry.media < THRESHOLD && entry.media > 0
-                        ? COLOR_BELOW_AVERAGE // Laranja para abaixo da média
-                        : entry.media >= THRESHOLD
-                          ? COLOR_DEFAULT // Azul para na média ou acima
-                          : "hsl(var(--muted))" // Cinza para 0 ou menos
+                    : entry.media < THRESHOLD && entry.media > 0
+                      ? COLOR_BELOW_AVERAGE // Laranja para abaixo da média
+                      : entry.media >= THRESHOLD
+                        ? COLOR_DEFAULT // Azul para na média ou acima
+                        : "hsl(var(--muted))" // Cinza para 0 ou menos
                 } 
-                className="transition-all duration-200 cursor-pointer"
+                className="transition-all duration-200" // Removido cursor-pointer
               />
             ))}
             <LabelList 
