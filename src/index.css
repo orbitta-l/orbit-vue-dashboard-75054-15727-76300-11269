@@ -17,12 +17,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 214 100% 1%;
 
-    --primary: 215 100% 23<think>**Analyzing CSS File Corruption**
-
-The stubborn error re-emerged, confirming the rewrite attempts for `src/index.css` didn't stick. Now, the unclosed string message pinpoints the file's first line: `CSS.">`! This strongly suggests a broken write operation, perhaps from partial HTML insertion. Rewriting isn't cutting it, so I'm switching tactics. I'll delete the file completely, then recreate it from scratch with the correct CSS. A rebuild afterwards will catch any caching gremlins in the build process, if any.
-
-
-</think>%;
+    --primary: 215 100% 23%;
     --primary-foreground: 0 0% 100%;
     --primary-dark: 223 83% 7%;
     --primary-light: 215 90% 65%; /* New light blue */
