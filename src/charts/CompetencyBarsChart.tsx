@@ -23,7 +23,7 @@ interface CompetencyBarsChartProps {
 
 // Cores
 const COLOR_DEFAULT = "hsl(var(--color-brand))"; // Azul Principal
-const COLOR_HOVER = "hsl(var(--accent))"; // Laranja
+const COLOR_BELOW_AVERAGE = "hsl(var(--accent))"; // Laranja
 
 export default function CompetencyBarsChart({ empty = false, data, defaultMode = "TECNICA" }: CompetencyBarsChartProps) {
   const [mode, setMode] = useState<'TECNICA' | 'COMPORTAMENTAL'>(defaultMode);
@@ -33,8 +33,6 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
   // Estado para controlar a cor da barra no hover
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null); 
   
-  // Removidos: clickedData e clickedIndex
-
   const availableCategories = useMemo(() => {
     if (empty) return [];
     const categories = new Set(data.filter(d => d.tipo === 'TECNICA').map(d => d.categoria).filter(Boolean));
@@ -148,6 +146,8 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
     return null;
   };
 
+  const THRESHOLD = 2.5;
+
   return (
     <Card className="p-6 mb-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
@@ -243,14 +243,15 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                 fill={
                   empty 
                     ? "hsl(var(--color-muted))" 
-                    : index === hoveredIndex 
-                      ? COLOR_HOVER // Laranja no hover
-                      : entry.media > 0 
-                        ? COLOR_DEFAULT // Azul padrão
-                        : "hsl(var(--muted))"
+                    : index === hoveredIndex
+                      ? COLOR_BELOW_AVERAGE // Laranja no hover
+                      : entry.media < THRESHOLD && entry.media > 0
+                        ? COLOR_BELOW_AVERAGE // Laranja para abaixo da média
+                        : entry.media >= THRESHOLD
+                          ? COLOR_DEFAULT // Azul para na média ou acima
+                          : "hsl(var(--muted))" // Cinza para 0 ou menos
                 } 
                 className="transition-all duration-200 cursor-pointer"
-                // Removido o onClick
               />
             ))}
             <LabelList 
