@@ -296,7 +296,7 @@ export default function Team() {
         
         {/* Container Centralizado para Busca e Filtros */}
         <div className="flex justify-center w-full">
-          <div className="flex flex-col md:flex-row gap-4 mb-6 mt-6 w-full max-w-4xl">
+          <div className="flex flex-col md:flex-row gap-4 mb-6 mt-10 w-full max-w-4xl"> {/* Alterado mt-6 para mt-10 */}
             
             {/* Coluna de Busca e Limpar Filtros */}
             <div className="flex flex-col gap-4 flex-1">
