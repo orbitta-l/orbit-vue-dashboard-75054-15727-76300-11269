@@ -19,10 +19,15 @@ interface CompetencyBarsChartProps {
   defaultMode?: 'TECNICA' | 'COMPORTAMENTAL';
 }
 
+// Cores
+const COLOR_DEFAULT = "hsl(var(--color-brand))"; // Azul Principal
+const COLOR_HOVER = "hsl(var(--accent))"; // Laranja
+
 export default function CompetencyBarsChart({ empty = false, data, defaultMode = "TECNICA" }: CompetencyBarsChartProps) {
   const [mode, setMode] = useState<'TECNICA' | 'COMPORTAMENTAL'>(defaultMode);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>("all");
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null); // Novo estado para rastrear o hover
 
   const availableCategories = useMemo(() => {
     if (empty) return [];
@@ -125,6 +130,15 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
 
   // Custom Tooltip para o efeito hover
   const CustomTooltip = ({ active, payload, label }: any) => {
+    // Atualiza o estado de hover
+    useEffect(() => {
+      if (active && payload && payload.length) {
+        setHoveredIndex(payload[0].index);
+      } else {
+        setHoveredIndex(null);
+      }
+    }, [active, payload]);
+
     if (active && payload && payload.length) {
       const value = payload[0].value;
       return (
@@ -184,7 +198,12 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
       )}
 
       <ResponsiveContainer width="100%" height={350}>
-        <BarChart data={chartData.data} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+        <BarChart 
+          data={chartData.data} 
+          margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+          // Adiciona onMouseLeave para resetar o estado de hover quando o mouse sai do gráfico
+          onMouseLeave={() => setHoveredIndex(null)}
+        >
           <CartesianGrid strokeDasharray="3 3" stroke={empty ? "hsl(var(--muted) / 0.2)" : "hsl(var(--border))"} />
           <XAxis 
             dataKey={chartData.dataKey} 
@@ -219,12 +238,13 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                 fill={
                   empty 
                     ? "hsl(var(--color-muted))" 
-                    : entry.media > 0 
-                      ? "hsl(var(--color-brand))" // Usando --color-brand (Azul Principal)
-                      : "hsl(var(--muted))"
+                    : index === hoveredIndex 
+                      ? COLOR_HOVER // Laranja no hover
+                      : entry.media > 0 
+                        ? COLOR_DEFAULT // Azul padrão
+                        : "hsl(var(--muted))"
                 } 
-                // Adicionando o efeito de hover via CSS/Recharts (não é nativo, mas o Tooltip já dá feedback)
-                className="hover:fill-primary transition-all duration-200"
+                className="transition-all duration-200"
               />
             ))}
             <LabelList 
