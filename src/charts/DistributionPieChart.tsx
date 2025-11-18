@@ -167,6 +167,8 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
       return BASE_COLORS[index % BASE_COLORS.length];
   };
 
+  const triggerClasses = "w-full justify-start transition-colors duration-200 hover:bg-primary/10 hover:text-primary data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:font-semibold";
+
   return (
     <Card className="p-6 mb-8 h-full"> {/* Adicionado h-full */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
@@ -181,10 +183,10 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
         {/* Filtros Verticais (Esquerda) - Centralizado verticalmente */}
         <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0 flex items-center justify-center">
           <TabsList className="flex flex-col h-auto p-3 space-y-4 bg-muted/50">
-            <TabsTrigger value="maturidade" className="w-full justify-start">Maturidade</TabsTrigger>
-            <TabsTrigger value="categoria" className="w-full justify-start">Área</TabsTrigger>
-            <TabsTrigger value="sexo" className="w-full justify-start">Gênero</TabsTrigger>
-            <TabsTrigger value="faixaEtaria" className="w-full justify-start">Faixa Etária</TabsTrigger>
+            <TabsTrigger value="maturidade" className={triggerClasses}>Maturidade</TabsTrigger>
+            <TabsTrigger value="categoria" className={triggerClasses}>Área</TabsTrigger>
+            <TabsTrigger value="sexo" className={triggerClasses}>Gênero</TabsTrigger>
+            <TabsTrigger value="faixaEtaria" className={triggerClasses}>Faixa Etária</TabsTrigger>
           </TabsList>
         </Tabs>
 
