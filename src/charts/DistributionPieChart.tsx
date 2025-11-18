@@ -47,6 +47,11 @@ const formatGender = (gender: string): string => {
     return gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
 };
 
+// Função para formatar o rótulo para mostrar apenas a porcentagem
+const renderPercentageLabel = ({ percent }: any) => {
+    return `${(percent * 100).toFixed(0)}%`;
+};
+
 export default function DistributionPieChart({ teamMembers, empty = false }: DistributionPieChartProps) {
   const [filter, setFilter] = useState<PieChartFilterType>("maturidade");
 
@@ -116,35 +121,13 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
       return BASE_COLORS[index % BASE_COLORS.length];
   };
 
-  // Custom Label para mostrar apenas a porcentagem
-  const renderCustomLabel = ({ percent, x, y, midAngle, outerRadius, innerRadius }: any) => {
-    if (!hasData || percent < 0.05) return null; // Oculta rótulos muito pequenos (menos de 5%)
-    
-    // Calcula o raio no meio da espessura do donut
-    const radius = (innerRadius + outerRadius) / 2; 
-    const RADIAN = Math.PI / 180;
-    const ex = x + radius * Math.cos(-midAngle * RADIAN);
-    const ey = y + radius * Math.sin(-midAngle * RADIAN);
-    
-    // Estilos explícitos para SVG
-    const textStyle = {
-        fill: 'hsl(var(--foreground))',
-        fontWeight: 600, // bold
-        opacity: 0.6, // 60% de opacidade
-        fontSize: 14, // Tamanho da fonte
-    };
-
-    return (
-      <text
-        x={ex}
-        y={ey}
-        textAnchor="middle" // Centraliza o texto no ponto calculado
-        dominantBaseline="central"
-        style={textStyle}
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
+  // Configuração do rótulo externo
+  const labelConfig = {
+    formatter: renderPercentageLabel,
+    fill: 'hsl(var(--foreground))',
+    fontSize: 14,
+    fontWeight: 600,
+    opacity: 0.8, // Opacidade sutil para o texto
   };
 
   return (
@@ -176,8 +159,8 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
                 data={chartData}
                 cx="50%" // Centralizado
                 cy="50%" // Centralizado
-                labelLine={false} // Remove a linha de conexão
-                label={renderCustomLabel} // Usa o rótulo customizado
+                labelLine={true} // Habilita a linha de conexão
+                label={labelConfig} // Usa a configuração de rótulo externo com formatação
                 innerRadius={60} // Adicionado innerRadius para criar o efeito donut
                 outerRadius={100} // Reduzido de 120 para 100 para ser mais compacto
                 fill={hasData ? undefined : placeholderColor}
