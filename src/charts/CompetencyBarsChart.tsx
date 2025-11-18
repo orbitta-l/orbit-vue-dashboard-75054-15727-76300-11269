@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge"; // Importando Badge
+import { Badge } from "@/components/ui/badge"; // Mantendo Badge para outros usos
 
 type BarItem = { 
   competencia: string; 
@@ -173,39 +173,41 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
 
       {mode === 'TECNICA' && !empty && (
         <div className="space-y-4 mb-4 p-4 border rounded-lg bg-muted/20">
-          {/* Filtro de Categoria usando Badges */}
-          <div>
-            <Label className="text-sm font-medium mb-2 block">Filtrar por Categoria</Label>
-            <div className="flex flex-wrap gap-2">
-              {availableCategories.map(cat => (
-                <Badge
-                  key={cat}
-                  variant={selectedCategory === cat ? "default" : "secondary"}
-                  className="cursor-pointer transition-all duration-200 hover:opacity-80"
-                  onClick={() => setSelectedCategory(cat)}
-                >
-                  {cat === 'all' ? 'Todas as Categorias' : cat}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          
-          {/* Filtro de Especialização usando Select */}
-          {selectedCategory !== 'all' && availableSpecializations.length > 1 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Filtro de Categoria usando Select */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Filtrar por Especialização</Label>
-              <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
-                <SelectTrigger className="w-full md:w-64">
-                  <SelectValue placeholder="Todas as Especializações" />
+              <Label className="text-sm font-medium mb-2 block">Filtrar por Categoria</Label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Todas as Categorias" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableSpecializations.map(spec => (
-                    <SelectItem key={spec} value={spec}>{spec === 'all' ? 'Todas as Especializações' : spec}</SelectItem>
+                  {availableCategories.map(cat => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat === 'all' ? 'Todas as Categorias' : cat}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          )}
+          
+            {/* Filtro de Especialização usando Select */}
+            {selectedCategory !== 'all' && availableSpecializations.length > 1 && (
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Filtrar por Especialização</Label>
+                <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Todas as Especializações" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableSpecializations.map(spec => (
+                      <SelectItem key={spec} value={spec}>{spec === 'all' ? 'Todas as Especializações' : spec}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
           
           {/* Botão para limpar filtros */}
           {(selectedCategory !== 'all' || selectedSpecialization !== 'all') && (
