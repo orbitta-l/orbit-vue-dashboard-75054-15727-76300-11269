@@ -68,6 +68,8 @@ export default {
         },
         good: "hsl(var(--color-good))",
         mid: "hsl(var(--color-mid))",
+        'score-blue-gray': 'hsl(var(--color-score-blue-gray))',
+        'score-light-blue': 'hsl(var(--color-score-light-blue))',
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -33,7 +33,7 @@ All colors MUST be HSL.
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-muted: 0 70% 75%; /* New muted red */
+    --destructive-muted: 0 84% 75%; /* Adjusted muted red */
 
     --border: 200 10% 90%;
     --input: 200 10% 90%;
@@ -80,6 +80,10 @@ All colors MUST be HSL.
     --accent-orange-deep: 21 90% 40%;
     
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* New Score Colors */
+    --color-score-blue-gray: 215 20% 65%;
+    --color-score-light-blue: 215 80% 75%;
   }
 
   .dark {
@@ -107,7 +111,7 @@ All colors MUST be HSL.
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-muted: 0 70% 75%; /* New muted red */
+    --destructive-muted: 0 84% 65%; /* Adjusted muted red for dark mode */
 
     --border: 227 40% 25%;
     --input: 227 40% 25%;
@@ -135,6 +139,10 @@ All colors MUST be HSL.
     /* NOVAS CORES PARA QUADRANTE M1 e M2 (Dark Mode - Ajustadas para serem mais fortes) */
     --color-m1-weak: 0 84% 50%; /* Vermelho mais forte (antes 40%) */
     --color-m2-weak: 45 93% 40%; /* Amarelo mais escuro (antes 50%) */
+
+    /* New Score Colors (Dark Mode) */
+    --color-score-blue-gray: 215 20% 55%;
+    --color-score-light-blue: 215 80% 65%;
   }
 }
 
