@@ -16,9 +16,11 @@ const INSTITUTIONAL_COLORS = [
   "hsl(var(--primary-dark))",
   "hsl(var(--chart-5))",
   "hsl(var(--secondary))",
+  "hsl(var(--color-m1-weak))",
+  "hsl(var(--color-m2-weak))",
 ];
 
-// Mapeamento específico para o filtro de Maturidade
+// Mapeamento específico para o filtro de Maturidade (usado para ordenação e cores específicas)
 const MATURITY_COLORS: Record<NivelMaturidade | 'Não Avaliado', string> = {
   M4: "hsl(var(--primary))",
   M3: "hsl(var(--primary-dark))",
@@ -73,29 +75,21 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
       counts[key] = (counts[key] || 0) + 1;
     });
 
+    let data = Object.entries(counts).map(([name, value]) => ({ name, value }));
+
     // Ordena as faixas etárias para uma visualização consistente
     if (filter === 'faixaEtaria') {
-      const sortedEntries = Object.entries(counts).sort(([a], [b]) => {
-        const order = ["Até 25 anos", "26-35 anos", "36-45 anos", "Acima de 45 anos", "Idade não informada"];
-        return order.indexOf(a) - order.indexOf(b);
-      });
-      return sortedEntries.map(([name, value]) => ({ name, value }));
+      const order = ["Até 25 anos", "26-35 anos", "36-45 anos", "Acima de 45 anos", "Idade não informada"];
+      data.sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
     }
     
     // Ordena Maturidade para garantir que as cores M1-M4 sejam aplicadas corretamente
     if (filter === 'maturidade') {
         const order = ["M4", "M3", "M2", "M1", "Não Avaliado"];
-        const sortedEntries = Object.entries(counts).sort(([a], [b]) => {
-            return order.indexOf(a) - order.indexOf(b);
-        });
-        return sortedEntries.map(([name, value]) => ({ name, value }));
+        data.sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
     }
 
-
-    return Object.entries(counts).map(([name, value]) => ({
-      name,
-      value,
-    }));
+    return data;
   };
 
   const chartData = getChartData();
@@ -125,6 +119,12 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
       return INSTITUTIONAL_COLORS[index % INSTITUTIONAL_COLORS.length];
   };
 
+  // Custom Label para mostrar apenas a porcentagem
+  const renderCustomLabel = ({ percent }: { percent: number }) => {
+    if (!hasData) return "Sem dados";
+    return `${(percent * 100).toFixed(0)}%`;
+  };
+
   return (
     <Card className="p-6 mb-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
@@ -149,7 +149,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={({ name, percent }) => (hasData ? `${name}: ${(percent * 100).toFixed(0)}%` : name)}
+            label={renderCustomLabel} // Usando o custom label
             outerRadius={100}
             fill={hasData ? undefined : placeholderColor}
             dataKey="value"
@@ -163,7 +163,8 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
             ))}
           </Pie>
           {hasData && <Tooltip />}
-          {hasData && <Legend />}
+          {/* Alterado para iconType="circle" */}
+          {hasData && <Legend iconType="circle" />} 
         </PieChart>
       </ResponsiveContainer>
 
