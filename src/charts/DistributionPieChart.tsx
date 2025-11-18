@@ -190,7 +190,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
 
         {/* Gráfico de Pizza (Direita) - Centralizado no espaço restante */}
         <div className="flex-1 h-full flex items-center justify-center"> {/* Adicionado flex items-center justify-center */}
-          <ResponsiveContainer width="100%" height="100%"> {/* height="100%" para usar a altura do pai */}
+          <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={chartData}
