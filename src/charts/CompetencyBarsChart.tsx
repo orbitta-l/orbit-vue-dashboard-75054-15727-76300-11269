@@ -197,7 +197,6 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
         <BarChart 
           data={chartData.data} 
           margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-          // Removidos onMouseEnter e onMouseLeave
         >
           <CartesianGrid strokeDasharray="3 3" stroke={empty ? "hsl(var(--muted) / 0.2)" : "hsl(var(--border))"} />
           <XAxis 
@@ -243,14 +242,14 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                         ? COLOR_DEFAULT // Azul para na média ou acima
                         : "hsl(var(--muted))" // Cinza para 0 ou menos
                 } 
-                className="transition-all duration-200" // Removido cursor-pointer
+                className="transition-all duration-200"
               />
             ))}
             <LabelList 
               dataKey="media" 
               position="top" 
               formatter={(value: number) => (value > 0 ? value.toFixed(1) : '')} 
-              fill={empty ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))"} 
+              fill={empty ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground) / 0.8)"} // Aplicando opacidade aqui
             />
           </Bar>
         </BarChart>
