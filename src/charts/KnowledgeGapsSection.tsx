@@ -10,6 +10,9 @@ interface KnowledgeGapsSectionProps {
   empty?: boolean;
 }
 
+// Limite de exibição no estado não expandido
+const DISPLAY_LIMIT = 3;
+
 export default function KnowledgeGapsSection({ teamMembers, empty = false }: KnowledgeGapsSectionProps) {
   const [expandedTecnica, setExpandedTecnica] = useState(false);
   const [expandedComportamental, setExpandedComportamental] = useState(false);
@@ -58,6 +61,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
       });
     });
 
+    // Retorna a lista completa ordenada do pior (menor score) para o melhor (maior score)
     return Array.from(competenciasMap.values())
       .map(({ soma, count, competencia }) => ({
         nome_competencia: competencia.nome_competencia,
@@ -72,14 +76,60 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
   const gapsTecnicos = calcularGaps('TECNICA');
   const gapsComportamentais = calcularGaps('COMPORTAMENTAL');
 
+  const renderGapItem = (gap: ReturnType<typeof calcularGaps>[0]) => (
+    <div key={gap.nome_competencia} className="space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex-1">
+          <span className={`font-medium ${getGapColorClass(gap.media_score)}`}>
+            {gap.nome_competencia}
+          </span>
+          <span className="text-xs text-muted-foreground ml-2">
+            ({gap.nome_categoria}
+            {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""})
+          </span>
+        </div>
+        <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
+          {gap.media_score.toFixed(1)}/4.0
+        </span>
+      </div>
+      <div className="h-2 bg-secondary rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${(gap.media_score / 4) * 100}%`,
+            backgroundColor: getGapColor(gap.media_score),
+          }}
+        />
+      </div>
+    </div>
+  );
+
   const renderGapCard = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
     const gaps = tipo === 'TECNICA' ? gapsTecnicos : gapsComportamentais;
-    const isExpanded = tipo === 'TECNICA' ? expandedTecnica : expandedComportamental;
+    const isExpanded = tipo === 'TECNICA' ? expandedTecnica : setExpandedComportamental;
     const setExpanded = tipo === 'TECNICA' ? setExpandedTecnica : setExpandedComportamental;
 
-    const pioresGaps = gaps.filter((g) => g.media_score < 2.5);
-    const melhoresGaps = gaps.filter((g) => g.media_score >= 2.5);
-    const top5 = gaps.slice(0, 5);
+    if (!hasData || gaps.length === 0) {
+        return (
+            <Card className="p-6 bg-muted/20 text-center">
+                <h4 className="text-md font-semibold mb-4 text-muted-foreground">
+                    Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}
+                </h4>
+                <p className="text-sm text-muted-foreground py-8">Sem dados para exibir</p>
+            </Card>
+        );
+    }
+
+    // Os piores são os primeiros (já ordenados)
+    const worstGaps = gaps.slice(0, DISPLAY_LIMIT);
+    // Os melhores são os últimos (revertendo a ordem para pegar os maiores)
+    const bestGaps = gaps.slice(-DISPLAY_LIMIT).reverse();
+    
+    // Remove duplicatas se a lista for muito pequena
+    const combinedGaps = Array.from(new Set([...worstGaps, ...bestGaps]));
+    
+    // Garante que a lista combinada seja ordenada do pior para o melhor
+    const defaultDisplayGaps = combinedGaps.sort((a, b) => a.media_score - b.outra_media_score); // Usando a ordenação original
 
     return (
       <Card className="p-6">
@@ -87,40 +137,25 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
           Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}
         </h4>
 
-        {!hasData || top5.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            Sem dados para exibir
-          </p>
-        ) : !isExpanded ? (
+        {!isExpanded ? (
           <>
+            {/* Piores Gaps */}
+            <h5 className="text-sm font-semibold text-destructive mb-3">
+              3 Piores Gaps (Áreas Críticas)
+            </h5>
             <div className="space-y-3 mb-4">
-              {top5.map((gap) => (
-                <div key={gap.nome_competencia} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex-1">
-                      <span className={`font-medium ${getGapColorClass(gap.media_score)}`}>
-                        {gap.nome_competencia}
-                      </span>
-                      <span className="text-xs text-muted-foreground ml-2">
-                        ({gap.nome_categoria}
-                        {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""})
-                      </span>
-                    </div>
-                    <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
-                      {gap.media_score.toFixed(1)}/4.0
-                    </span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${(gap.media_score / 4) * 100}%`,
-                        backgroundColor: getGapColor(gap.media_score),
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
+              {worstGaps.map(renderGapItem)}
+            </div>
+
+            {/* Separador */}
+            <div className="border-t border-dashed border-border my-4"></div>
+
+            {/* Melhores Gaps */}
+            <h5 className="text-sm font-semibold text-primary mb-3">
+              3 Melhores Competências (Pontos Fortes)
+            </h5>
+            <div className="space-y-3 mb-4">
+              {bestGaps.map(renderGapItem)}
             </div>
 
             <Button
@@ -130,62 +165,18 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
               className="w-full"
             >
               <ChevronDown className="w-4 h-4 mr-2" />
-              Ver detalhes completos
+              Ver lista completa ({gaps.length} competências)
             </Button>
           </>
         ) : (
           <>
-            {pioresGaps.length > 0 && (
-              <div className="mb-6">
-                <h5 className="text-sm font-semibold text-foreground mb-3">
-                  Piores Gaps (Áreas Críticas)
-                </h5>
-                <div className="space-y-3">
-                  {pioresGaps.map((gap) => (
-                    <div key={gap.nome_competencia} className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {gap.nome_competencia}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {gap.nome_categoria}
-                          {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""}
-                        </p>
-                      </div>
-                      <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
-                        {gap.media_score.toFixed(1)}/4.0
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {melhoresGaps.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-semibold text-foreground mb-3">
-                  Melhores Competências (Pontos Fortes)
-                </h5>
-                <div className="space-y-3">
-                  {melhoresGaps.reverse().map((gap) => (
-                    <div key={gap.nome_competencia} className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {gap.nome_competencia}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {gap.nome_categoria}
-                          {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""}
-                        </p>
-                      </div>
-                      <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
-                        {gap.media_score.toFixed(1)}/4.0
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            <h5 className="text-sm font-semibold text-foreground mb-3">
+              Lista Completa (Pior para Melhor)
+            </h5>
+            <div className="space-y-3 mb-4">
+              {/* Exibe a lista completa, que já está ordenada do pior para o melhor */}
+              {gaps.map(renderGapItem)}
+            </div>
 
             <Button
               variant="outline"
