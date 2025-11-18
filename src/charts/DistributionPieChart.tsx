@@ -161,7 +161,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
             <PieChart>
               <Pie
                 data={chartData}
-                cx="40%" // Ajustado para 40% para dar mais espaço à legenda
+                cx="50%" // Centralizado novamente para dar espaço à legenda inferior
                 cy="50%"
                 labelLine={false}
                 label={renderCustomLabel}
@@ -180,13 +180,13 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
                 ))}
               </Pie>
               {hasData && <Tooltip />}
-              {/* Legenda à direita e vertical (mantida) */}
+              {/* Legenda na parte inferior, horizontal e centralizada */}
               {hasData && <Legend 
                 iconType="circle" 
-                layout="vertical" 
-                verticalAlign="middle" 
-                align="right" 
-                wrapperStyle={{ paddingLeft: '20px' }}
+                layout="horizontal" 
+                verticalAlign="bottom" 
+                align="center" 
+                wrapperStyle={{ paddingTop: '20px' }}
               />} 
             </PieChart>
           </ResponsiveContainer>

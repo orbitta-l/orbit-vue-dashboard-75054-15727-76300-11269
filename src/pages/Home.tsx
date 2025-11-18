@@ -185,15 +185,15 @@ export default function Home() {
         data={dashboardData.barras}
       />
 
-      {/* Ajustado para lg:col-span-3 (75%) e lg:col-span-1 (25%) */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8 items-stretch">
+      {/* NOVO LAYOUT: lg:grid-cols-5, Pie Chart 3 colunas (60%) e Recent Evals 2 colunas (40%) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8 items-stretch">
         <div className="lg:col-span-3">
           <DistributionPieChart
             empty={isPrimeiroAcesso}
             teamMembers={dashboardData.pizza}
           />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-2">
           <RecentEvaluationsSection
             empty={isPrimeiroAcesso}
             evaluations={dashboardData.recentes}
