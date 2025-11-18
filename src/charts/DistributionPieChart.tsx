@@ -117,7 +117,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
   };
 
   // Custom Label para mostrar apenas a porcentagem
-  const renderCustomLabel = ({ percent, x, y, midAngle, outerRadius, fill }: any) => {
+  const renderCustomLabel = ({ percent, x, y, midAngle, outerRadius }: any) => {
     if (!hasData) return null;
     
     const radius = outerRadius * 1.2; // Move o rótulo um pouco para fora
@@ -125,6 +125,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
     const ex = x + radius * Math.cos(-midAngle * RADIAN);
     const ey = y + radius * Math.sin(-midAngle * RADIAN);
     
+    // Retorna o elemento <text> com as propriedades de posicionamento e estilo
     return (
       <text
         x={ex}
@@ -154,7 +155,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
         <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0 flex items-center justify-center">
           <TabsList className="flex flex-col h-auto p-3 space-y-4 bg-muted/50">
             <TabsTrigger value="maturidade" className="w-full justify-start">Maturidade</TabsTrigger>
-            <TabsTrigger value="categoria" className="w-full justify-start">Área</TabsTrigger> {/* ALTERADO AQUI */}
+            <TabsTrigger value="categoria" className="w-full justify-start">Área</TabsTrigger>
             <TabsTrigger value="sexo" className="w-full justify-start">Gênero</TabsTrigger>
             <TabsTrigger value="faixaEtaria" className="w-full justify-start">Faixa Etária</TabsTrigger>
           </TabsList>
