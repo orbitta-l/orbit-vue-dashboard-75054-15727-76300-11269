@@ -91,9 +91,6 @@ const CustomPieTooltip = ({ active, payload }: any) => {
                 <p className="text-muted-foreground">
                     Total de Membros: <span className="font-semibold text-primary">{data.value}</span>
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                    Porcentagem: <span className="font-semibold text-primary">{(data.percent * 100).toFixed(1)}%</span>
-                </p>
             </div>
         );
     }
