@@ -179,7 +179,7 @@ export default function Home() {
         </Card>
       )}
 
-      <MaturantityQuadrantChart
+      <MaturityQuadrantChart
         empty={isPrimeiroAcesso}
         teamMembers={dashboardData.quadrante as any} // Cast temporário, pois o tipo MemberData no chart precisa ser atualizado
       />
