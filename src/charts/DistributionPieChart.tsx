@@ -9,25 +9,23 @@ interface DistributionPieChartProps {
   empty?: boolean;
 }
 
-// Cores institucionais para filtros gerais (não-maturidade)
-const INSTITUTIONAL_COLORS = [
-  "hsl(var(--primary))",
-  "hsl(var(--accent))",
-  "hsl(var(--primary-dark))",
-  "hsl(var(--chart-5))",
-  "hsl(var(--secondary))",
-  "hsl(var(--color-m1-weak))",
-  "hsl(var(--color-m2-weak))",
-];
-
 // Mapeamento específico para o filtro de Maturidade (usado para ordenação e cores específicas)
-const MATURITY_COLORS: Record<NivelMaturidade | 'Não Avaliado', string> = {
+const MATURITY_COLORS_MAP: Record<NivelMaturidade | 'Não Avaliado', string> = {
   M4: "hsl(var(--primary))",
   M3: "hsl(var(--primary-dark))",
   M2: "hsl(var(--color-m2-weak))", // Amarelo Fraco
   M1: "hsl(var(--color-m1-weak))", // Vermelho Fraco
   'Não Avaliado': "hsl(var(--muted-foreground))",
 };
+
+// Paleta de cores baseada na Maturidade, usada sequencialmente para outros filtros
+const BASE_COLORS = [
+  MATURITY_COLORS_MAP.M4,
+  MATURITY_COLORS_MAP.M3,
+  MATURITY_COLORS_MAP.M2,
+  MATURITY_COLORS_MAP.M1,
+  MATURITY_COLORS_MAP['Não Avaliado'],
+];
 
 // Helper para classificar a idade em faixas
 const getAgeRange = (idade?: number | null): string => {
@@ -114,9 +112,10 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
   // Função para obter a cor correta
   const getColor = (entryName: string, index: number) => {
       if (filter === 'maturidade') {
-          return MATURITY_COLORS[entryName as keyof typeof MATURITY_COLORS] || INSTITUTIONAL_COLORS[index % INSTITUTIONAL_COLORS.length];
+          return MATURITY_COLORS_MAP[entryName as keyof typeof MATURITY_COLORS_MAP] || BASE_COLORS[index % BASE_COLORS.length];
       }
-      return INSTITUTIONAL_COLORS[index % INSTITUTIONAL_COLORS.length];
+      // Para outros filtros, usa a paleta BASE_COLORS sequencialmente
+      return BASE_COLORS[index % BASE_COLORS.length];
   };
 
   // Custom Label para mostrar apenas a porcentagem
