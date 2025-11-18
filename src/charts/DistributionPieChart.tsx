@@ -75,6 +75,31 @@ const CustomOuterLabel = ({ cx, cy, midAngle, outerRadius, percent, index, fill 
     );
 };
 
+// Componente Customizado para o Tooltip
+const CustomPieTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+        const data = payload[0];
+        return (
+            <div className="p-3 bg-card border rounded-lg shadow-lg text-sm"
+                 style={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))', 
+                    borderRadius: '8px' 
+                 }}
+            >
+                <p className="font-bold text-foreground mb-1">{data.name}</p>
+                <p className="text-muted-foreground">
+                    Total de Membros: <span className="font-semibold text-primary">{data.value}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                    Porcentagem: <span className="font-semibold text-primary">{(data.percent * 100).toFixed(1)}%</span>
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
+
 
 export default function DistributionPieChart({ teamMembers, empty = false }: DistributionPieChartProps) {
   const [filter, setFilter] = useState<PieChartFilterType>("maturidade");
@@ -190,9 +215,8 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
                   />
                 ))}
               </Pie>
-              {hasData && <Tooltip 
-                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-              />}
+              {/* Usando o CustomPieTooltip */}
+              {hasData && <Tooltip content={<CustomPieTooltip />} />}
               {/* Legenda na parte inferior, horizontal e centralizada */}
               {hasData && <Legend 
                 iconType="circle" 
