@@ -39,12 +39,12 @@ export default function RecentEvaluationsSection({
         <ClipboardCheck className="w-5 h-5 text-primary" />
         Avaliações Recentes
       </h3>
-      {/* Alterado variant para 'ghost' e adicionado hover:opacity-70 */}
+      {/* Ajustado: Removido hover:bg-accent/10. O hover:opacity-70 fará o texto e ícone ficarem mais apagados. */}
       <Button 
         onClick={handleNewEvaluation} 
         variant="ghost" 
         size="sm" 
-        className="gap-1 text-accent font-semibold p-2 h-auto hover:bg-accent/10 hover:opacity-70 transition-opacity"
+        className="gap-1 text-accent font-semibold p-2 h-auto bg-transparent hover:bg-transparent hover:opacity-70 transition-opacity"
       >
         <Plus className="w-4 h-4" />
         Nova
