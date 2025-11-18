@@ -123,6 +123,20 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
 
   }, [data, empty, mode, selectedCategory, selectedSpecialization]);
 
+  // Custom Tooltip para o efeito hover
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const value = payload[0].value;
+      return (
+        <div className="p-3 bg-card border rounded-lg shadow-lg text-sm">
+          <p className="font-bold text-foreground mb-1">{label}</p>
+          <p className="text-muted-foreground">Média: <span className="font-semibold text-primary">{value.toFixed(1)}/4.0</span></p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <Card className="p-6 mb-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
@@ -189,10 +203,16 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
           <Tooltip
             cursor={{ fill: 'hsl(var(--muted) / 0.2)' }}
             contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+            content={<CustomTooltip />}
           />
           {/* Linha de referência no 2.5 usando --color-accent (Laranja) */}
           <ReferenceLine y={2.5} stroke="hsl(var(--color-accent))" strokeDasharray="4 4" />
-          <Bar dataKey="media" barSize={40}>
+          <Bar 
+            dataKey="media" 
+            barSize={40} 
+            radius={[8, 8, 0, 0]} // Arredondamento no topo
+            fillOpacity={0.7} // Opacidade padrão
+          >
             {chartData.data.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
@@ -203,6 +223,8 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                       ? "hsl(var(--color-brand))" // Usando --color-brand (Azul Principal)
                       : "hsl(var(--muted))"
                 } 
+                // Adicionando o efeito de hover via CSS/Recharts (não é nativo, mas o Tooltip já dá feedback)
+                className="hover:fill-primary transition-all duration-200"
               />
             ))}
             <LabelList 
