@@ -197,7 +197,11 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                 {/* M4: Expect (Superior Direito) - X: 2.5-4, Y: 2.5-4 */}
                 <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4 as string} fillOpacity={0.2} />
 
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
+                <Tooltip 
+                  cursor={{ strokeDasharray: '3 3' }} 
+                  contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                  content={<CustomTooltip />} 
+                />
                 
                 {!empty && (
                   <Scatter name="Liderados" data={filteredMembers} onClick={handlePointClick}>
@@ -239,7 +243,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
             </div>
             
             {/* M2: Intermediário (Inferior Direito) - Mantido */}
-            <div className="absolute bottom-0 right-0 translate-x-[10px] translate-y-[10px] text-center">
+            <div className="absolute bottom-0 right-0 translate-x-[-10px] translate-y-[10px] text-center">
               <div className={cn("px-3 py-1 rounded-md font-semibold text-sm", getTextColor('M2'))} style={{ backgroundColor: QUADRANT_COLORS.M2 }}>
                 {QUADRANT_LABELS.M2} <span className={cn("ml-1 font-bold", getCountTextColor('M2'))}>{quadrantCounts.M2 || 0}</span>
               </div>
@@ -294,6 +298,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
             </div>
           </div>
         </div>
-      </Card>
-    );
+      </div>
+    </Card>
+  );
 }

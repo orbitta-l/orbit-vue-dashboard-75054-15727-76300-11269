@@ -207,7 +207,11 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                   {/* M4: Expect (Superior Direito) - X: 2.5-4, Y: 2.5-4 */}
                   <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
                   
-                  <Tooltip cursor={{ strokeDasharray: '3 3' }} content={() => null} />
+                  <Tooltip 
+                    cursor={{ strokeDasharray: '3 3' }} 
+                    contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                    content={() => null} 
+                  />
                   <Scatter name="Liderados" data={filteredMembers} onClick={handlePointClick} shape={<CustomDot selectedMemberId={selectedMemberId} />} />
                 </ScatterChart>
               </ResponsiveContainer>

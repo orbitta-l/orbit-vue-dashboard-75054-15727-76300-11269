@@ -190,6 +190,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
             cursor={{ fill: 'hsl(var(--muted) / 0.2)' }}
             contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
           />
+          {/* Linha de referência no 2.5 usando --color-accent (Laranja) */}
           <ReferenceLine y={2.5} stroke="hsl(var(--color-accent))" strokeDasharray="4 4" />
           <Bar dataKey="media" barSize={40}>
             {chartData.data.map((entry, index) => (
@@ -199,7 +200,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                   empty 
                     ? "hsl(var(--color-muted))" 
                     : entry.media > 0 
-                      ? "hsl(var(--color-brand))" 
+                      ? "hsl(var(--color-brand))" // Usando --color-brand (Azul Principal)
                       : "hsl(var(--muted))"
                 } 
               />

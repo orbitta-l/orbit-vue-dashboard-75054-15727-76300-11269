@@ -28,14 +28,14 @@ export default function EvaluationRadarChart({ data }: EvaluationRadarChartProps
         <Radar 
           name="Perfil Ideal" 
           dataKey="ideal" 
-          stroke="hsl(var(--accent))" 
+          stroke="hsl(var(--accent))" // Laranja
           fill="hsl(var(--accent))" 
           fillOpacity={0.3} 
         />
         <Radar 
           name="Avaliação Atual" 
           dataKey="atual" 
-          stroke="hsl(var(--primary))" 
+          stroke="hsl(var(--primary))" // Azul
           fill="hsl(var(--primary))" 
           fillOpacity={0.6} 
         />
