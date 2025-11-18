@@ -175,11 +175,11 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
       {mode === 'TECNICA' && !empty && (
         <div className="flex justify-center mb-6"> {/* Centraliza o painel de filtros e adiciona margem inferior */}
           <div className="w-full max-w-3xl"> {/* Limita a largura do painel */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
               {/* Filtro de Categoria usando Select */}
-              <div className="flex flex-col items-center w-full md:w-auto">
-                <Label className="text-sm font-medium mb-2 block">Filtrar por Categoria</Label>
+              <div className="flex flex-col items-center"> {/* Centraliza o conteúdo da coluna */}
+                <Label className="text-sm font-semibold text-foreground mb-2 block">Filtrar por Categoria</Label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="w-full max-w-xs">
                     <SelectValue placeholder="Todas as Categorias" />
@@ -196,8 +196,8 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
             
               {/* Filtro de Especialização usando Select */}
               {selectedCategory !== 'all' && availableSpecializations.length > 1 && (
-                <div className="flex flex-col items-center w-full md:w-auto">
-                  <Label className="text-sm font-medium mb-2 block">Filtrar por Especialização</Label>
+                <div className="flex flex-col items-center"> {/* Centraliza o conteúdo da coluna */}
+                  <Label className="text-sm font-semibold text-foreground mb-2 block">Filtrar por Especialização</Label>
                   <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
                     <SelectTrigger className="w-full max-w-xs">
                       <SelectValue placeholder="Todas as Especializações" />
@@ -210,21 +210,21 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                   </Select>
                 </div>
               )}
-
-              {/* Botão para limpar filtros - Exibido apenas se houver filtro ativo */}
-              {isFilterActive && (
-                <div className="mt-6 md:mt-auto"> {/* Ajusta a margem superior para alinhar com os selects */}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => { setSelectedCategory('all'); setSelectedSpecialization('all'); }}
-                    className="gap-1 text-destructive hover:bg-destructive/10"
-                  >
-                    <X className="w-4 h-4" /> Limpar Filtros
-                  </Button>
-                </div>
-              )}
             </div>
+            
+            {/* Botão para limpar filtros - Exibido apenas se houver filtro ativo */}
+            {isFilterActive && (
+              <div className="flex justify-center mt-4"> {/* Centraliza o botão de limpar e adiciona margem superior */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => { setSelectedCategory('all'); setSelectedSpecialization('all'); }}
+                  className="gap-1 text-destructive hover:bg-destructive/10"
+                >
+                  <X className="w-4 h-4" /> Limpar Filtros
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
