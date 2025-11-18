@@ -143,11 +143,11 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
         </div>
       </div>
 
-      <div className={cn("flex flex-col md:flex-row gap-6", !hasData && "justify-center items-center")}>
+      <div className={cn("flex flex-col md:flex-row gap-10 items-center", !hasData && "justify-center")}>
         
-        {/* Filtros Verticais (Esquerda) */}
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0">
-          <TabsList className="flex flex-col h-auto p-1 space-y-1 bg-muted/50">
+        {/* Filtros Verticais (Esquerda) - Adicionado items-center para centralizar verticalmente */}
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0 flex items-center justify-center">
+          <TabsList className="flex flex-col h-auto p-2 space-y-3 bg-muted/50"> {/* Aumentado p-1 para p-2 e space-y-1 para space-y-3 */}
             <TabsTrigger value="maturidade" className="w-full justify-start">Maturidade</TabsTrigger>
             <TabsTrigger value="categoria" className="w-full justify-start">Categoria</TabsTrigger>
             <TabsTrigger value="sexo" className="w-full justify-start">Gênero</TabsTrigger>
@@ -178,8 +178,14 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
                 ))}
               </Pie>
               {hasData && <Tooltip />}
-              {/* Alterado para iconType="circle" */}
-              {hasData && <Legend iconType="circle" />} 
+              {/* Legenda à direita e vertical */}
+              {hasData && <Legend 
+                iconType="circle" 
+                layout="vertical" 
+                verticalAlign="middle" 
+                align="right" 
+                wrapperStyle={{ paddingLeft: '20px' }}
+              />} 
             </PieChart>
           </ResponsiveContainer>
         </div>
