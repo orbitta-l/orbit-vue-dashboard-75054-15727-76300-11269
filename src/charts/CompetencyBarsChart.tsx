@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, LabelList, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, LabelList, Cell } from 'recharts';
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,21 +23,19 @@ interface CompetencyBarsChartProps {
 
 // Cores
 const COLOR_DEFAULT = "hsl(var(--color-brand))"; // Azul Principal
-const COLOR_CLICKED = "hsl(var(--accent))"; // Laranja
+const COLOR_HOVER = "hsl(var(--accent))"; // Laranja
 
 export default function CompetencyBarsChart({ empty = false, data, defaultMode = "TECNICA" }: CompetencyBarsChartProps) {
   const [mode, setMode] = useState<'TECNICA' | 'COMPORTAMENTAL'>(defaultMode);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>("all");
-  const [clickedIndex, setClickedIndex] = useState<number | null>(null); // Estado para rastrear a barra clicada
   
-  // Estado para controlar o Tooltip manualmente
-  const [manualTooltip, setManualTooltip] = useState<{
-    active: boolean;
-    payload: any[];
-    label: string;
-    coordinate: { x: number; y: number } | null;
-  }>({ active: false, payload: [], label: '', coordinate: null });
+  // Estado para controlar a cor da barra no hover
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null); 
+  
+  // Estado para controlar o balão no clique
+  const [clickedData, setClickedData] = useState<{ name: string, media: number } | null>(null); 
+  const [clickedIndex, setClickedIndex] = useState<number | null>(null); 
 
   const availableCategories = useMemo(() => {
     if (empty) return [];
@@ -57,15 +55,15 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
 
   useEffect(() => {
     setSelectedSpecialization("all");
+    setClickedData(null);
     setClickedIndex(null);
-    setManualTooltip({ active: false, payload: [], label: '', coordinate: null });
   }, [selectedCategory]);
 
   useEffect(() => {
     setSelectedCategory("all");
     setSelectedSpecialization("all");
+    setClickedData(null);
     setClickedIndex(null);
-    setManualTooltip({ active: false, payload: [], label: '', coordinate: null });
   }, [mode]);
 
   const chartData = useMemo(() => {
@@ -142,56 +140,32 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
 
   }, [data, empty, mode, selectedCategory, selectedSpecialization]);
 
-  const handleBarClick = (data: any, index: number, event: any) => {
+  const handleBarClick = (data: { name: string, media: number }, index: number) => {
     if (clickedIndex === index) {
-      // Desclicar: desativa o estado e o tooltip
+      // Desclicar: fecha o balão
+      setClickedData(null);
       setClickedIndex(null);
-      setManualTooltip({ active: false, payload: [], label: '', coordinate: null });
     } else {
-      // Clicar: ativa o estado e o tooltip
+      // Clicar: abre o balão
+      setClickedData(data);
       setClickedIndex(index);
-      
-      // Prepara o payload para o Tooltip
-      const payload = [{
-        name: 'Média',
-        value: data.media,
-        payload: data,
-        index: index,
-        dataKey: 'media',
-        color: COLOR_CLICKED,
-      }];
-
-      // O Recharts não expõe as coordenadas do elemento clicado facilmente.
-      // Vamos usar uma coordenada fixa ou tentar estimar a posição do centro da barra.
-      // Para simplificar, vamos usar a coordenada do evento do mouse (event.clientX/Y)
-      // ou, mais fácil, deixar o Tooltip se posicionar no centro do gráfico.
-      
-      // Para forçar o Tooltip a aparecer, precisamos de coordenadas dentro do SVG.
-      // Como não temos acesso direto ao contexto do gráfico, vamos usar uma coordenada
-      // que o Recharts possa interpretar (e que o Tooltip use para posicionamento).
-      // Vamos usar o centro do gráfico (cx=50%, cy=50%) como ponto de referência.
-      
-      setManualTooltip({
-        active: true,
-        payload: payload,
-        label: data.name,
-        coordinate: { x: 200, y: 175 } // Coordenada arbitrária dentro do gráfico (ajustar se necessário)
-      });
     }
   };
 
-  // Custom Tooltip para o efeito de clique
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const value = payload[0].value;
-      return (
-        <div className="p-3 bg-card border rounded-lg shadow-lg text-sm">
-          <p className="font-bold text-foreground mb-1">{label}</p>
-          <p className="text-muted-foreground">Média: <span className="font-semibold text-primary">{value.toFixed(1)}/4.0</span></p>
+  const CustomPopover = () => {
+    if (!clickedData) return null;
+
+    return (
+      <div className="p-3 bg-card border border-accent rounded-lg shadow-xl text-sm mb-4 flex items-center justify-between">
+        <div>
+          <p className="font-bold text-foreground mb-1">{clickedData.name}</p>
+          <p className="text-muted-foreground">Média da Equipe: <span className="font-semibold text-accent">{clickedData.media.toFixed(1)}/4.0</span></p>
         </div>
-      );
-    }
-    return null;
+        <Button variant="ghost" size="sm" onClick={() => { setClickedData(null); setClickedIndex(null); }} className="p-1 h-auto">
+          <X className="w-4 h-4 text-muted-foreground" />
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -239,17 +213,20 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
           </div>
         </div>
       )}
+      
+      <CustomPopover /> {/* Renderiza o balão customizado aqui */}
 
       <ResponsiveContainer width="100%" height={350}>
         <BarChart 
           data={chartData.data} 
           margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-          // Adiciona onMouseLeave para desativar o Tooltip se o mouse sair do gráfico
-          onMouseLeave={() => {
-            if (manualTooltip.active && clickedIndex === null) {
-              setManualTooltip({ active: false, payload: [], label: '', coordinate: null });
+          // Adiciona onMouseLeave e onMouseEnter para controlar o hover da cor
+          onMouseEnter={(state) => {
+            if (state.activeTooltipIndex !== undefined) {
+              setHoveredIndex(state.activeTooltipIndex);
             }
           }}
+          onMouseLeave={() => setHoveredIndex(null)}
         >
           <CartesianGrid strokeDasharray="3 3" stroke={empty ? "hsl(var(--muted) / 0.2)" : "hsl(var(--border))"} />
           <XAxis 
@@ -266,16 +243,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
             ticks={[0, 1, 2, 2.5, 3, 4]} 
             stroke={empty ? "hsl(var(--muted) / 0.5)" : "hsl(var(--foreground))"} 
           />
-          <Tooltip
-            cursor={false} // Desativa o cursor do Tooltip
-            contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-            content={<CustomTooltip />}
-            // Passa o estado manual para o Tooltip
-            active={manualTooltip.active}
-            payload={manualTooltip.payload}
-            label={manualTooltip.label}
-            coordinate={manualTooltip.coordinate}
-          />
+          {/* Removido o Tooltip do Recharts, pois estamos usando um popover customizado */}
           
           {/* Linha de referência no 2.5 usando --color-accent (Laranja) */}
           <ReferenceLine y={2.5} stroke="hsl(var(--color-accent))" strokeDasharray="4 4" />
@@ -291,14 +259,16 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                 fill={
                   empty 
                     ? "hsl(var(--color-muted))" 
-                    : index === clickedIndex 
-                      ? COLOR_CLICKED // Laranja no clique
-                      : entry.media > 0 
-                        ? COLOR_DEFAULT // Azul padrão
-                        : "hsl(var(--muted))"
+                    : index === clickedIndex // Se estiver clicado, mantém a cor de hover (laranja)
+                      ? COLOR_HOVER 
+                      : index === hoveredIndex // Se estiver em hover, usa a cor de hover (laranja)
+                        ? COLOR_HOVER
+                        : entry.media > 0 
+                          ? COLOR_DEFAULT // Azul padrão
+                          : "hsl(var(--muted))"
                 } 
                 className="transition-all duration-200 cursor-pointer"
-                onClick={(event) => handleBarClick(entry, index, event)} // Adiciona o manipulador de clique
+                onClick={() => handleBarClick(entry, index)} // Adiciona o manipulador de clique
               />
             ))}
             <LabelList 
