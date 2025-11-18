@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { LideradoDashboard, PieChartFilterType, NivelMaturidade } from "@/types/mer";
+import { cn } from "@/lib/utils"; // Importando cn
 
 interface DistributionPieChartProps {
   teamMembers: LideradoDashboard[];
@@ -140,41 +141,49 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
           <h3 className="text-lg font-semibold text-foreground">Distribuição da Equipe</h3>
           <p className="text-sm text-muted-foreground">{getDescription()}</p>
         </div>
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="maturidade">Maturidade</TabsTrigger>
-            <TabsTrigger value="categoria">Categoria</TabsTrigger>
-            <TabsTrigger value="sexo">Gênero</TabsTrigger>
-            <TabsTrigger value="faixaEtaria">Faixa Etária</TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-          <Pie
-            data={chartData}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={renderCustomLabel} // Usando o custom label
-            outerRadius={100}
-            fill={hasData ? undefined : placeholderColor}
-            dataKey="value"
-          >
-            {chartData.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={hasData ? getColor(entry.name, index) : placeholderColor}
-                opacity={hasData ? 1 : 0.3}
-              />
-            ))}
-          </Pie>
-          {hasData && <Tooltip />}
-          {/* Alterado para iconType="circle" */}
-          {hasData && <Legend iconType="circle" />} 
-        </PieChart>
-      </ResponsiveContainer>
+      <div className={cn("flex flex-col md:flex-row gap-6", !hasData && "justify-center items-center")}>
+        
+        {/* Filtros Verticais (Esquerda) */}
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0">
+          <TabsList className="flex flex-col h-auto p-1 space-y-1 bg-muted/50">
+            <TabsTrigger value="maturidade" className="w-full justify-start">Maturidade</TabsTrigger>
+            <TabsTrigger value="categoria" className="w-full justify-start">Categoria</TabsTrigger>
+            <TabsTrigger value="sexo" className="w-full justify-start">Gênero</TabsTrigger>
+            <TabsTrigger value="faixaEtaria" className="w-full justify-start">Faixa Etária</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Gráfico de Pizza (Direita) */}
+        <div className="flex-1 min-h-[300px]">
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={renderCustomLabel} // Usando o custom label
+                outerRadius={100}
+                fill={hasData ? undefined : placeholderColor}
+                dataKey="value"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={hasData ? getColor(entry.name, index) : placeholderColor}
+                    opacity={hasData ? 1 : 0.3}
+                  />
+                ))}
+              </Pie>
+              {hasData && <Tooltip />}
+              {/* Alterado para iconType="circle" */}
+              {hasData && <Legend iconType="circle" />} 
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
       {!hasData && (
         <p className="text-center text-sm text-muted-foreground mt-4">

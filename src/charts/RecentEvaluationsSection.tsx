@@ -69,7 +69,7 @@ export default function RecentEvaluationsSection({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-4"> {/* Alterado de grid para space-y-4 */}
           {evaluations.slice(0, 3).map((evaluation) => (
             <div
               key={evaluation.evaluationId}
