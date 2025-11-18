@@ -168,7 +168,7 @@ export default function Home() {
       </div>
 
       {isPrimeiroAcesso && (
-        <Card className="p-6 mb-8 bg-muted/20 text-center">
+        <Card className="p-6 mb-8 bg-muted/20 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
           <p className="text-muted-foreground mb-4">
             Bem‑vindo! Para começar, cadastre seu primeiro liderado e realize a primeira avaliação.
           </p>
@@ -179,7 +179,7 @@ export default function Home() {
         </Card>
       )}
 
-      <MaturityQuadrantChart
+      <MaturantityQuadrantChart
         empty={isPrimeiroAcesso}
         teamMembers={dashboardData.quadrante as any} // Cast temporário, pois o tipo MemberData no chart precisa ser atualizado
       />
