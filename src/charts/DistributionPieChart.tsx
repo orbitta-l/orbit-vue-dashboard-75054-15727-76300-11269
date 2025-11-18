@@ -47,10 +47,33 @@ const formatGender = (gender: string): string => {
     return gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
 };
 
-// Função para formatar o rótulo para mostrar apenas a porcentagem
-const renderPercentageLabel = ({ percent }: any) => {
-    return `${(percent * 100).toFixed(0)}%`;
+// Componente Customizado para o Rótulo Externo (mostra apenas a porcentagem)
+const CustomOuterLabel = ({ cx, cy, midAngle, outerRadius, percent, index }: any) => {
+    const RADIAN = Math.PI / 180;
+    // Posição do texto um pouco mais longe do círculo
+    const radius = outerRadius + 20; 
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    // Alinhamento do texto
+    const textAnchor = x > cx ? 'start' : 'end';
+
+    return (
+        <text 
+            x={x} 
+            y={y} 
+            fill="hsl(var(--foreground))" 
+            textAnchor={textAnchor} 
+            dominantBaseline="central"
+            fontSize={14}
+            fontWeight={600}
+            opacity={0.8}
+        >
+            {`${(percent * 100).toFixed(0)}%`}
+        </text>
+    );
 };
+
 
 export default function DistributionPieChart({ teamMembers, empty = false }: DistributionPieChartProps) {
   const [filter, setFilter] = useState<PieChartFilterType>("maturidade");
@@ -121,15 +144,6 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
       return BASE_COLORS[index % BASE_COLORS.length];
   };
 
-  // Configuração do rótulo externo
-  const labelConfig = {
-    formatter: renderPercentageLabel,
-    fill: 'hsl(var(--foreground))',
-    fontSize: 14,
-    fontWeight: 600,
-    opacity: 0.8, // Opacidade sutil para o texto
-  };
-
   return (
     <Card className="p-6 mb-8 h-full"> {/* Adicionado h-full */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
@@ -159,8 +173,8 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
                 data={chartData}
                 cx="50%" // Centralizado
                 cy="50%" // Centralizado
-                labelLine={true} // Habilita a linha de conexão
-                label={labelConfig} // Usa a configuração de rótulo externo com formatação
+                labelLine={hasData} // Habilita a linha de conexão apenas se houver dados
+                label={hasData ? CustomOuterLabel : false} // Usa o componente customizado para rótulo externo
                 innerRadius={60} // Adicionado innerRadius para criar o efeito donut
                 outerRadius={100} // Reduzido de 120 para 100 para ser mais compacto
                 fill={hasData ? undefined : placeholderColor}
