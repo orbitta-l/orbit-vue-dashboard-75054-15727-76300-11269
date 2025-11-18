@@ -77,22 +77,24 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
   const gapsComportamentais = calcularGaps('COMPORTAMENTAL');
 
   const renderGapItem = (gap: ReturnType<typeof calcularGaps>[0]) => (
-    <div key={gap.nome_competencia} className="space-y-1.5"> {/* Reduzido espaço vertical */}
+    <div key={gap.nome_competencia} className="space-y-1.5">
       <div className="flex items-center justify-between text-sm">
         <div className="flex-1 min-w-0">
           <span className={`font-medium ${getGapColorClass(gap.media_score)} truncate`}>
             {gap.nome_competencia}
           </span>
-          <span className="text-xs text-muted-foreground ml-2 hidden sm:inline-block truncate">
-            ({gap.nome_categoria}
-            {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""})
-          </span>
+          {/* Lógica condicional para exibir a categoria */}
+          {gap.tipo === 'TECNICA' && gap.nome_categoria && (
+            <span className="text-xs text-muted-foreground ml-2 hidden sm:inline-block truncate">
+              ({gap.nome_categoria})
+            </span>
+          )}
         </div>
         <span className={`font-semibold text-xs px-2 py-0.5 rounded-full`} style={{ backgroundColor: getGapColor(gap.media_score), color: gap.media_score >= 3.5 ? 'white' : 'hsl(var(--foreground))' }}>
           {gap.media_score.toFixed(1)}
         </span>
       </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden"> {/* Cor de fundo mais clara */}
+      <div className="h-2 bg-muted rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{
@@ -120,24 +122,19 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
         );
     }
 
-    // Os piores são os primeiros (já ordenados)
     const worstGaps = gaps.slice(0, DISPLAY_LIMIT);
-    // Os melhores são os últimos (revertendo a ordem para pegar os maiores)
     const bestGaps = gaps.slice(-DISPLAY_LIMIT).reverse();
-    
-    // A lista completa já está ordenada do pior para o melhor
     const fullList = gaps;
 
     return (
-      <Card className="p-6 h-full flex flex-col"> {/* Adicionado h-full e flex-col */}
+      <Card className="p-6 h-full flex flex-col">
         <h4 className="text-md font-semibold mb-4 text-foreground">
           Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}
         </h4>
 
-        <div className="flex-1 flex flex-col"> {/* Container flexível para o conteúdo */}
+        <div className="flex-1 flex flex-col">
           {!isExpanded ? (
             <>
-              {/* Piores Gaps */}
               <h5 className="text-sm font-semibold text-destructive mb-3">
                 3 Piores Gaps (Áreas Críticas)
               </h5>
@@ -145,10 +142,8 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                 {worstGaps.map(renderGapItem)}
               </div>
 
-              {/* Separador */}
               <div className="border-t border-dashed border-border my-4"></div>
 
-              {/* Melhores Gaps */}
               <h5 className="text-sm font-semibold text-primary mb-3">
                 3 Melhores Competências (Pontos Fortes)
               </h5>
@@ -156,7 +151,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
                 {bestGaps.map(renderGapItem)}
               </div>
 
-              <div className="mt-auto pt-4"> {/* Empurra o botão para baixo */}
+              <div className="mt-auto pt-4">
                 <Button
                   variant="outline"
                   size="sm"
@@ -173,12 +168,11 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
               <h5 className="text-sm font-semibold text-foreground mb-3">
                 Lista Completa (Pior para Melhor)
               </h5>
-              <div className="space-y-3 mb-4 overflow-y-auto flex-1"> {/* Adicionado overflow-y-auto e flex-1 */}
-                {/* Exibe a lista completa, que já está ordenada do pior para o melhor */}
+              <div className="space-y-3 mb-4 overflow-y-auto flex-1">
                 {fullList.map(renderGapItem)}
               </div>
 
-              <div className="mt-auto pt-4"> {/* Empurra o botão para baixo */}
+              <div className="mt-auto pt-4">
                 <Button
                   variant="outline"
                   size="sm"
@@ -207,7 +201,6 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
           {renderGapCard('TECNICA')}
         </div>
         
-        {/* Separador Vertical Opaco (Apenas em telas maiores) */}
         <div className="hidden md:block absolute inset-y-0 left-1/2 transform -translate-x-1/2 pointer-events-none">
           <div className="h-full w-px bg-border opacity-50"></div>
         </div>
