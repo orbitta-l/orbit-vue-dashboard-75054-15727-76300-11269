@@ -22,11 +22,11 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
       <div className="mb-8">
         <h3 className="text-lg font-semibold mb-4 text-foreground">Gaps de Conhecimento</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="p-6 bg-muted/20 text-center">
+          <Card className="p-6 bg-muted/20 text-center h-full">
             <h4 className="text-md font-semibold mb-4 text-muted-foreground">Competências Comportamentais</h4>
             <p className="text-muted-foreground text-sm">Aguardando avaliações.</p>
           </Card>
-          <Card className="p-6 bg-muted/20 text-center">
+          <Card className="p-6 bg-muted/20 text-center h-full">
             <h4 className="text-md font-semibold mb-4 text-muted-foreground">Competências Técnicas</h4>
             <p className="text-muted-foreground text-sm">Aguardando avaliações.</p>
           </Card>
@@ -49,7 +49,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
           const existing = competenciasMap.get(comp.id_competencia);
           if (existing) {
             existing.soma += comp.pontuacao_1a4;
-            existing.count += 1;
+            existing.count++;
           } else {
             competenciasMap.set(comp.id_competencia, {
               soma: comp.pontuacao_1a4,
@@ -77,22 +77,22 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
   const gapsComportamentais = calcularGaps('COMPORTAMENTAL');
 
   const renderGapItem = (gap: ReturnType<typeof calcularGaps>[0]) => (
-    <div key={gap.nome_competencia} className="space-y-2">
+    <div key={gap.nome_competencia} className="space-y-1.5"> {/* Reduzido espaço vertical */}
       <div className="flex items-center justify-between text-sm">
-        <div className="flex-1">
-          <span className={`font-medium ${getGapColorClass(gap.media_score)}`}>
+        <div className="flex-1 min-w-0">
+          <span className={`font-medium ${getGapColorClass(gap.media_score)} truncate`}>
             {gap.nome_competencia}
           </span>
-          <span className="text-xs text-muted-foreground ml-2">
+          <span className="text-xs text-muted-foreground ml-2 hidden sm:inline-block truncate">
             ({gap.nome_categoria}
             {gap.nome_especializacao && gap.nome_especializacao !== gap.nome_categoria ? ` › ${gap.nome_especializacao}` : ""})
           </span>
         </div>
-        <span className={`font-semibold ${getGapColorClass(gap.media_score)}`}>
-          {gap.media_score.toFixed(1)}/4.0
+        <span className={`font-semibold text-xs px-2 py-0.5 rounded-full`} style={{ backgroundColor: getGapColor(gap.media_score), color: gap.media_score >= 3.5 ? 'white' : 'hsl(var(--foreground))' }}>
+          {gap.media_score.toFixed(1)}
         </span>
       </div>
-      <div className="h-2 bg-secondary rounded-full overflow-hidden">
+      <div className="h-2 bg-muted rounded-full overflow-hidden"> {/* Cor de fundo mais clara */}
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{
@@ -106,12 +106,12 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
 
   const renderGapCard = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
     const gaps = tipo === 'TECNICA' ? gapsTecnicos : gapsComportamentais;
-    const isExpanded = tipo === 'TECNICA' ? expandedTecnica : setExpandedComportamental;
+    const isExpanded = tipo === 'TECNICA' ? expandedTecnica : expandedComportamental;
     const setExpanded = tipo === 'TECNICA' ? setExpandedTecnica : setExpandedComportamental;
 
     if (!hasData || gaps.length === 0) {
         return (
-            <Card className="p-6 bg-muted/20 text-center">
+            <Card className="p-6 bg-muted/20 text-center h-full">
                 <h4 className="text-md font-semibold mb-4 text-muted-foreground">
                     Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}
                 </h4>
@@ -125,70 +125,73 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
     // Os melhores são os últimos (revertendo a ordem para pegar os maiores)
     const bestGaps = gaps.slice(-DISPLAY_LIMIT).reverse();
     
-    // Remove duplicatas se a lista for muito pequena
-    const combinedGaps = Array.from(new Set([...worstGaps, ...bestGaps]));
-    
-    // Garante que a lista combinada seja ordenada do pior para o melhor
-    const defaultDisplayGaps = combinedGaps.sort((a, b) => a.media_score - b.outra_media_score); // Usando a ordenação original
+    // A lista completa já está ordenada do pior para o melhor
+    const fullList = gaps;
 
     return (
-      <Card className="p-6">
+      <Card className="p-6 h-full flex flex-col"> {/* Adicionado h-full e flex-col */}
         <h4 className="text-md font-semibold mb-4 text-foreground">
           Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}
         </h4>
 
-        {!isExpanded ? (
-          <>
-            {/* Piores Gaps */}
-            <h5 className="text-sm font-semibold text-destructive mb-3">
-              3 Piores Gaps (Áreas Críticas)
-            </h5>
-            <div className="space-y-3 mb-4">
-              {worstGaps.map(renderGapItem)}
-            </div>
+        <div className="flex-1 flex flex-col"> {/* Container flexível para o conteúdo */}
+          {!isExpanded ? (
+            <>
+              {/* Piores Gaps */}
+              <h5 className="text-sm font-semibold text-destructive mb-3">
+                3 Piores Gaps (Áreas Críticas)
+              </h5>
+              <div className="space-y-3 mb-4">
+                {worstGaps.map(renderGapItem)}
+              </div>
 
-            {/* Separador */}
-            <div className="border-t border-dashed border-border my-4"></div>
+              {/* Separador */}
+              <div className="border-t border-dashed border-border my-4"></div>
 
-            {/* Melhores Gaps */}
-            <h5 className="text-sm font-semibold text-primary mb-3">
-              3 Melhores Competências (Pontos Fortes)
-            </h5>
-            <div className="space-y-3 mb-4">
-              {bestGaps.map(renderGapItem)}
-            </div>
+              {/* Melhores Gaps */}
+              <h5 className="text-sm font-semibold text-primary mb-3">
+                3 Melhores Competências (Pontos Fortes)
+              </h5>
+              <div className="space-y-3 mb-4">
+                {bestGaps.map(renderGapItem)}
+              </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setExpanded(true)}
-              className="w-full"
-            >
-              <ChevronDown className="w-4 h-4 mr-2" />
-              Ver lista completa ({gaps.length} competências)
-            </Button>
-          </>
-        ) : (
-          <>
-            <h5 className="text-sm font-semibold text-foreground mb-3">
-              Lista Completa (Pior para Melhor)
-            </h5>
-            <div className="space-y-3 mb-4">
-              {/* Exibe a lista completa, que já está ordenada do pior para o melhor */}
-              {gaps.map(renderGapItem)}
-            </div>
+              <div className="mt-auto pt-4"> {/* Empurra o botão para baixo */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setExpanded(true)}
+                  className="w-full"
+                >
+                  <ChevronDown className="w-4 h-4 mr-2" />
+                  Ver lista completa ({gaps.length} competências)
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h5 className="text-sm font-semibold text-foreground mb-3">
+                Lista Completa (Pior para Melhor)
+              </h5>
+              <div className="space-y-3 mb-4 overflow-y-auto flex-1"> {/* Adicionado overflow-y-auto e flex-1 */}
+                {/* Exibe a lista completa, que já está ordenada do pior para o melhor */}
+                {fullList.map(renderGapItem)}
+              </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setExpanded(false)}
-              className="w-full"
-            >
-              <ChevronUp className="w-4 h-4 mr-2" />
-              Recolher
-            </Button>
-          </>
-        )}
+              <div className="mt-auto pt-4"> {/* Empurra o botão para baixo */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setExpanded(false)}
+                  className="w-full"
+                >
+                  <ChevronUp className="w-4 h-4 mr-2" />
+                  Recolher
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
       </Card>
     );
   };
@@ -196,7 +199,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
   return (
     <div className="mb-8">
       <h3 className="text-lg font-semibold mb-4 text-foreground">Gaps de Conhecimento</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch"> {/* Adicionado items-stretch para garantir altura igual */}
         {renderGapCard('COMPORTAMENTAL')}
         {renderGapCard('TECNICA')}
       </div>
