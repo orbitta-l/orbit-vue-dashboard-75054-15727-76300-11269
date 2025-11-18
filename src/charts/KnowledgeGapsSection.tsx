@@ -13,8 +13,7 @@ interface KnowledgeGapsSectionProps {
 const DISPLAY_LIMIT = 3;
 
 export default function KnowledgeGapsSection({ teamMembers, empty = false }: KnowledgeGapsSectionProps) {
-  const [expandedTecnica, setExpandedTecnica] = useState(false);
-  const [expandedComportamental, setExpandedComportamental] = useState(false);
+  const [isAllExpanded, setIsAllExpanded] = useState(false);
 
   if (empty) {
     return (
@@ -87,8 +86,6 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
 
   const renderGapCard = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
     const gaps = tipo === 'TECNICA' ? gapsTecnicos : gapsComportamentais;
-    const isExpanded = tipo === 'TECNICA' ? expandedTecnica : expandedComportamental;
-    const setExpanded = tipo === 'TECNICA' ? setExpandedTecnica : setExpandedComportamental;
     const Icon = tipo === 'TECNICA' ? Code : HeartHandshake;
 
     if (!hasData || gaps.length === 0) {
@@ -109,33 +106,23 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
         <h4 className="text-md font-semibold text-foreground flex items-center gap-2 mb-4"><Icon className="w-5 h-5" />Competências {tipo === 'TECNICA' ? 'Técnicas' : 'Comportamentais'}</h4>
 
         <div className="flex-1 flex flex-col">
-          {!isExpanded ? (
+          {!isAllExpanded ? (
             <>
               <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><TrendingDown className="w-4 h-4 text-destructive" />Áreas Críticas</h5>
               <div className="space-y-3 mb-4">{worstGaps.map(renderGapItem)}</div>
               <div className="border-t border-dashed border-border my-4"></div>
               <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" />Destaques</h5>
               <div className="space-y-3">{bestGaps.map(renderGapItem)}</div>
-              <div className="mt-auto pt-4">
-                <Button variant="outline" size="sm" onClick={() => setExpanded(true)} className="w-full gap-1">
-                  Ver lista completa <ChevronDown className="w-4 h-4" />
-                </Button>
-              </div>
             </>
           ) : (
-            <>
-              <div className="space-y-3 overflow-y-auto flex-1 pr-2">{fullList.map(renderGapItem)}</div>
-              <div className="mt-auto pt-4">
-                <Button variant="outline" size="sm" onClick={() => setExpanded(false)} className="w-full gap-1">
-                  Recolher <ChevronUp className="w-4 h-4" />
-                </Button>
-              </div>
-            </>
+            <div className="space-y-3 overflow-y-auto flex-1 pr-2">{fullList.map(renderGapItem)}</div>
           )}
         </div>
       </Card>
     );
   };
+
+  const showExpandButton = hasData && (gapsTecnicos.length > DISPLAY_LIMIT || gapsComportamentais.length > DISPLAY_LIMIT);
 
   return (
     <div className="mb-8">
@@ -150,6 +137,14 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
           <div className="h-full w-px bg-border opacity-50"></div>
         </div>
       </div>
+      {showExpandButton && (
+        <div className="mt-4 flex justify-center">
+          <Button variant="outline" size="sm" onClick={() => setIsAllExpanded(!isAllExpanded)} className="w-full max-w-xs gap-1">
+            {isAllExpanded ? "Recolher listas" : "Ver listas completas"}
+            {isAllExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
