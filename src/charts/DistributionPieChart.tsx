@@ -38,6 +38,14 @@ const getAgeRange = (idade?: number | null): string => {
   return "Acima de 45 anos";
 };
 
+// Helper para formatar o gênero
+const formatGender = (gender: string): string => {
+    if (gender === "NAO_INFORMADO") return "Não informado";
+    if (gender === "NAO_BINARIO") return "Não Binário";
+    // Capitaliza a primeira letra e coloca o resto em minúsculo
+    return gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
+};
+
 export default function DistributionPieChart({ teamMembers, empty = false }: DistributionPieChartProps) {
   const [filter, setFilter] = useState<PieChartFilterType>("maturidade");
 
@@ -61,7 +69,8 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
           key = member.categoria_dominante || "Não definida";
           break;
         case "sexo":
-          key = member.sexo === "NAO_INFORMADO" ? "Não informado" : member.sexo;
+          // Aplica a formatação de gênero
+          key = formatGender(member.sexo);
           break;
         case "faixaEtaria":
           key = getAgeRange(member.idade);
