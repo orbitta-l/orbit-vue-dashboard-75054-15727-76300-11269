@@ -48,7 +48,8 @@ const formatGender = (gender: string): string => {
 };
 
 // Componente Customizado para o Rótulo Externo (mostra apenas a porcentagem)
-const CustomOuterLabel = ({ cx, cy, midAngle, outerRadius, percent, index }: any) => {
+// Adicionado 'fill' nas props para usar a cor da fatia
+const CustomOuterLabel = ({ cx, cy, midAngle, outerRadius, percent, index, fill }: any) => {
     const RADIAN = Math.PI / 180;
     // Posição do texto um pouco mais longe do círculo
     const radius = outerRadius + 20; 
@@ -62,12 +63,12 @@ const CustomOuterLabel = ({ cx, cy, midAngle, outerRadius, percent, index }: any
         <text 
             x={x} 
             y={y} 
-            fill="hsl(var(--foreground))" 
+            fill={fill} // Usando a cor da fatia
             textAnchor={textAnchor} 
             dominantBaseline="central"
             fontSize={14}
             fontWeight={600}
-            opacity={0.8}
+            opacity={0.9} // Aumentando a opacidade para melhor leitura
         >
             {`${(percent * 100).toFixed(0)}%`}
         </text>
