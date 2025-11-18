@@ -194,20 +194,37 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
                   <YAxis type="number" dataKey="eixo_x_tecnico_geral" name="Técnico" domain={[1, 4]} ticks={[1, 2, CENTER_POINT, 3, 4]} label={{ value: "Hard Skills", angle: -90, position: 'left', offset: -10, style: labelStyle }} stroke="hsl(var(--foreground))" tick={tickStyle} />
                   <ReferenceLine x={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
                   <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
+                  
+                  {/* M1: Básico (Inferior Esquerdo) - X: 1-2.5, Y: 1-2.5 */}
                   <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1} fillOpacity={0.2} />
+                  
+                  {/* M2: Intermediário (Inferior Direito) - X: 2.5-4, Y: 1-2.5 */}
                   <ReferenceArea x1={CENTER_POINT} x2={4} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M2} fillOpacity={0.2} />
-                  <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.2} />
-                  <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
+                  
+                  {/* M3: Avançado (Superior Esquerdo) - X: 1-2.5, Y: 2.5-4 */}
+                  <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3} fillOpacity={0.2} />
+                  
+                  {/* M4: Expect (Superior Direito) - X: 2.5-4, Y: 2.5-4 */}
+                  <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4} fillOpacity={0.2} />
+                  
                   <Tooltip cursor={{ strokeDasharray: '3 3' }} content={() => null} />
                   <Scatter name="Liderados" data={filteredMembers} onClick={handlePointClick} shape={<CustomDot selectedMemberId={selectedMemberId} />} />
                 </ScatterChart>
               </ResponsiveContainer>
             )}
             
-            {/* Rótulos dos Quadrantes - Ajustados para ficarem mais próximos */}
-            <div className="absolute top-0 left-0 -translate-x-2 -translate-y-6 text-center">{renderQuadrantBadge('M4')}</div>
-            <div className="absolute top-0 right-0 translate-x-2 -translate-y-6 text-center">{renderQuadrantBadge('M3')}</div>
+            {/* Rótulos dos Quadrantes - Corrigindo a posição dos rótulos M3 e M4 */}
+            
+            {/* M4: Expect (Superior Direito) */}
+            <div className="absolute top-0 right-0 translate-x-2 -translate-y-6 text-center">{renderQuadrantBadge('M4')}</div>
+            
+            {/* M3: Avançado (Superior Esquerdo) */}
+            <div className="absolute top-0 left-0 -translate-x-2 -translate-y-6 text-center">{renderQuadrantBadge('M3')}</div>
+            
+            {/* M1: Básico (Inferior Esquerdo) */}
             <div className="absolute bottom-0 left-0 -translate-x-2 translate-y-2 text-center">{renderQuadrantBadge('M1')}</div>
+            
+            {/* M2: Intermediário (Inferior Direito) */}
             <div className="absolute bottom-0 right-0 translate-x-2 translate-y-2 text-center">{renderQuadrantBadge('M2')}</div>
           </div>
         </div>

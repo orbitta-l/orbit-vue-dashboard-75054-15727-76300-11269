@@ -128,8 +128,8 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
     return null;
   };
 
-  // Definindo o ponto central para 2.0
-  const CENTER_POINT = 2.0;
+  // Definindo o ponto central para 2.5 (Padrão MER 4.0)
+  const CENTER_POINT = 2.5;
 
   return (
     <Card className="p-6 mb-8">
@@ -154,7 +154,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   dataKey="eixo_y_comportamental" 
                   name="Comportamental" 
                   domain={[1, 4]} 
-                  ticks={[1, 2, 3, 4]}
+                  ticks={[1, 2, CENTER_POINT, 3, 4]} // Usando CENTER_POINT
                   label={{ 
                     value: "Média Comportamental (SOFT)", 
                     position: 'insideBottom', 
@@ -169,7 +169,7 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   dataKey="eixo_x_tecnico_geral" 
                   name="Técnico" 
                   domain={[1, 4]} 
-                  ticks={[1, 2, 3, 4]}
+                  ticks={[1, 2, CENTER_POINT, 3, 4]} // Usando CENTER_POINT
                   label={{ 
                     value: "Média Técnica (HARD)", 
                     angle: -90, 
@@ -181,23 +181,21 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
                   stroke="hsl(var(--foreground))"
                 />
                 
-                {/* Linhas centrais destacadas no 2.0 */}
+                {/* Linhas centrais destacadas no 2.5 */}
                 <ReferenceLine x={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
                 <ReferenceLine y={CENTER_POINT} stroke="hsl(var(--foreground))" strokeDasharray="4 4" strokeWidth={3} opacity={0.8} />
 
-                {/* Quadrantes com cores atualizadas e preenchendo de 1 a 4 */}
-                
-                {/* M1: Básico (Inferior Esquerdo) -> X: 1-2, Y: 1-2 */}
+                {/* M1: Básico (Inferior Esquerdo) - X: 1-2.5, Y: 1-2.5 */}
                 <ReferenceArea x1={1} x2={CENTER_POINT} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M1 as string} fillOpacity={0.2} />
                 
-                {/* M2: Intermediário (Inferior Direito) -> X: 2-4, Y: 1-2 */}
+                {/* M2: Intermediário (Inferior Direito) - X: 2.5-4, Y: 1-2.5 */}
                 <ReferenceArea x1={CENTER_POINT} x2={4} y1={1} y2={CENTER_POINT} fill={QUADRANT_COLORS.M2 as string} fillOpacity={0.2} />
                 
-                {/* M3: Avançado (Superior Direito) -> X: 2-4, Y: 2-4 (INVERTIDO) */}
-                <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3 as string} fillOpacity={0.2} />
+                {/* M3: Avançado (Superior Esquerdo) - X: 1-2.5, Y: 2.5-4 */}
+                <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M3 as string} fillOpacity={0.2} />
                 
-                {/* M4: Expect (Superior Esquerdo) -> X: 1-2, Y: 2-4 (INVERTIDO) */}
-                <ReferenceArea x1={1} x2={CENTER_POINT} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4 as string} fillOpacity={0.2} />
+                {/* M4: Expect (Superior Direito) - X: 2.5-4, Y: 2.5-4 */}
+                <ReferenceArea x1={CENTER_POINT} x2={4} y1={CENTER_POINT} y2={4} fill={QUADRANT_COLORS.M4 as string} fillOpacity={0.2} />
 
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
                 
@@ -217,17 +215,17 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
               </ScatterChart>
             </ResponsiveContainer>
             
-            {/* Quadrant Badges com contagem sem parênteses e reposicionamento */}
+            {/* Rótulos dos Quadrantes - Corrigindo a posição dos rótulos M3 e M4 */}
             
-            {/* M4: Expect (Superior Esquerdo) - Novo Posicionamento */}
-            <div className="absolute top-0 left-0 translate-x-[-10px] translate-y-[-10px] text-center">
+            {/* M4: Expect (Superior Direito) */}
+            <div className="absolute top-0 right-0 translate-x-[10px] translate-y-[-10px] text-center">
               <div className={cn("px-3 py-1 rounded-md font-semibold text-sm", getTextColor('M4'))} style={{ backgroundColor: QUADRANT_COLORS.M4 }}>
                 {QUADRANT_LABELS.M4} <span className={cn("ml-1 font-bold", getCountTextColor('M4'))}>{quadrantCounts.M4 || 0}</span>
               </div>
             </div>
             
-            {/* M3: Avançado (Superior Direito) - Novo Posicionamento */}
-            <div className="absolute top-0 right-0 translate-x-[10px] translate-y-[-10px] text-center">
+            {/* M3: Avançado (Superior Esquerdo) */}
+            <div className="absolute top-0 left-0 translate-x-[-10px] translate-y-[-10px] text-center">
               <div className={cn("px-3 py-1 rounded-md font-semibold text-sm", getTextColor('M3'))} style={{ backgroundColor: QUADRANT_COLORS.M3 }}>
                 {QUADRANT_LABELS.M3} <span className={cn("ml-1 font-bold", getCountTextColor('M3'))}>{quadrantCounts.M3 || 0}</span>
               </div>
@@ -296,7 +294,6 @@ export default function CompetencyQuadrantChart({ teamMembers, empty = false }: 
             </div>
           </div>
         </div>
-      </div>
-    </Card>
-  );
+      </Card>
+    );
 }
