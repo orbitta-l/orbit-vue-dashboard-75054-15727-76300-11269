@@ -12,6 +12,15 @@ const getGreeting = () => {
   return "Boa noite";
 };
 
+const getGradientClass = (greeting: string) => {
+  if (greeting === "Boa noite") {
+    // Gradiente noturno: Azul Escuro -> Azul Primário -> Laranja (Accent)
+    return "from-primary-dark via-primary to-accent";
+  }
+  // Gradiente padrão para dia/tarde
+  return "from-primary-dark to-primary";
+};
+
 export function DashboardHeader() {
   const { profile } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -27,15 +36,16 @@ export function DashboardHeader() {
   const greeting = getGreeting();
   const currentDate = format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR });
   const formattedTime = format(currentTime, "HH:mm:ss");
+  const gradientClass = getGradientClass(greeting);
 
   return (
     <div className="mb-8 flex justify-between items-start">
       {/* Título Principal (Esquerda) */}
       <div>
-        {/* Linha de saudação removida */}
         <h1 className={cn(
           "text-3xl font-bold",
-          "bg-gradient-to-r from-primary-dark to-primary", // Gradiente mais escuro
+          "bg-gradient-to-r", // Adicionado bg-gradient-to-r aqui
+          gradientClass, // Classe dinâmica
           "bg-clip-text text-transparent"
         )}>
           {greeting}, {userName}
