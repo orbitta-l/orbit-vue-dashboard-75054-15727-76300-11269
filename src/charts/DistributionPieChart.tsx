@@ -135,7 +135,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
   };
 
   return (
-    <Card className="p-6 mb-8">
+    <Card className="p-6 mb-8 h-full"> {/* Adicionado h-full */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
         <div>
           <h3 className="text-lg font-semibold text-foreground">Distribuição da Equipe</h3>
@@ -143,7 +143,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
         </div>
       </div>
 
-      <div className={cn("flex flex-col md:flex-row gap-10 items-center", !hasData && "justify-center")}>
+      <div className={cn("flex flex-col md:flex-row gap-10 items-center h-[300px]", !hasData && "justify-center")}> {/* Altura fixa de 300px para o conteúdo do gráfico */}
         
         {/* Filtros Verticais (Esquerda) - Centralizado verticalmente */}
         <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0 flex items-center justify-center">
@@ -156,8 +156,8 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
         </Tabs>
 
         {/* Gráfico de Pizza (Direita) */}
-        <div className="flex-1 min-h-[300px]">
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="flex-1 h-full"> {/* h-full para preencher os 300px */}
+          <ResponsiveContainer width="100%" height="100%"> {/* height="100%" para usar a altura do pai */}
             <PieChart>
               <Pie
                 data={chartData}

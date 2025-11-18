@@ -26,7 +26,7 @@ export default function RecentEvaluationsSection({
 }: RecentEvaluationsSectionProps) {
   if (empty) {
     return (
-      <Card className="p-6 bg-muted/20 h-full flex flex-col"> {/* Adicionado h-full e flex-col */}
+      <Card className="p-6 bg-muted/20 h-full flex flex-col">
         <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
           <ClipboardCheck className="w-5 h-5 text-primary" />
           Avaliações Recentes
@@ -56,13 +56,13 @@ export default function RecentEvaluationsSection({
   };
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-card to-card/50 h-full flex flex-col"> {/* Adicionado h-full e flex-col */}
+    <Card className="p-6 bg-gradient-to-br from-card to-card/50 h-full flex flex-col">
       <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
         <ClipboardCheck className="w-5 h-5 text-primary" />
         Avaliações Recentes
       </h3>
 
-      <div className="flex-1 overflow-y-auto space-y-4"> {/* Adicionado flex-1 e overflow-y-auto */}
+      <div className="flex-1 overflow-y-auto space-y-4">
         {!hasData ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
