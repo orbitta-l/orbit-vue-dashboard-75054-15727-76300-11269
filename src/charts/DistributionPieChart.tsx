@@ -116,7 +116,36 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
       return BASE_COLORS[index % BASE_COLORS.length];
   };
 
-  // Removendo a função renderCustomLabel
+  // Custom Label para mostrar apenas a porcentagem
+  const renderCustomLabel = ({ percent, x, y, midAngle, outerRadius, innerRadius }: any) => {
+    if (!hasData || percent < 0.05) return null; // Oculta rótulos muito pequenos (menos de 5%)
+    
+    // Calcula o raio no meio da espessura do donut
+    const radius = (innerRadius + outerRadius) / 2; 
+    const RADIAN = Math.PI / 180;
+    const ex = x + radius * Math.cos(-midAngle * RADIAN);
+    const ey = y + radius * Math.sin(-midAngle * RADIAN);
+    
+    // Estilos explícitos para SVG
+    const textStyle = {
+        fill: 'hsl(var(--foreground))',
+        fontWeight: 600, // bold
+        opacity: 0.6, // 60% de opacidade
+        fontSize: 14, // Tamanho da fonte
+    };
+
+    return (
+      <text
+        x={ex}
+        y={ey}
+        textAnchor="middle" // Centraliza o texto no ponto calculado
+        dominantBaseline="central"
+        style={textStyle}
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
 
   return (
     <Card className="p-6 mb-8 h-full"> {/* Adicionado h-full */}
@@ -147,8 +176,8 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
                 data={chartData}
                 cx="50%" // Centralizado
                 cy="50%" // Centralizado
-                labelLine={true} // Habilita a linha de conexão
-                label={true} // Habilita o rótulo padrão (nome e valor)
+                labelLine={false} // Remove a linha de conexão
+                label={renderCustomLabel} // Usa o rótulo customizado
                 innerRadius={60} // Adicionado innerRadius para criar o efeito donut
                 outerRadius={100} // Reduzido de 120 para 100 para ser mais compacto
                 fill={hasData ? undefined : placeholderColor}
