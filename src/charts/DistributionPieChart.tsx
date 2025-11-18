@@ -120,8 +120,8 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
   const renderCustomLabel = ({ percent, x, y, midAngle, outerRadius }: any) => {
     if (!hasData) return null;
     
-    // Calcula a posição do rótulo (um pouco mais perto do centro para evitar sobreposição com a legenda)
-    const radius = outerRadius * 0.8; 
+    // Ajustado o raio para 70% do raio externo, posicionando o rótulo dentro do donut
+    const radius = outerRadius * 0.7; 
     const RADIAN = Math.PI / 180;
     const ex = x + radius * Math.cos(-midAngle * RADIAN);
     const ey = y + radius * Math.sin(-midAngle * RADIAN);
@@ -130,7 +130,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
     const textStyle = {
         fill: 'hsl(var(--foreground))',
         fontWeight: 600, // bold
-        opacity: 0.8, // opaco
+        opacity: 0.6, // Ajustado para 60% de opacidade
         fontSize: 14, // Tamanho da fonte
     };
 
