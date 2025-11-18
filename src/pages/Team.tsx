@@ -23,7 +23,6 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabaseClient";
 import { useTeamFilters, ActiveFilters } from "@/hooks/use-team-filters";
 import { getGapColorClass } from "@/utils/colorUtils";
-import { Separator } from "@/components/ui/separator"; // Importando o Separator
 
 const categoryIcons: Record<string, React.ElementType> = {
   "Desenvolvimento Web": Code,
@@ -255,110 +254,30 @@ export default function Team() {
   const renderMemberCard = (member: LideradoDashboard & { isTalent: boolean }) => {
     const isEvaluated = !!member.ultima_avaliacao;
     const maturity = member.ultima_avaliacao?.maturidade_quadrante || 'N/A';
-    
-    // Calcular média geral
-    const overallAverage = isEvaluated 
-      ? ((member.ultima_avaliacao!.media_tecnica_1a4 + member.ultima_avaliacao!.media_comportamental_1a4) / 2).toFixed(1)
-      : 'N/A';
-
-    // Encontrar melhor competência comportamental
-    const bestSoftSkill = member.competencias
-      .filter(c => c.tipo === 'COMPORTAMENTAL' && c.pontuacao_1a4 > 0)
-      .sort((a, b) => b.pontuacao_1a4 - a.pontuacao_1a4)[0];
-
-    // Encontrar melhor competência técnica
-    const bestHardSkill = member.competencias
-      .filter(c => c.tipo === 'TECNICA' && c.pontuacao_1a4 > 0)
-      .sort((a, b) => b.pontuacao_1a4 - a.pontuacao_1a4)[0];
-
+    const dominantCategory = member.categoria_dominante || 'Não Avaliado';
+    const CategoryIcon = getCategoryIcon(dominantCategory);
     const isSelected = selectedMembersForComparison.includes(member.id_usuario);
+    const topCompetencies = member.competencias.filter(c => c.pontuacao_1a4 > 0).sort((a, b) => b.pontuacao_1a4 - a.pontuacao_1a4).slice(0, 3);
 
     return (
-      <Card 
-        key={member.id_usuario} 
-        className={cn(
-          "relative overflow-hidden w-full p-4 rounded-xl shadow-md transition-all duration-300 group", 
-          "bg-accent/5 hover:shadow-lg hover:-translate-y-1", // Fundo alaranjado sutil e hover
-          isComparisonMode && "cursor-pointer", // Cursor pointer apenas no modo comparação
-          isSelected && isComparisonMode && "border-2 border-primary ring-2 ring-primary/50"
-        )}
-        onClick={() => isComparisonMode && handleSelectMemberForComparison(member.id_usuario)} // Clicável apenas no modo comparação
-      >
-        {/* Maturity Badge (Top-Left) */}
-        <Badge 
-          className={cn(
-            "absolute top-3 left-3 text-xs font-semibold z-10", 
-            isEvaluated ? "bg-primary/10 text-primary" : "bg-muted/50 text-muted-foreground"
-          )}
-        >
-          {maturity}
-        </Badge>
-
-        {/* Talent Badge (Top-Right) - Only if not in comparison mode or if checkbox is not there */}
-        {member.isTalent && (!isComparisonMode || !isSelected) && (
-          <Badge className="absolute top-3 right-3 rounded-full bg-yellow-500 text-yellow-900 font-bold px-3 py-1 text-xs z-10">
-            <Star className="w-3 h-3 mr-1 fill-yellow-900" /> TALENTO
-          </Badge>
-        )}
-
-        {/* Comparison Checkbox (Top-Right) - If in comparison mode */}
-        {isComparisonMode && (
-          <div className="absolute top-3 right-3 z-10">
-            <Checkbox checked={isSelected} onCheckedChange={() => handleSelectMemberForComparison(member.id_usuario)} className="w-5 h-5" />
+      <Card key={member.id_usuario} className={cn("relative overflow-hidden w-full p-4 rounded-xl shadow-md transition-all duration-300 group", isComparisonMode ? "cursor-pointer hover:shadow-lg hover:border-primary/50" : "cursor-pointer hover:shadow-lg hover:-translate-y-1", isSelected && isComparisonMode && "border-2 border-primary ring-2 ring-primary/50")} onClick={() => isComparisonMode ? handleSelectMemberForComparison(member.id_usuario) : navigate(`/team/${member.id_usuario}`)}>
+        {isComparisonMode && <div className="absolute top-3 right-3 z-10"><Checkbox checked={isSelected} onCheckedChange={() => handleSelectMemberForComparison(member.id_usuario)} className="w-5 h-5" /></div>}
+        {member.isTalent && <Badge className="absolute top-0 left-0 rounded-br-lg rounded-tl-xl bg-yellow-500 text-yellow-900 font-bold px-3 py-1 text-xs z-10"><Star className="w-3 h-3 mr-1 fill-yellow-900" /> TALENTO</Badge>}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Avatar className="w-12 h-12">
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                {getInitials(member.nome)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0"><h3 className="font-semibold text-lg text-foreground truncate">{member.nome}</h3><p className="text-sm text-muted-foreground truncate">{member.cargo_nome}</p></div>
           </div>
-        )}
-
-        {/* Profile Info (Avatar, Name, Email, Cargo) - Centralizado */}
-        <div className="flex flex-col items-center text-center gap-2 mb-4 mt-8"> {/* Adicionado mt-8 para dar espaço ao badge de maturidade */}
-          <Avatar className="w-16 h-16 flex-shrink-0"> {/* Avatar um pouco maior */}
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xl">
-              {getInitials(member.nome)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-xl text-foreground truncate">{member.nome}</h3> {/* Nome destacado */}
-            <p className="text-xs text-muted-foreground opacity-70 truncate">{member.email}</p> {/* Email opaco e pequeno */}
-            <Badge variant="secondary" className="text-xs mt-1"> {/* Cargo com background */}
-              {member.cargo_nome}
-            </Badge>
-          </div>
+          <Badge className={cn("text-sm font-semibold", isEvaluated ? "bg-primary/10 text-primary" : "bg-muted/50 text-muted-foreground")}>{maturity}</Badge>
         </div>
-
-        <Separator className="my-4" /> {/* Divisor */}
-
-        {/* Performance Metrics (Star, Best Soft/Hard Skills) */}
-        <div className="space-y-2 text-sm">
-          {isEvaluated ? (
-            <>
-              <div className="flex items-center gap-2 text-foreground">
-                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                <span className="font-semibold">Média Geral:</span>
-                <Badge variant="outline" className={cn("text-xs font-medium", getGapColorClass(parseFloat(overallAverage)))}>
-                  {overallAverage}
-                </Badge>
-              </div>
-              {bestSoftSkill && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <HeartHandshake className="w-4 h-4 text-primary-light" />
-                  <span className="font-medium">Melhor Comportamental:</span>
-                  <Badge variant="outline" className={cn("text-xs font-medium", getGapColorClass(bestSoftSkill.pontuacao_1a4))}>
-                    {bestSoftSkill.nome_competencia} ({bestSoftSkill.pontuacao_1a4.toFixed(1)})
-                  </Badge>
-                </div>
-              )}
-              {bestHardSkill && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Code className="w-4 h-4 text-primary-light" />
-                  <span className="font-medium">Melhor Técnica:</span>
-                  <Badge variant="outline" className={cn("text-xs font-medium", getGapColorClass(bestHardSkill.pontuacao_1a4))}>
-                    {bestHardSkill.nome_competencia} ({bestHardSkill.pontuacao_1a4.toFixed(1)})
-                  </Badge>
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center">Aguardando primeira avaliação para detalhes de desempenho.</p>
-          )}
+        <div className="space-y-2 text-sm"><div className="flex items-center text-muted-foreground"><Mail className="w-4 h-4 mr-2" /><span className="truncate">{member.email}</span></div><div className="flex items-center text-muted-foreground"><PersonStanding className="w-4 h-4 mr-2" /><span>{member.idade} anos</span></div></div>
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="flex items-center justify-between mb-2"><span className="text-xs font-medium text-muted-foreground">Área Dominante</span>{isEvaluated ? <Badge variant="secondary" className="text-xs gap-1"><CategoryIcon className="w-3 h-3" />{dominantCategory}</Badge> : <Badge variant="secondary" className="text-xs">Pendente de Avaliação</Badge>}</div>
+          {isEvaluated && topCompetencies.length > 0 && <div className="mt-3"><span className="text-xs font-medium text-muted-foreground block mb-1">Top Competências:</span><div className="flex flex-wrap gap-1">{topCompetencies.map(comp => <Badge key={comp.id_competencia} className={cn("text-xs font-medium", getGapColorClass(comp.pontuacao_1a4))} variant="outline">{comp.nome_competencia.split(' ')[0]} ({comp.pontuacao_1a4.toFixed(1)})</Badge>)}</div></div>}
         </div>
       </Card>
     );

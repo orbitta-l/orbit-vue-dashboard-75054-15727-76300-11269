@@ -148,7 +148,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
   const isFilterActive = selectedCategory !== 'all' || selectedSpecialization !== 'all';
 
   return (
-    <Card className="p-6 mb-8 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+    <Card className="p-6 mb-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
         <div>
           <h3 className="text-lg font-semibold text-foreground">Desempenho por Competência</h3>

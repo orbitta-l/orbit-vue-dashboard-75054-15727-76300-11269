@@ -170,7 +170,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
   const triggerClasses = "w-full justify-start transition-colors duration-200 hover:bg-primary/10 hover:text-primary data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:font-semibold";
 
   return (
-    <Card className="p-6 mb-8 h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1"> {/* Adicionado h-full */}
+    <Card className="p-6 mb-8 h-full"> {/* Adicionado h-full */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
         <div>
           <h3 className="text-lg font-semibold text-foreground">Distribuição da Equipe</h3>

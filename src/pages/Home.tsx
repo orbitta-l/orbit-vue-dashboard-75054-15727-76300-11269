@@ -168,7 +168,7 @@ export default function Home() {
       </div>
 
       {isPrimeiroAcesso && (
-        <Card className="p-6 mb-8 bg-muted/20 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <Card className="p-6 mb-8 bg-muted/20 text-center">
           <p className="text-muted-foreground mb-4">
             Bem‑vindo! Para começar, cadastre seu primeiro liderado e realize a primeira avaliação.
           </p>
