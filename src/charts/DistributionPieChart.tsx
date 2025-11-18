@@ -145,9 +145,9 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
 
       <div className={cn("flex flex-col md:flex-row gap-10 items-center", !hasData && "justify-center")}>
         
-        {/* Filtros Verticais (Esquerda) - Adicionado items-center para centralizar verticalmente */}
+        {/* Filtros Verticais (Esquerda) - Centralizado verticalmente */}
         <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0 flex items-center justify-center">
-          <TabsList className="flex flex-col h-auto p-2 space-y-3 bg-muted/50"> {/* Aumentado p-1 para p-2 e space-y-1 para space-y-3 */}
+          <TabsList className="flex flex-col h-auto p-2 space-y-3 bg-muted/50">
             <TabsTrigger value="maturidade" className="w-full justify-start">Maturidade</TabsTrigger>
             <TabsTrigger value="categoria" className="w-full justify-start">Categoria</TabsTrigger>
             <TabsTrigger value="sexo" className="w-full justify-start">Gênero</TabsTrigger>
@@ -164,10 +164,11 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={renderCustomLabel} // Usando o custom label
+                label={renderCustomLabel}
                 outerRadius={100}
                 fill={hasData ? undefined : placeholderColor}
                 dataKey="value"
+                isAnimationActive={true} // Ativa a animação para transição suave
               >
                 {chartData.map((entry, index) => (
                   <Cell
@@ -178,7 +179,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
                 ))}
               </Pie>
               {hasData && <Tooltip />}
-              {/* Legenda à direita e vertical */}
+              {/* Legenda à direita e vertical (mantida) */}
               {hasData && <Legend 
                 iconType="circle" 
                 layout="vertical" 
