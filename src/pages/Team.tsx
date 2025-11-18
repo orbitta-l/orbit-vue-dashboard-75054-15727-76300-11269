@@ -264,9 +264,11 @@ export default function Team() {
         key={member.id_usuario} 
         className={cn(
           "relative overflow-hidden w-full p-4 rounded-xl shadow-md transition-all duration-300 group", 
-          isComparisonMode ? "cursor-pointer hover:shadow-lg hover:border-primary/50" : "cursor-pointer hover:shadow-lg hover:-translate-y-1", 
+          "bg-accent/5 hover:shadow-lg hover:-translate-y-1", // Fundo alaranjado sutil e hover
+          isComparisonMode && "cursor-pointer", // Cursor pointer apenas no modo comparação
           isSelected && isComparisonMode && "border-2 border-primary ring-2 ring-primary/50"
         )}
+        onClick={() => isComparisonMode && handleSelectMemberForComparison(member.id_usuario)} // Clicável apenas no modo comparação
       >
         {/* Maturity Badge (Top-Left) */}
         <Badge 
