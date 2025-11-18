@@ -33,7 +33,7 @@ All colors MUST be HSL.
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-muted: 0 84% 75%; /* Adjusted muted red */
+    --destructive-muted: 0 70% 75%; /* New muted red */
 
     --border: 200 10% 90%;
     --input: 200 10% 90%;
@@ -111,7 +111,7 @@ All colors MUST be HSL.
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
-    --destructive-muted: 0 84% 65%; /* Adjusted muted red for dark mode */
+    --destructive-muted: 0 70% 65%; /* New muted red for dark mode */
 
     --border: 227 40% 25%;
     --input: 227 40% 25%;
