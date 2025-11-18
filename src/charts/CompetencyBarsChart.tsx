@@ -2,8 +2,10 @@ import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, LabelList, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ReferenceLine, LabelList, Cell } from 'recharts';
 import { Label } from "@/components/ui/label";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type BarItem = { 
   competencia: string; 
@@ -28,6 +30,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>("all");
   const [clickedIndex, setClickedIndex] = useState<number | null>(null); // Estado para rastrear a barra clicada
+  const [clickedData, setClickedData] = useState<{ name: string, media: number } | null>(null); // Dados da barra clicada
 
   const availableCategories = useMemo(() => {
     if (empty) return [];
@@ -47,13 +50,15 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
 
   useEffect(() => {
     setSelectedSpecialization("all");
-    setClickedIndex(null); // Limpa o clique ao mudar de categoria
+    setClickedIndex(null);
+    setClickedData(null);
   }, [selectedCategory]);
 
   useEffect(() => {
     setSelectedCategory("all");
     setSelectedSpecialization("all");
-    setClickedIndex(null); // Limpa o clique ao mudar de modo
+    setClickedIndex(null);
+    setClickedData(null);
   }, [mode]);
 
   const chartData = useMemo(() => {
@@ -130,24 +135,30 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
 
   }, [data, empty, mode, selectedCategory, selectedSpecialization]);
 
-  // Custom Tooltip para o efeito de clique
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    // O Tooltip só deve ser ativo se o índice ativo for o índice clicado
-    if (active && payload && payload.length && payload[0].index === clickedIndex) {
-      const value = payload[0].value;
-      return (
-        <div className="p-3 bg-card border rounded-lg shadow-lg text-sm">
-          <p className="font-bold text-foreground mb-1">{label}</p>
-          <p className="text-muted-foreground">Média: <span className="font-semibold text-primary">{value.toFixed(1)}/4.0</span></p>
-        </div>
-      );
+  const handleBarClick = (data: { name: string, media: number }, index: number) => {
+    if (clickedIndex === index) {
+      setClickedIndex(null);
+      setClickedData(null);
+    } else {
+      setClickedIndex(index);
+      setClickedData(data);
     }
-    return null;
   };
 
-  const handleBarClick = (data: any, index: number) => {
-    // Se a barra clicada for a mesma que já está clicada, desativa. Senão, ativa.
-    setClickedIndex(prevIndex => (prevIndex === index ? null : index));
+  const CustomPopover = () => {
+    if (!clickedData) return null;
+
+    return (
+      <div className="p-3 bg-card border border-accent rounded-lg shadow-xl text-sm mb-4 flex items-center justify-between">
+        <div>
+          <p className="font-bold text-foreground mb-1">{clickedData.name}</p>
+          <p className="text-muted-foreground">Média da Equipe: <span className="font-semibold text-accent">{clickedData.media.toFixed(1)}/4.0</span></p>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => { setClickedIndex(null); setClickedData(null); }} className="p-1 h-auto">
+          <X className="w-4 h-4 text-muted-foreground" />
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -195,12 +206,13 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
           </div>
         </div>
       )}
+      
+      <CustomPopover /> {/* Renderiza o balão customizado aqui */}
 
       <ResponsiveContainer width="100%" height={350}>
         <BarChart 
           data={chartData.data} 
           margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-          // Remove onMouseLeave, pois o estado é controlado por clique
         >
           <CartesianGrid strokeDasharray="3 3" stroke={empty ? "hsl(var(--muted) / 0.2)" : "hsl(var(--border))"} />
           <XAxis 
@@ -217,13 +229,8 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
             ticks={[0, 1, 2, 2.5, 3, 4]} 
             stroke={empty ? "hsl(var(--muted) / 0.5)" : "hsl(var(--foreground))"} 
           />
-          <Tooltip
-            cursor={{ fill: 'hsl(var(--muted) / 0.2)' }}
-            contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-            content={<CustomTooltip />}
-            // Desativa o Tooltip por hover, mas permite que ele seja ativado programaticamente
-            trigger="click" 
-          />
+          {/* Removido o Tooltip do Recharts */}
+          
           {/* Linha de referência no 2.5 usando --color-accent (Laranja) */}
           <ReferenceLine y={2.5} stroke="hsl(var(--color-accent))" strokeDasharray="4 4" />
           <Bar 
@@ -231,7 +238,6 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
             barSize={40} 
             radius={[8, 8, 0, 0]} // Arredondamento no topo
             fillOpacity={0.7} // Opacidade padrão
-            onClick={handleBarClick} // Adiciona o manipulador de clique
           >
             {chartData.data.map((entry, index) => (
               <Cell 
@@ -246,6 +252,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                         : "hsl(var(--muted))"
                 } 
                 className="transition-all duration-200 cursor-pointer"
+                onClick={() => handleBarClick(entry, index)} // Adiciona o manipulador de clique
               />
             ))}
             <LabelList 
