@@ -145,6 +145,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
   };
 
   const THRESHOLD = 2.5;
+  const isFilterActive = selectedCategory !== 'all' || selectedSpecialization !== 'all';
 
   return (
     <Card className="p-6 mb-8">
@@ -172,54 +173,56 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
       </div>
 
       {mode === 'TECNICA' && !empty && (
-        <div className="space-y-4 mb-4 p-4 border rounded-lg bg-muted/20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Filtro de Categoria usando Select */}
-            <div>
-              <Label className="text-sm font-medium mb-2 block">Filtrar por Categoria</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Todas as Categorias" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCategories.map(cat => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat === 'all' ? 'Todas as Categorias' : cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          
-            {/* Filtro de Especialização usando Select */}
-            {selectedCategory !== 'all' && availableSpecializations.length > 1 && (
+        <div className="flex justify-center"> {/* Centraliza o painel de filtros */}
+          <div className="space-y-4 mb-4 p-4 border rounded-lg bg-muted/20 w-full max-w-3xl"> {/* Limita a largura do painel */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Filtro de Categoria usando Select */}
               <div>
-                <Label className="text-sm font-medium mb-2 block">Filtrar por Especialização</Label>
-                <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Todas as Especializações" />
+                <Label className="text-sm font-medium mb-2 block">Filtrar por Categoria</Label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-full md:w-64"> {/* Estilizado com largura definida */}
+                    <SelectValue placeholder="Todas as Categorias" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableSpecializations.map(spec => (
-                      <SelectItem key={spec} value={spec}>{spec === 'all' ? 'Todas as Especializações' : spec}</SelectItem>
+                    {availableCategories.map(cat => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat === 'all' ? 'Todas as Categorias' : cat}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+            
+              {/* Filtro de Especialização usando Select */}
+              {selectedCategory !== 'all' && availableSpecializations.length > 1 && (
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Filtrar por Especialização</Label>
+                  <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
+                    <SelectTrigger className="w-full md:w-64"> {/* Estilizado com largura definida */}
+                      <SelectValue placeholder="Todas as Especializações" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableSpecializations.map(spec => (
+                        <SelectItem key={spec} value={spec}>{spec === 'all' ? 'Todas as Especializações' : spec}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            
+            {/* Botão para limpar filtros - Exibido apenas se houver filtro ativo */}
+            {isFilterActive && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => { setSelectedCategory('all'); setSelectedSpecialization('all'); }}
+                className="gap-1 text-destructive hover:bg-destructive/10"
+              >
+                <X className="w-4 h-4" /> Limpar Filtros
+              </Button>
             )}
           </div>
-          
-          {/* Botão para limpar filtros */}
-          {(selectedCategory !== 'all' || selectedSpecialization !== 'all') && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => { setSelectedCategory('all'); setSelectedSpecialization('all'); }}
-              className="gap-1 text-destructive hover:bg-destructive/10"
-            >
-              <X className="w-4 h-4" /> Limpar Filtros Técnicos
-            </Button>
-          )}
         </div>
       )}
 
