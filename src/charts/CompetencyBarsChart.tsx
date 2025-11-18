@@ -181,7 +181,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
               <div className="flex flex-col items-center"> {/* Centraliza o conteúdo da coluna */}
                 <Label className="text-sm font-semibold text-foreground mb-2 block">Filtrar por Categoria</Label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-full max-w-xs">
+                  <SelectTrigger className="w-full max-w-xs hover:bg-muted/50 transition-colors">
                     <SelectValue placeholder="Todas as Categorias" />
                   </SelectTrigger>
                   <SelectContent>
@@ -199,7 +199,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                 <div className="flex flex-col items-center"> {/* Centraliza o conteúdo da coluna */}
                   <Label className="text-sm font-semibold text-foreground mb-2 block">Filtrar por Especialização</Label>
                   <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
-                    <SelectTrigger className="w-full max-w-xs">
+                    <SelectTrigger className="w-full max-w-xs hover:bg-muted/50 transition-colors">
                       <SelectValue placeholder="Todas as Especializações" />
                     </SelectTrigger>
                     <SelectContent>

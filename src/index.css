@@ -1,3 +1,4 @@
+CSS.">
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -23,12 +24,7 @@ All colors MUST be HSL.
     --primary-light: 215 90% 65%; /* New light blue */
     
     --secondary: 200 2% 81%;
-    <think>**Adding Interactions and Animations**
-
-I've successfully pinpointed the code in `KnowledgeGapsSection.tsx` responsible for rendering competency items.  I will be utilizing Tailwind classes on the root `div` for the desired hover effect, focusing on background color changes and a cursor pointer. In the `Sidebar.tsx`, the `NavLink` component is identified for the icon animations. I'm focusing on defining keyframes and extending Tailwind's configuration in `index.css` and `tailwind.config.ts`, respectively, to manage the active state animation for the Settings icon and others.
-
-
-</think>--secondary-foreground: 214 100% 1%;
+    --secondary-foreground: 214 100% 1%;
 
     --muted: 200 2% 81%;
     --muted-foreground: 214 20% 40%;
