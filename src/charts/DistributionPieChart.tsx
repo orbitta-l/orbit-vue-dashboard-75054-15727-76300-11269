@@ -117,9 +117,26 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
   };
 
   // Custom Label para mostrar apenas a porcentagem
-  const renderCustomLabel = ({ percent }: { percent: number }) => {
+  const renderCustomLabel = ({ percent, x, y, midAngle, outerRadius, fill }: any) => {
     if (!hasData) return "Sem dados";
-    return `${(percent * 100).toFixed(0)}%`;
+    
+    const radius = outerRadius * 1.2; // Move o rótulo um pouco para fora
+    const RADIAN = Math.PI / 180;
+    const ex = x + radius * Math.cos(-midAngle * RADIAN);
+    const ey = y + radius * Math.sin(-midAngle * RADIAN);
+    
+    return (
+      <text
+        x={ex}
+        y={ey}
+        fill="hsl(var(--foreground))" // Cor do texto baseada no foreground
+        textAnchor={ex > x ? 'start' : 'end'}
+        dominantBaseline="central"
+        className="font-semibold opacity-80" // Adicionando classes Tailwind
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
   };
 
   return (
