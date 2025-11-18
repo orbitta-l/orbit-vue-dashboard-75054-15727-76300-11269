@@ -117,11 +117,11 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
   };
 
   // Custom Label para mostrar apenas a porcentagem
-  const renderCustomLabel = ({ percent, x, y, midAngle, outerRadius }: any) => {
+  const renderCustomLabel = ({ percent, x, y, midAngle, outerRadius, innerRadius }: any) => {
     if (!hasData) return null;
     
-    // Ajustado o raio para 70% do raio externo, posicionando o rótulo dentro do donut
-    const radius = outerRadius * 0.7; 
+    // Calcula o raio no meio da espessura do donut
+    const radius = (innerRadius + outerRadius) / 2; 
     const RADIAN = Math.PI / 180;
     const ex = x + radius * Math.cos(-midAngle * RADIAN);
     const ey = y + radius * Math.sin(-midAngle * RADIAN);
@@ -138,7 +138,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
       <text
         x={ex}
         y={ey}
-        textAnchor={ex > x ? 'start' : 'end'}
+        textAnchor="middle" // Centraliza o texto no ponto calculado
         dominantBaseline="central"
         style={textStyle}
       >
