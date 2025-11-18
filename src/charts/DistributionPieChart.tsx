@@ -145,17 +145,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
 
       <div className={cn("flex flex-col md:flex-row gap-10 items-center h-[300px]", !hasData && "justify-center")}> {/* Altura fixa de 300px para o conteúdo do gráfico */}
         
-        {/* Filtros Verticais (Esquerda) - Centralizado verticalmente */}
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0 flex items-center justify-center">
-          <TabsList className="flex flex-col h-auto p-3 space-y-4 bg-muted/50">
-            <TabsTrigger value="maturidade" className="w-full justify-start">Maturidade</TabsTrigger>
-            <TabsTrigger value="categoria" className="w-full justify-start">Categoria</TabsTrigger>
-            <TabsTrigger value="sexo" className="w-full justify-start">Gênero</TabsTrigger>
-            <TabsTrigger value="faixaEtaria" className="w-full justify-start">Faixa Etária</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* Gráfico de Pizza (Direita) */}
+        {/* Gráfico de Pizza (Direita) - MOVIDO PARA A ESQUERDA (Primeiro elemento) */}
         <div className="flex-1 h-full"> {/* h-full para preencher os 300px */}
           <ResponsiveContainer width="100%" height="100%"> {/* height="100%" para usar a altura do pai */}
             <PieChart>
@@ -191,6 +181,16 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
             </PieChart>
           </ResponsiveContainer>
         </div>
+        
+        {/* Filtros Verticais (Direita) - MOVIDO PARA A DIREITA (Segundo elemento) */}
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0 flex items-center justify-center">
+          <TabsList className="flex flex-col h-auto p-3 space-y-4 bg-muted/50">
+            <TabsTrigger value="maturidade" className="w-full justify-start">Maturidade</TabsTrigger>
+            <TabsTrigger value="categoria" className="w-full justify-start">Categoria</TabsTrigger>
+            <TabsTrigger value="sexo" className="w-full justify-start">Gênero</TabsTrigger>
+            <TabsTrigger value="faixaEtaria" className="w-full justify-start">Faixa Etária</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       {!hasData && (
