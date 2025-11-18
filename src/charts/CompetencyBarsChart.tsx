@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge"; // Importando Badge
 
 type BarItem = { 
   competencia: string; 
@@ -22,15 +23,13 @@ interface CompetencyBarsChartProps {
 }
 
 // Cores
-const COLOR_DEFAULT = "hsl(var(--color-brand))"; // Azul Principal
+const COLOR_DEFAULT = "hsl(var(--primary))"; // Azul Principal
 const COLOR_BELOW_AVERAGE = "hsl(var(--accent))"; // Laranja
 
 export default function CompetencyBarsChart({ empty = false, data, defaultMode = "TECNICA" }: CompetencyBarsChartProps) {
   const [mode, setMode] = useState<'TECNICA' | 'COMPORTAMENTAL'>(defaultMode);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>("all");
-  
-  // Removido: [hoveredIndex, setHoveredIndex] = useState<number | null>(null); 
   
   const availableCategories = useMemo(() => {
     if (empty) return [];
@@ -156,40 +155,69 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
         </div>
         <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
           <TabsList>
-            <TabsTrigger value="TECNICA">Técnicas</TabsTrigger>
-            <TabsTrigger value="COMPORTAMENTAL">Comportamentais</TabsTrigger>
+            <TabsTrigger 
+              value="TECNICA" 
+              className="transition-all duration-200 hover:bg-primary/10 hover:text-primary"
+            >
+              Técnicas
+            </TabsTrigger>
+            <TabsTrigger 
+              value="COMPORTAMENTAL"
+              className="transition-all duration-200 hover:bg-primary/10 hover:text-primary"
+            >
+              Comportamentais
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       {mode === 'TECNICA' && !empty && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border rounded-lg bg-muted/20">
+        <div className="space-y-4 mb-4 p-4 border rounded-lg bg-muted/20">
+          {/* Filtro de Categoria usando Badges */}
           <div>
             <Label className="text-sm font-medium mb-2 block">Filtrar por Categoria</Label>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={availableCategories.length <= 1}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todas as Categorias" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCategories.map(cat => (
-                  <SelectItem key={cat} value={cat}>{cat === 'all' ? 'Todas as Categorias' : cat}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap gap-2">
+              {availableCategories.map(cat => (
+                <Badge
+                  key={cat}
+                  variant={selectedCategory === cat ? "default" : "secondary"}
+                  className="cursor-pointer transition-all duration-200 hover:opacity-80"
+                  onClick={() => setSelectedCategory(cat)}
+                >
+                  {cat === 'all' ? 'Todas as Categorias' : cat}
+                </Badge>
+              ))}
+            </div>
           </div>
-          <div>
-            <Label className="text-sm font-medium mb-2 block">Filtrar por Especialização</Label>
-            <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization} disabled={availableSpecializations.length <= 1 || selectedCategory === 'all'}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todas as Especializações" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableSpecializations.map(spec => (
-                  <SelectItem key={spec} value={spec}>{spec === 'all' ? 'Todas as Especializações' : spec}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          
+          {/* Filtro de Especialização usando Select */}
+          {selectedCategory !== 'all' && availableSpecializations.length > 1 && (
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Filtrar por Especialização</Label>
+              <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
+                <SelectTrigger className="w-full md:w-64">
+                  <SelectValue placeholder="Todas as Especializações" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSpecializations.map(spec => (
+                    <SelectItem key={spec} value={spec}>{spec === 'all' ? 'Todas as Especializações' : spec}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
+          {/* Botão para limpar filtros */}
+          {(selectedCategory !== 'all' || selectedSpecialization !== 'all') && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => { setSelectedCategory('all'); setSelectedSpecialization('all'); }}
+              className="gap-1 text-destructive hover:bg-destructive/10"
+            >
+              <X className="w-4 h-4" /> Limpar Filtros Técnicos
+            </Button>
+          )}
         </div>
       )}
 
@@ -223,7 +251,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
           />
           
           {/* Linha de referência no 2.5 usando --color-accent (Laranja) */}
-          <ReferenceLine y={2.5} stroke="hsl(var(--color-accent))" strokeDasharray="4 4" />
+          <ReferenceLine y={THRESHOLD} stroke="hsl(var(--color-accent))" strokeDasharray="4 4" />
           <Bar 
             dataKey="media" 
             barSize={40} 
