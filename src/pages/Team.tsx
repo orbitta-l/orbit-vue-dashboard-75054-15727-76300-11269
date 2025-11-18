@@ -296,7 +296,7 @@ export default function Team() {
         
         {/* Container Centralizado para Busca e Filtros */}
         <div className="flex justify-center w-full">
-          <div className="flex flex-col md:flex-row gap-4 mb-6 mt-10 w-full max-w-4xl"> {/* Alterado mt-6 para mt-10 */}
+          <div className="flex flex-col md:flex-row gap-4 mb-6 mt-10 w-full max-w-4xl">
             
             {/* Coluna de Busca e Limpar Filtros */}
             <div className="flex flex-col gap-4 flex-1">
@@ -321,11 +321,11 @@ export default function Team() {
                 )}
               </div>
               
-              {/* Botão Limpar Filtros alinhado com o input */}
+              {/* Botão Limpar Filtros - Agora com w-full e justificado à esquerda */}
               {activeFilterCount > 0 && (
                 <Button 
                   variant="ghost" 
-                  className="gap-2 text-destructive hover:bg-destructive/10 w-full md:w-auto justify-start" 
+                  className="gap-2 text-destructive hover:bg-destructive/10 w-full justify-start" 
                   onClick={resetFilters}
                 >
                   <X className="w-4 h-4" />
