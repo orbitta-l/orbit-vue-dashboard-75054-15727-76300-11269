@@ -89,7 +89,7 @@ const CustomPieTooltip = ({ active, payload }: any) => {
             >
                 <p className="font-bold text-foreground mb-1">{data.name}</p>
                 <p className="text-muted-foreground">
-                    Total de Membros: <span className="font-semibold text-primary">{data.value}</span>
+                    Total: <span className="font-semibold text-primary">{data.value}</span>
                 </p>
             </div>
         );
