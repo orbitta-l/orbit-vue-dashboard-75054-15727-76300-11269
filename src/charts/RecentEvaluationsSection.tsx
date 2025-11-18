@@ -13,6 +13,7 @@ interface RecentEvaluation {
   nome_liderado: string;
   data_avaliacao: Date;
   avatar_url?: string | null;
+  cargo_nome: string; // Adicionado cargo_nome
 }
 
 interface RecentEvaluationsSectionProps {
@@ -38,10 +39,10 @@ export default function RecentEvaluationsSection({
         <ClipboardCheck className="w-5 h-5 text-primary" />
         Avaliações Recentes
       </h3>
-      {/* Aplicando text-accent e font-semibold */}
+      {/* Alterado texto do botão para 'Nova' */}
       <Button onClick={handleNewEvaluation} variant="link" size="sm" className="gap-1 text-accent font-semibold p-0 h-auto">
         <Plus className="w-4 h-4" />
-        Nova Avaliação
+        Nova
       </Button>
     </div>
   );
@@ -117,6 +118,13 @@ export default function RecentEvaluationsSection({
                   <p className="text-xs text-muted-foreground">
                     Avaliado {formatDate(evaluation.data_avaliacao)}
                   </p>
+                </div>
+                
+                {/* Cargo opaco à direita */}
+                <div className="flex-shrink-0 text-right">
+                    <p className="text-xs text-muted-foreground/80 font-medium truncate max-w-[80px]">
+                        {evaluation.cargo_nome}
+                    </p>
                 </div>
               </div>
             ))}

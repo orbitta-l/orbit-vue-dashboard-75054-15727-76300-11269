@@ -136,12 +136,16 @@ export default function Home() {
       b.data_avaliacao.getTime() - a.data_avaliacao.getTime()
     );
     
-    const recentes = sortedAvaliacoes.slice(0, 3).map(av => ({
-      evaluationId: av.id_avaliacao,
-      lideradoId: av.liderado_id,
-      nome_liderado: liderados.find(l => l.id_usuario === av.liderado_id)?.nome ?? "Desconhecido",
-      data_avaliacao: av.data_avaliacao, // Já é um objeto Date
-    }));
+    const recentes = sortedAvaliacoes.slice(0, 3).map(av => {
+      const liderado = teamData.find(l => l.id_usuario === av.liderado_id);
+      return {
+        evaluationId: av.id_avaliacao,
+        lideradoId: av.liderado_id,
+        nome_liderado: liderado?.nome ?? "Desconhecido",
+        data_avaliacao: av.data_avaliacao, // Já é um objeto Date
+        cargo_nome: liderado?.cargo_nome ?? "N/A", // Adicionando cargo_nome
+      };
+    });
 
     return {
       quadrante: teamPerformance,
@@ -185,7 +189,7 @@ export default function Home() {
         data={dashboardData.barras}
       />
 
-      {/* NOVO LAYOUT: lg:grid-cols-5, Pie Chart 3 colunas (60%) e Recent Evals 2 colunas (40%) */}
+      {/* Layout 60%/40% */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8 items-stretch">
         <div className="lg:col-span-3">
           <DistributionPieChart
