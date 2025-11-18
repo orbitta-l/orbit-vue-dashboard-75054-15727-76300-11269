@@ -147,7 +147,7 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
         
         {/* Filtros Verticais (Esquerda) - Centralizado verticalmente */}
         <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0 flex items-center justify-center">
-          <TabsList className="flex flex-col h-auto p-2 space-y-3 bg-muted/50">
+          <TabsList className="flex flex-col h-auto p-3 space-y-4 bg-muted/50"> {/* Aumentado p-2 para p-3 e space-y-3 para space-y-4 */}
             <TabsTrigger value="maturidade" className="w-full justify-start">Maturidade</TabsTrigger>
             <TabsTrigger value="categoria" className="w-full justify-start">Categoria</TabsTrigger>
             <TabsTrigger value="sexo" className="w-full justify-start">Gênero</TabsTrigger>
@@ -161,14 +161,14 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
             <PieChart>
               <Pie
                 data={chartData}
-                cx="50%"
+                cx="45%" // Ajustado para centralizar melhor o gráfico com a legenda à direita
                 cy="50%"
                 labelLine={false}
                 label={renderCustomLabel}
-                outerRadius={100}
+                outerRadius={120} // Aumentado o raio para um gráfico maior
                 fill={hasData ? undefined : placeholderColor}
                 dataKey="value"
-                isAnimationActive={true} // Ativa a animação para transição suave
+                isAnimationActive={true} // Mantém a animação para transição suave
               >
                 {chartData.map((entry, index) => (
                   <Cell
