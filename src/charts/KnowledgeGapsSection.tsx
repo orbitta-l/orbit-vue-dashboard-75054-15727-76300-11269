@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, Code, HeartHandshake, TrendingDown, TrendingUp } from "lucide-react";
 import { LideradoDashboard } from "@/types/mer";
-import { getGapColorClass } from "@/utils/colorUtils";
+import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
 
 interface KnowledgeGapsSectionProps {
   teamMembers: LideradoDashboard[];
