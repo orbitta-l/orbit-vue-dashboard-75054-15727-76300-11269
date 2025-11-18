@@ -104,20 +104,8 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
 
   const placeholderColor = "var(--color-muted)";
 
-  const getDescription = () => {
-    switch (filter) {
-      case "maturidade":
-        return "Distribuição dos membros da equipe por nível de maturidade (M1 a M4).";
-      case "categoria":
-        return "Distribuição dos membros por categoria técnica dominante.";
-      case "sexo":
-        return "Distribuição da equipe por gênero declarado.";
-      case "faixaEtaria":
-        return "Distribuição dos membros por faixa etária.";
-      default:
-        return "Visão geral da composição da equipe.";
-    }
-  };
+  // Subtítulo fixo
+  const fixedDescription = "Visão geral da composição da equipe por diferentes critérios.";
   
   // Função para obter a cor correta
   const getColor = (entryName: string, index: number) => {
@@ -139,20 +127,30 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
         <div>
           <h3 className="text-lg font-semibold text-foreground">Distribuição da Equipe</h3>
-          <p className="text-sm text-muted-foreground">{getDescription()}</p>
+          <p className="text-sm text-muted-foreground">{fixedDescription}</p>
         </div>
       </div>
 
       <div className={cn("flex flex-col md:flex-row gap-10 items-center h-[300px]", !hasData && "justify-center")}> {/* Altura fixa de 300px para o conteúdo do gráfico */}
         
-        {/* Gráfico de Pizza (Direita) - MOVIDO PARA A ESQUERDA (Primeiro elemento) */}
-        <div className="flex-1 h-full"> {/* h-full para preencher os 300px */}
+        {/* Filtros Verticais (Esquerda) - Centralizado verticalmente */}
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0 flex items-center justify-center">
+          <TabsList className="flex flex-col h-auto p-3 space-y-4 bg-muted/50">
+            <TabsTrigger value="maturidade" className="w-full justify-start">Maturidade</TabsTrigger>
+            <TabsTrigger value="categoria" className="w-full justify-start">Categoria</TabsTrigger>
+            <TabsTrigger value="sexo" className="w-full justify-start">Gênero</TabsTrigger>
+            <TabsTrigger value="faixaEtaria" className="w-full justify-start">Faixa Etária</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Gráfico de Pizza (Direita) - Centralizado no espaço restante */}
+        <div className="flex-1 h-full flex items-center justify-center"> {/* Adicionado flex items-center justify-center */}
           <ResponsiveContainer width="100%" height="100%"> {/* height="100%" para usar a altura do pai */}
             <PieChart>
               <Pie
                 data={chartData}
-                cx="50%" // Centralizado novamente para dar espaço à legenda inferior
-                cy="50%"
+                cx="50%" // Centralizado
+                cy="50%" // Centralizado
                 labelLine={false}
                 label={renderCustomLabel}
                 innerRadius={60} // Adicionado innerRadius para criar o efeito donut
@@ -181,16 +179,6 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
             </PieChart>
           </ResponsiveContainer>
         </div>
-        
-        {/* Filtros Verticais (Direita) - MOVIDO PARA A DIREITA (Segundo elemento) */}
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as PieChartFilterType)} orientation="vertical" className="w-full md:w-40 flex-shrink-0 flex items-center justify-center">
-          <TabsList className="flex flex-col h-auto p-3 space-y-4 bg-muted/50">
-            <TabsTrigger value="maturidade" className="w-full justify-start">Maturidade</TabsTrigger>
-            <TabsTrigger value="categoria" className="w-full justify-start">Categoria</TabsTrigger>
-            <TabsTrigger value="sexo" className="w-full justify-start">Gênero</TabsTrigger>
-            <TabsTrigger value="faixaEtaria" className="w-full justify-start">Faixa Etária</TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
       {!hasData && (
