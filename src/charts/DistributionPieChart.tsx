@@ -120,20 +120,27 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
   const renderCustomLabel = ({ percent, x, y, midAngle, outerRadius }: any) => {
     if (!hasData) return null;
     
-    const radius = outerRadius * 1.2; // Move o rótulo um pouco para fora
+    // Calcula a posição do rótulo (um pouco mais perto do centro para evitar sobreposição com a legenda)
+    const radius = outerRadius * 0.8; 
     const RADIAN = Math.PI / 180;
     const ex = x + radius * Math.cos(-midAngle * RADIAN);
     const ey = y + radius * Math.sin(-midAngle * RADIAN);
     
-    // Retorna o elemento <text> com as propriedades de posicionamento e estilo
+    // Estilos explícitos para SVG
+    const textStyle = {
+        fill: 'hsl(var(--foreground))',
+        fontWeight: 600, // bold
+        opacity: 0.8, // opaco
+        fontSize: 14, // Tamanho da fonte
+    };
+
     return (
       <text
         x={ex}
         y={ey}
-        fill="hsl(var(--foreground))" // Cor do texto baseada no foreground
         textAnchor={ex > x ? 'start' : 'end'}
         dominantBaseline="central"
-        className="font-semibold opacity-80" // Aplicando classes Tailwind
+        style={textStyle}
       >
         {`${(percent * 100).toFixed(0)}%`}
       </text>
