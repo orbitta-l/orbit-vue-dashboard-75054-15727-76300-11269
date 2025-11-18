@@ -254,30 +254,48 @@ export default function Team() {
   const renderMemberCard = (member: LideradoDashboard & { isTalent: boolean }) => {
     const isEvaluated = !!member.ultima_avaliacao;
     const maturity = member.ultima_avaliacao?.maturidade_quadrante || 'N/A';
-    const dominantCategory = member.categoria_dominante || 'Não Avaliado';
-    const CategoryIcon = getCategoryIcon(dominantCategory);
-    const isSelected = selectedMembersForComparison.includes(member.id_usuario);
     const topCompetencies = member.competencias.filter(c => c.pontuacao_1a4 > 0).sort((a, b) => b.pontuacao_1a4 - a.pontuacao_1a4).slice(0, 3);
 
+    const isSelected = selectedMembersForComparison.includes(member.id_usuario);
+
     return (
-      <Card key={member.id_usuario} className={cn("relative overflow-hidden w-full p-4 rounded-xl shadow-md transition-all duration-300 group", isComparisonMode ? "cursor-pointer hover:shadow-lg hover:border-primary/50" : "cursor-pointer hover:shadow-lg hover:-translate-y-1", isSelected && isComparisonMode && "border-2 border-primary ring-2 ring-primary/50")} onClick={() => isComparisonMode ? handleSelectMemberForComparison(member.id_usuario) : navigate(`/team/${member.id_usuario}`)}>
-        {isComparisonMode && <div className="absolute top-3 right-3 z-10"><Checkbox checked={isSelected} onCheckedChange={() => handleSelectMemberForComparison(member.id_usuario)} className="w-5 h-5" /></div>}
-        {member.isTalent && <Badge className="absolute top-0 left-0 rounded-br-lg rounded-tl-xl bg-yellow-500 text-yellow-900 font-bold px-3 py-1 text-xs z-10"><Star className="w-3 h-3 mr-1 fill-yellow-900" /> TALENTO</Badge>}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Avatar className="w-12 h-12">
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
-                {getInitials(member.nome)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0"><h3 className="font-semibold text-lg text-foreground truncate">{member.nome}</h3><p className="text-sm text-muted-foreground truncate">{member.cargo_nome}</p></div>
-          </div>
-          <Badge className={cn("text-sm font-semibold", isEvaluated ? "bg-primary/10 text-primary" : "bg-muted/50 text-muted-foreground")}>{maturity}</Badge>
+      <Card key={member.id_usuario} className={cn("relative overflow-hidden w-full p-0 rounded-xl shadow-md transition-all duration-300 group", isComparisonMode ? "cursor-pointer hover:shadow-lg hover:border-primary/50" : "cursor-pointer hover:shadow-lg hover:-translate-y-1", isSelected && isComparisonMode && "border-2 border-primary ring-2 ring-primary/50")}>
+        {/* Top Gradient Background */}
+        <div className="h-28 bg-gradient-to-br from-primary-light to-accent relative">
+          {isComparisonMode && <div className="absolute top-3 right-3 z-10"><Checkbox checked={isSelected} onCheckedChange={() => handleSelectMemberForComparison(member.id_usuario)} className="w-5 h-5" /></div>}
+          {member.isTalent && <Badge className="absolute top-0 left-0 rounded-br-lg rounded-tl-xl bg-yellow-500 text-yellow-900 font-bold px-3 py-1 text-xs z-10"><Star className="w-3 h-3 mr-1 fill-yellow-900" /> TALENTO</Badge>}
         </div>
-        <div className="space-y-2 text-sm"><div className="flex items-center text-muted-foreground"><Mail className="w-4 h-4 mr-2" /><span className="truncate">{member.email}</span></div><div className="flex items-center text-muted-foreground"><PersonStanding className="w-4 h-4 mr-2" /><span>{member.idade} anos</span></div></div>
-        <div className="mt-4 pt-4 border-t border-border">
-          <div className="flex items-center justify-between mb-2"><span className="text-xs font-medium text-muted-foreground">Área Dominante</span>{isEvaluated ? <Badge variant="secondary" className="text-xs gap-1"><CategoryIcon className="w-3 h-3" />{dominantCategory}</Badge> : <Badge variant="secondary" className="text-xs">Pendente de Avaliação</Badge>}</div>
-          {isEvaluated && topCompetencies.length > 0 && <div className="mt-3"><span className="text-xs font-medium text-muted-foreground block mb-1">Top Competências:</span><div className="flex flex-wrap gap-1">{topCompetencies.map(comp => <Badge key={comp.id_competencia} className={cn("text-xs font-medium", getGapColorClass(comp.pontuacao_1a4))} variant="outline">{comp.nome_competencia.split(' ')[0]} ({comp.pontuacao_1a4.toFixed(1)})</Badge>)}</div></div>}
+
+        {/* Profile Picture (Avatar) - Centered and overlapping */}
+        <div className="relative -mt-16 flex justify-center z-10">
+          <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-3xl">
+              {getInitials(member.nome)}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+
+        {/* Member Info - Centered */}
+        <div className="text-center p-4 pt-2">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <h3 className="font-bold text-xl text-foreground">{member.nome}</h3>
+            <Badge className={cn("text-xs font-semibold", isEvaluated ? "bg-primary/10 text-primary" : "bg-muted/50 text-muted-foreground")}>{maturity}</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mb-1">{member.cargo_nome}</p>
+          <p className="text-xs text-muted-foreground mb-4">{member.email}</p>
+
+          {/* Top Competencies */}
+          {isEvaluated && topCompetencies.length > 0 ? (
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              {topCompetencies.map(comp => (
+                <Badge key={comp.id_competencia} className={cn("text-xs font-medium", getGapColorClass(comp.pontuacao_1a4))} variant="outline">
+                  {comp.nome_competencia} ({comp.pontuacao_1a4.toFixed(1)})
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground mt-4">Aguardando primeira avaliação.</p>
+          )}
         </div>
       </Card>
     );
