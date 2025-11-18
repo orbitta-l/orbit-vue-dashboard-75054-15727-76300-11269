@@ -9,6 +9,7 @@ import DistributionPieChart from "@/charts/DistributionPieChart";
 import KnowledgeGapsSection from "@/charts/KnowledgeGapsSection";
 import RecentEvaluationsSection from "@/charts/RecentEvaluationsSection";
 import CompetencyBarsChart from "@/charts/CompetencyBarsChart";
+import AgeGenderPyramidChart from "@/charts/AgeGenderPyramidChart"; // Importando o novo gráfico
 import { MetricCard } from "@/components/MetricCard";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -210,6 +211,12 @@ export default function Home() {
       <KnowledgeGapsSection
         empty={isPrimeiroAcesso}
         teamMembers={dashboardData.gaps}
+      />
+      
+      {/* Novo Gráfico de Pirâmide de População */}
+      <AgeGenderPyramidChart
+        empty={isPrimeiroAcesso}
+        teamMembers={teamData}
       />
     </div>
   );
