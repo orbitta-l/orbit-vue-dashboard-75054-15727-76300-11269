@@ -66,7 +66,7 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
   const gapsComportamentais = calcularGaps('COMPORTAMENTAL');
 
   const renderGapItem = (gap: ReturnType<typeof calcularGaps>[0]) => (
-    <div key={gap.nome_competencia} className="space-y-1.5">
+    <div key={gap.nome_competencia} className="space-y-1.5 p-2 rounded-md transition-colors hover:bg-muted/50">
       <div className="flex items-center justify-between text-sm">
         <div className="flex-1 min-w-0">
           <span className={`font-medium text-foreground truncate`}>{gap.nome_competencia}</span>
@@ -109,20 +109,20 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
           {!isAllExpanded ? (
             <>
               <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><TrendingDown className="w-4 h-4 text-destructive" />Áreas Críticas</h5>
-              <div className="space-y-3 mb-4">{worstGaps.map(renderGapItem)}</div>
+              <div className="space-y-1 mb-4">{worstGaps.map(renderGapItem)}</div>
               <div className="border-t border-dashed border-border my-4"></div>
               <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" />Destaques</h5>
-              <div className="space-y-3">{bestGaps.map(renderGapItem)}</div>
+              <div className="space-y-1">{bestGaps.map(renderGapItem)}</div>
             </>
           ) : (
-            <div className="space-y-3 overflow-y-auto flex-1 pr-2">{fullList.map(renderGapItem)}</div>
+            <div className="space-y-1 overflow-y-auto flex-1 pr-2">{fullList.map(renderGapItem)}</div>
           )}
         </div>
       </Card>
     );
   };
 
-  const showExpandButton = hasData && (gapsTecnicos.length > DISPLAY_LIMIT || gapsComportamentais.length > DISPLAY_LIMIT);
+  const showExpandButton = hasData && (gapsTecnicos.length > DISPLAY_LIMIT * 2 || gapsComportamentais.length > DISPLAY_LIMIT * 2);
 
   return (
     <div className="mb-8">

@@ -90,8 +90,7 @@ export const Sidebar = () => {
             >
               {({ isActive }) => (
                 <>
-                  {/* Ícones principais em cinza claro (text-sidebar-foreground/60) */}
-                  <item.icon className={cn("w-5 h-5 transition-colors duration-300", isActive ? "text-primary-foreground" : "text-sidebar-foreground/60")} />
+                  <item.icon className={cn("w-5 h-5 transition-colors duration-300", isActive ? "text-primary-foreground animate-pulse-sm" : "text-sidebar-foreground/60")} />
                   <span>{item.label}</span>
                 </>
               )}
@@ -114,8 +113,12 @@ export const Sidebar = () => {
             )
           }
         >
-          <Settings className="w-5 h-5 text-sidebar-foreground/60 transition-colors duration-300" />
-          <span>Configurações</span>
+          {({ isActive }) => (
+            <>
+              <Settings className={cn("w-5 h-5 text-sidebar-foreground/60 transition-colors duration-300", isActive && "animate-spin-once")} />
+              <span>Configurações</span>
+            </>
+          )}
         </NavLink>
         
         {/* Logout (Botão Laranja) */}
