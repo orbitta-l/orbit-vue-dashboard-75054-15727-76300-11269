@@ -20,7 +20,8 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
   if (empty) {
     return (
       <div className="mb-8">
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Gaps de Conhecimento</h3>
+        <h3 className="text-lg font-semibold mb-1 text-foreground">Gaps de Conhecimento</h3>
+        <p className="text-sm text-muted-foreground mb-4">Análise das competências mais críticas e mais fortes da equipe.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="p-6 bg-muted/20 text-center h-full">
             <h4 className="text-md font-semibold mb-4 text-muted-foreground">Competências Comportamentais</h4>
@@ -37,7 +38,6 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
 
   const hasData = teamMembers.length > 0;
 
-  // Corrigido: Usando 'TECNICA' e 'COMPORTAMENTAL' que são os tipos reais das competências
   const calcularGaps = (tipo: 'TECNICA' | 'COMPORTAMENTAL') => {
     if (!hasData) return [];
 
@@ -198,10 +198,19 @@ export default function KnowledgeGapsSection({ teamMembers, empty = false }: Kno
 
   return (
     <div className="mb-8">
-      <h3 className="text-lg font-semibold mb-4 text-foreground">Gaps de Conhecimento</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch"> {/* Adicionado items-stretch para garantir altura igual */}
-        {renderGapCard('COMPORTAMENTAL')}
-        {renderGapCard('TECNICA')}
+      <h3 className="text-lg font-semibold mb-1 text-foreground">Gaps de Conhecimento</h3>
+      <p className="text-sm text-muted-foreground mb-4">Análise das competências mais críticas e mais fortes da equipe.</p>
+      
+      <div className="relative">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+          {renderGapCard('COMPORTAMENTAL')}
+          {renderGapCard('TECNICA')}
+        </div>
+        
+        {/* Separador Vertical Opaco (Apenas em telas maiores) */}
+        <div className="hidden md:block absolute inset-y-0 left-1/2 transform -translate-x-1/2 pointer-events-none">
+          <div className="h-full w-px bg-border opacity-50"></div>
+        </div>
       </div>
     </div>
   );
