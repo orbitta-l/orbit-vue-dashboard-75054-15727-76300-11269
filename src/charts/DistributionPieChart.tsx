@@ -190,7 +190,9 @@ export default function DistributionPieChart({ teamMembers, empty = false }: Dis
                   />
                 ))}
               </Pie>
-              {hasData && <Tooltip />}
+              {hasData && <Tooltip 
+                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+              />}
               {/* Legenda na parte inferior, horizontal e centralizada */}
               {hasData && <Legend 
                 iconType="circle" 
