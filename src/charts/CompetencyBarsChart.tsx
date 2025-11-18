@@ -21,13 +21,13 @@ interface CompetencyBarsChartProps {
 
 // Cores
 const COLOR_DEFAULT = "hsl(var(--color-brand))"; // Azul Principal
-const COLOR_HOVER = "hsl(var(--accent))"; // Laranja
+const COLOR_CLICKED = "hsl(var(--accent))"; // Laranja
 
 export default function CompetencyBarsChart({ empty = false, data, defaultMode = "TECNICA" }: CompetencyBarsChartProps) {
   const [mode, setMode] = useState<'TECNICA' | 'COMPORTAMENTAL'>(defaultMode);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>("all");
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null); // Novo estado para rastrear o hover
+  const [clickedIndex, setClickedIndex] = useState<number | null>(null); // Estado para rastrear a barra clicada
 
   const availableCategories = useMemo(() => {
     if (empty) return [];
@@ -47,11 +47,13 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
 
   useEffect(() => {
     setSelectedSpecialization("all");
+    setClickedIndex(null); // Limpa o clique ao mudar de categoria
   }, [selectedCategory]);
 
   useEffect(() => {
     setSelectedCategory("all");
     setSelectedSpecialization("all");
+    setClickedIndex(null); // Limpa o clique ao mudar de modo
   }, [mode]);
 
   const chartData = useMemo(() => {
@@ -128,18 +130,10 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
 
   }, [data, empty, mode, selectedCategory, selectedSpecialization]);
 
-  // Custom Tooltip para o efeito hover
+  // Custom Tooltip para o efeito de clique
   const CustomTooltip = ({ active, payload, label }: any) => {
-    // Atualiza o estado de hover
-    useEffect(() => {
-      if (active && payload && payload.length) {
-        setHoveredIndex(payload[0].index);
-      } else {
-        setHoveredIndex(null);
-      }
-    }, [active, payload]);
-
-    if (active && payload && payload.length) {
+    // O Tooltip só deve ser ativo se o índice ativo for o índice clicado
+    if (active && payload && payload.length && payload[0].index === clickedIndex) {
       const value = payload[0].value;
       return (
         <div className="p-3 bg-card border rounded-lg shadow-lg text-sm">
@@ -149,6 +143,11 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
       );
     }
     return null;
+  };
+
+  const handleBarClick = (data: any, index: number) => {
+    // Se a barra clicada for a mesma que já está clicada, desativa. Senão, ativa.
+    setClickedIndex(prevIndex => (prevIndex === index ? null : index));
   };
 
   return (
@@ -201,8 +200,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
         <BarChart 
           data={chartData.data} 
           margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-          // Adiciona onMouseLeave para resetar o estado de hover quando o mouse sai do gráfico
-          onMouseLeave={() => setHoveredIndex(null)}
+          // Remove onMouseLeave, pois o estado é controlado por clique
         >
           <CartesianGrid strokeDasharray="3 3" stroke={empty ? "hsl(var(--muted) / 0.2)" : "hsl(var(--border))"} />
           <XAxis 
@@ -223,6 +221,8 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
             cursor={{ fill: 'hsl(var(--muted) / 0.2)' }}
             contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
             content={<CustomTooltip />}
+            // Desativa o Tooltip por hover, mas permite que ele seja ativado programaticamente
+            trigger="click" 
           />
           {/* Linha de referência no 2.5 usando --color-accent (Laranja) */}
           <ReferenceLine y={2.5} stroke="hsl(var(--color-accent))" strokeDasharray="4 4" />
@@ -231,6 +231,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
             barSize={40} 
             radius={[8, 8, 0, 0]} // Arredondamento no topo
             fillOpacity={0.7} // Opacidade padrão
+            onClick={handleBarClick} // Adiciona o manipulador de clique
           >
             {chartData.data.map((entry, index) => (
               <Cell 
@@ -238,13 +239,13 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                 fill={
                   empty 
                     ? "hsl(var(--color-muted))" 
-                    : index === hoveredIndex 
-                      ? COLOR_HOVER // Laranja no hover
+                    : index === clickedIndex 
+                      ? COLOR_CLICKED // Laranja no clique
                       : entry.media > 0 
                         ? COLOR_DEFAULT // Azul padrão
                         : "hsl(var(--muted))"
                 } 
-                className="transition-all duration-200"
+                className="transition-all duration-200 cursor-pointer"
               />
             ))}
             <LabelList 
