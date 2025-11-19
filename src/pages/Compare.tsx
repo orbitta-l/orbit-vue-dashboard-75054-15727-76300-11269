@@ -1,5 +1,5 @@
-import { ArrowLeft } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { ArrowLeft, Users } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -8,7 +8,35 @@ import { useAuth } from "@/context/AuthContext";
 import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates";
 import { MOCK_COMPETENCIAS } from "@/data/mockData";
 import { Label } from "@/components/ui/label";
-import { ComparisonMemberCard } from "@/components/ComparisonMemberCard"; // Importando o novo componente
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+
+const getInitials = (name: string) => name ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "";
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="p-3 bg-card border rounded-lg shadow-lg text-sm">
+        <p className="font-bold text-foreground mb-2">{label}</p>
+        <ul className="space-y-1">
+          {payload.map((entry: any, index: number) => (
+            <li key={`item-${index}`} className="flex items-center justify-between gap-4">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+                {entry.name}:
+              </span>
+              <span className="font-semibold text-foreground">{entry.value.toFixed(1)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function Compare() {
   const navigate = useNavigate();
@@ -16,14 +44,22 @@ export default function Compare() {
   const memberIds = searchParams.get("members")?.split(",") || [];
   const { teamData } = useAuth();
 
-  const [selectedMembersForComparison] = useState<string[]>(memberIds.slice(0, 4));
+  const [baseMemberId, setBaseMemberId] = useState<string | null>(null);
+  const [comparedMemberIds, setComparedMemberIds] = useState<string[]>([]);
+  
   const [selectedTheme, setSelectedTheme] = useState<string>("");
   const [selectedSpecialization, setSelectedSpecialization] = useState<string>("all");
 
   const selectedMembers = useMemo(() => 
-    teamData.filter(m => selectedMembersForComparison.includes(m.id_usuario)), 
-    [teamData, selectedMembersForComparison]
+    teamData.filter(m => memberIds.slice(0, 4).includes(m.id_usuario)), 
+    [teamData, memberIds]
   );
+
+  useEffect(() => {
+    if (selectedMembers.length > 0 && !baseMemberId) {
+      setBaseMemberId(selectedMembers[0].id_usuario);
+    }
+  }, [selectedMembers, baseMemberId]);
 
   const colors = ["hsl(var(--primary))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--destructive))"];
 
@@ -48,8 +84,29 @@ export default function Compare() {
     setSelectedSpecialization("all");
   }, [selectedTheme]);
 
+  const handleToggleComparedMember = (memberId: string) => {
+    setComparedMemberIds(prev => {
+      if (prev.includes(memberId)) {
+        return prev.filter(id => id !== memberId);
+      }
+      if (prev.length >= 2) {
+        toast({
+          title: "Limite de Comparação Atingido",
+          description: "Você pode comparar com até 2 outros membros por vez.",
+          variant: "destructive"
+        });
+        return prev;
+      }
+      return [...prev, memberId];
+    });
+  };
+
   const comparisonData = useMemo(() => {
-    if (selectedMembers.length < 1 || !selectedTheme) return { relevantCompetencyNames: [], memberData: {} };
+    if (!baseMemberId || !selectedTheme) return { chartData: [], baseMember: null, comparedMembers: [] };
+
+    const baseMember = selectedMembers.find(m => m.id_usuario === baseMemberId);
+    const comparedMembers = selectedMembers.filter(m => comparedMemberIds.includes(m.id_usuario));
+    const allMembersInChart = [baseMember, ...comparedMembers].filter(Boolean);
 
     let relevantCompetencies: { name: string }[] = [];
     if (selectedTheme === "soft-skills") {
@@ -63,7 +120,7 @@ export default function Compare() {
       relevantCompetencies = Array.from(allSoftSkills).map(name => ({ name }));
     } else {
       const category = technicalTemplate.find(c => c.id_categoria === selectedTheme);
-      if (!category) return { relevantCompetencyNames: [], memberData: {} };
+      if (!category) return { chartData: [], baseMember: null, comparedMembers: [] };
       const specsToConsider = selectedSpecialization === 'all'
         ? category.especializacoes
         : category.especializacoes.filter(spec => spec.id_especializacao === selectedSpecialization);
@@ -72,24 +129,26 @@ export default function Compare() {
 
     const filteredCompetencyNames = relevantCompetencies
       .map(c => c.name)
-      .filter(compName => selectedMembers.some(member => 
-        member.competencias.some(c => c.nome_competencia === compName && c.pontuacao_1a4 > 0)
+      .filter(compName => allMembersInChart.some(member => 
+        member!.competencias.some(c => c.nome_competencia === compName && c.pontuacao_1a4 > 0)
       ));
 
-    const memberData: Record<string, { subject: string; atual: number; ideal: number }[]> = {};
-    selectedMembers.forEach(member => {
-      memberData[member.id_usuario] = filteredCompetencyNames.map(compName => {
-        const memberCompetency = member.competencias.find(c => c.nome_competencia === compName);
-        return {
-          subject: compName,
-          atual: memberCompetency ? parseFloat(memberCompetency.pontuacao_1a4.toFixed(1)) : 0,
-          ideal: 4.0,
-        };
+    const chartData = filteredCompetencyNames.map(compName => {
+      const dataPoint: { [key: string]: any } = {
+        subject: compName,
+        ideal: 4.0,
+      };
+      allMembersInChart.forEach(member => {
+        if (member) {
+          const memberCompetency = member.competencias.find(c => c.nome_competencia === compName);
+          dataPoint[member.id_usuario] = memberCompetency ? parseFloat(memberCompetency.pontuacao_1a4.toFixed(1)) : 0;
+        }
       });
+      return dataPoint;
     });
 
-    return { relevantCompetencyNames: filteredCompetencyNames, memberData };
-  }, [selectedMembers, selectedTheme, selectedSpecialization]);
+    return { chartData, baseMember, comparedMembers };
+  }, [baseMemberId, comparedMemberIds, selectedMembers, selectedTheme, selectedSpecialization]);
 
   if (selectedMembers.length === 0) {
     return (
@@ -97,7 +156,7 @@ export default function Compare() {
         <Button variant="ghost" className="mb-6 gap-2" onClick={() => navigate("/team")}>
           <ArrowLeft className="w-4 h-4" /> Voltar para Liderados
         </Button>
-        <p className="text-muted-foreground">Selecione pelo menos 1 membro na página de "Time" para iniciar a comparação.</p>
+        <p className="text-muted-foreground">Selecione membros na página de "Time" para iniciar a comparação.</p>
       </div>
     );
   }
@@ -113,50 +172,135 @@ export default function Compare() {
         <p className="text-muted-foreground">{selectedMembers.length} colaborador(es) em análise</p>
       </div>
 
-      <Card className="p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label className="font-semibold text-foreground mb-2 block">1. Selecione a Categoria de Análise</Label>
-            <Select value={selectedTheme} onValueChange={setSelectedTheme}>
-              <SelectTrigger><SelectValue placeholder="Selecione uma categoria..." /></SelectTrigger>
-              <SelectContent>{analysisThemes.map(theme => <SelectItem key={theme.id} value={theme.id}>{theme.name}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          {specializationsForSelectedTheme.length > 0 && (
-            <div>
-              <Label className="font-semibold text-foreground mb-2 block">2. Filtre por Especialização (Opcional)</Label>
-              <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
-                <SelectTrigger><SelectValue placeholder="Todas as especializações" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Especializações</SelectItem>
-                  {specializationsForSelectedTheme.map(spec => <SelectItem key={spec.id} value={spec.id}>{spec.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </div>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Painel de Controle (Esquerda) */}
+        <div className="lg:col-span-1 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Filtros de Análise</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label className="font-semibold text-foreground mb-2 block">1. Categoria de Análise</Label>
+                <Select value={selectedTheme} onValueChange={setSelectedTheme}>
+                  <SelectTrigger><SelectValue placeholder="Selecione uma categoria..." /></SelectTrigger>
+                  <SelectContent>{analysisThemes.map(theme => <SelectItem key={theme.id} value={theme.id}>{theme.name}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              {specializationsForSelectedTheme.length > 0 && (
+                <div>
+                  <Label className="font-semibold text-foreground mb-2 block">2. Especialização (Opcional)</Label>
+                  <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
+                    <SelectTrigger><SelectValue placeholder="Todas as especializações" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as Especializações</SelectItem>
+                      {specializationsForSelectedTheme.map(spec => <SelectItem key={spec.id} value={spec.id}>{spec.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-      {!selectedTheme ? (
-        <div className="text-center py-20">
-          <p className="text-muted-foreground">Selecione uma categoria de análise para comparar o desempenho da equipe.</p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Painel de Comparação</CardTitle>
+              <CardDescription>Selecione a base e com quem comparar.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {selectedMembers.map(member => (
+                <div
+                  key={member.id_usuario}
+                  className={cn(
+                    "p-3 rounded-lg border transition-all cursor-pointer",
+                    baseMemberId === member.id_usuario
+                      ? "bg-primary/10 border-primary shadow-sm"
+                      : "hover:bg-muted/50"
+                  )}
+                  onClick={() => setBaseMemberId(member.id_usuario)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-9 h-9">
+                        <AvatarFallback className="bg-muted text-foreground font-semibold">
+                          {getInitials(member.nome)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-sm">{member.nome}</p>
+                        <p className="text-xs text-muted-foreground">{member.cargo_nome}</p>
+                      </div>
+                    </div>
+                    {baseMemberId !== member.id_usuario && (
+                      <Checkbox
+                        checked={comparedMemberIds.includes(member.id_usuario)}
+                        onCheckedChange={() => handleToggleComparedMember(member.id_usuario)}
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
-      ) : comparisonData.relevantCompetencyNames.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-muted-foreground">Nenhum dado de avaliação encontrado para os membros selecionados nesta categoria.</p>
+
+        {/* Painel de Visualização (Direita) */}
+        <div className="lg:col-span-2">
+          <Card className="h-full min-h-[600px] flex flex-col">
+            <CardHeader>
+              <CardTitle>Gráfico de Comparação de Competências</CardTitle>
+              <CardDescription>
+                {comparisonData.baseMember ? `Analisando ${comparisonData.baseMember.nome}` : "Selecione um membro base"}
+                {comparisonData.comparedMembers.length > 0 && ` vs ${comparisonData.comparedMembers.map(m => m.nome).join(', ')}`}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1">
+              {!selectedTheme ? (
+                <div className="h-full flex items-center justify-center text-center text-muted-foreground">
+                  <p>Selecione uma categoria de análise para começar.</p>
+                </div>
+              ) : comparisonData.chartData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-center text-muted-foreground">
+                  <p>Nenhum dado de avaliação encontrado para a seleção atual.</p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={comparisonData.chartData} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
+                    <PolarGrid stroke="hsl(var(--border))" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11 }} />
+                    <PolarRadiusAxis angle={90} domain={[0, 4]} tickCount={5} />
+                    <RechartsTooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ paddingTop: '40px' }} />
+                    
+                    <Radar name="Perfil Ideal" dataKey="ideal" stroke="hsl(var(--accent))" fill="hsl(var(--accent))" fillOpacity={0.1} />
+                    
+                    {comparisonData.baseMember && (
+                      <Radar
+                        name={comparisonData.baseMember.nome}
+                        dataKey={comparisonData.baseMember.id_usuario}
+                        stroke={colors[0]}
+                        fill={colors[0]}
+                        fillOpacity={0.4}
+                      />
+                    )}
+                    
+                    {comparisonData.comparedMembers.map((member, index) => (
+                      <Radar
+                        key={member.id_usuario}
+                        name={member.nome}
+                        dataKey={member.id_usuario}
+                        stroke={colors[index + 1]}
+                        fill={colors[index + 1]}
+                        fillOpacity={0.4}
+                      />
+                    ))}
+                  </RadarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {selectedMembers.map((member, index) => (
-            <ComparisonMemberCard
-              key={member.id_usuario}
-              member={member}
-              radarData={comparisonData.memberData[member.id_usuario] || []}
-              color={colors[index % colors.length]}
-            />
-          ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 }
