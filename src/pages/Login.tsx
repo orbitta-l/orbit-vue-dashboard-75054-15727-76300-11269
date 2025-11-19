@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import LeftPanel from "@/components/login/LeftPanel";
+import { supabase } from "@/lib/supabaseClient"; // Importando o cliente Supabase
 import "./LoginPage.css";
 
-// === Fundo animado de estrelas ===
+// === Fundo animado de estrelas (sem alterações) ===
 function StarsBackground() {
   const [stars, setStars] = useState<
     { id: number; top: number; left: number; delay: number; duration: number }[]
@@ -55,7 +56,7 @@ function StarsBackground() {
   );
 }
 
-// === Painel direito com formulário de login ===
+// === Painel direito com formulário de login e redefinição de senha ===
 function RightPanel() {
   const navigate = useNavigate();
   const { login, profile } = useAuth();
@@ -63,33 +64,19 @@ function RightPanel() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
-  // O redirecionamento automático para usuários logados foi removido daqui.
-  // Agora, se um usuário logado acessar /login, ele verá o formulário.
+  const [view, setView] = useState<'login' | 'reset'>('login');
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       const { success } = await login(email, password);
-
       if (success) {
         toast({
           title: "Login realizado com sucesso!",
           description: "Redirecionando para seu dashboard...",
         });
-        // Após o login bem-sucedido, redireciona para o dashboard apropriado
-        if (profile) { // Verifica o perfil após o login
-          const dashboard =
-            profile.role === "LIDER"
-              ? "/dashboard-lider"
-              : "/dashboard-liderado";
-          navigate(dashboard, { replace: true });
-        } else {
-          // Fallback caso o perfil não esteja imediatamente disponível (improvável)
-          navigate("/dashboard-lider", { replace: true }); 
-        }
+        // O redirecionamento é tratado pelo AuthContext
       } else {
         toast({
           variant: "destructive",
@@ -108,60 +95,87 @@ function RightPanel() {
     }
   };
 
+  const handlePasswordResetRequest = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/set-new-password`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Verifique seu e-mail",
+        description: "Se uma conta com este e-mail existir, um link para redefinição de senha foi enviado.",
+      });
+      setView('login'); // Volta para a tela de login
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao solicitar redefinição",
+        description: error.message || "Não foi possível processar sua solicitação.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <section className="right-panel z-10">
       <div className="form-container bg-white/90 backdrop-blur-md shadow-2xl rounded-2xl p-8">
-        <h2 className="text-2xl font-bold text-[#1A2A46] mb-6 text-center">
-          Acessar plataforma
-        </h2>
-
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="seu.email@exemplo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-              className="w-[320px]" // 🔹 caixa mais larga
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="password">Senha</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoading}
-              className="w-[320px]" // 🔹 caixa mais larga
-            />
-          </div>
-
-          <a href="#" className="forgot-password text-sm text-gray-600">
-            Esqueceu sua senha?
-          </a>
-
-          <Button
-            type="submit"
-            className="w-full bg-[#1A2A46] hover:bg-[#111A29] text-white rounded-full py-3 font-semibold transition-all"
-            disabled={isLoading}
-          >
-            {isLoading ? "Entrando..." : "Entrar"}
-          </Button>
-        </form>
+        {view === 'login' ? (
+          <>
+            <h2 className="text-2xl font-bold text-[#1A2A46] mb-6 text-center">
+              Acessar plataforma
+            </h2>
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" placeholder="seu.email@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} className="w-[320px]" />
+              </div>
+              <div>
+                <Label htmlFor="password">Senha</Label>
+                <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} className="w-[320px]" />
+              </div>
+              <div className="text-right">
+                <button type="button" onClick={() => setView('reset')} className="text-sm text-gray-600 hover:text-primary transition-colors">
+                  Esqueceu sua senha?
+                </button>
+              </div>
+              <Button type="submit" className="w-full bg-[#1A2A46] hover:bg-[#111A29] text-white rounded-full py-3 font-semibold transition-all" disabled={isLoading}>
+                {isLoading ? "Entrando..." : "Entrar"}
+              </Button>
+            </form>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl font-bold text-[#1A2A46] mb-2 text-center">
+              Redefinir Senha
+            </h2>
+            <p className="text-center text-muted-foreground text-sm mb-6">
+              Digite seu e-mail para receber o link de redefinição.
+            </p>
+            <form onSubmit={handlePasswordResetRequest} className="space-y-5">
+              <div>
+                <Label htmlFor="reset-email">Email</Label>
+                <Input id="reset-email" type="email" placeholder="seu.email@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} className="w-[320px]" />
+              </div>
+              <Button type="submit" className="w-full bg-[#1A2A46] hover:bg-[#111A29] text-white rounded-full py-3 font-semibold transition-all" disabled={isLoading}>
+                {isLoading ? "Enviando..." : "Enviar Link de Redefinição"}
+              </Button>
+              <Button variant="link" type="button" onClick={() => setView('login')} className="w-full text-gray-600">
+                Voltar para o login
+              </Button>
+            </form>
+          </>
+        )}
       </div>
     </section>
   );
 }
 
-// === Página completa ===
+// === Página completa (sem alterações) ===
 export default function LoginPage() {
   const slogan = (
     <>

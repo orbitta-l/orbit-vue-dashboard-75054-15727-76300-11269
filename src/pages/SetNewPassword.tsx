@@ -1,6 +1,5 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +10,6 @@ import { supabase } from '@/lib/supabaseClient';
 
 export default function SetNewPassword() {
   const navigate = useNavigate();
-  const { profile, updateFirstLoginStatus, logout } = useAuth();
   const { toast } = useToast();
 
   const [newPassword, setNewPassword] = useState('');
@@ -19,19 +17,39 @@ export default function SetNewPassword() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
+
+  useEffect(() => {
+    // O Supabase Auth Helper trata o evento 'PASSWORD_RECOVERY'
+    // e cria uma sessão temporária. Verificamos se isso aconteceu.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setHasToken(true);
+      }
+    });
+
+    // Verifica se o token já está na URL ao carregar a página
+    if (window.location.hash.includes('access_token')) {
+      setHasToken(true);
+    }
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!profile?.id_usuario) {
+    if (!hasToken) {
       toast({
         variant: 'destructive',
-        title: 'Erro de autenticação',
-        description: 'Não foi possível identificar seu perfil. Por favor, faça login novamente.',
+        title: 'Token inválido ou expirado',
+        description: 'Por favor, solicite um novo link de redefinição de senha.',
       });
-      logout();
-      navigate('/login', { replace: true });
+      setIsLoading(false);
+      navigate('/login');
       return;
     }
 
@@ -56,32 +74,17 @@ export default function SetNewPassword() {
     }
 
     try {
-      // 1. Atualizar a senha no sistema de autenticação do Supabase
-      const { error: updateAuthError } = await supabase.auth.updateUser({
+      const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
 
-      if (updateAuthError) {
-        throw updateAuthError;
-      }
+      if (error) throw error;
 
-      // 2. Atualizar o status first_login na tabela public.usuario
-      // Usamos o retorno para garantir que o perfil foi atualizado no contexto
-      const { success: updateStatusSuccess, updatedProfile, error: updateStatusError } = await updateFirstLoginStatus(profile.id_usuario);
-
-      if (!updateStatusSuccess || !updatedProfile) {
-        throw new Error(updateStatusError || 'Falha ao atualizar status de primeiro login.');
-      }
-
-      // 3. Feedback de sucesso e redirecionamento
       toast({
         title: 'Senha atualizada com sucesso!',
-        description: 'Você será redirecionado para o seu dashboard.',
+        description: 'Você já pode fazer login com sua nova senha.',
       });
-      
-      // Redireciona após o sucesso garantido
-      const dashboard = updatedProfile.role === 'LIDER' ? '/dashboard-lider' : '/dashboard-liderado';
-      navigate(dashboard, { replace: true });
+      navigate('/login', { replace: true });
 
     } catch (error: any) {
       console.error('Erro ao definir nova senha:', error);
@@ -104,7 +107,7 @@ export default function SetNewPassword() {
           </div>
           <CardTitle className="text-2xl font-bold">Definir Nova Senha</CardTitle>
           <CardDescription>
-            Esta é a sua primeira vez acessando. Por favor, defina uma nova senha segura.
+            Crie uma nova senha segura para acessar sua conta.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -166,7 +169,7 @@ export default function SetNewPassword() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Salvando...' : 'Definir Senha'}
+              {isLoading ? 'Salvando...' : 'Definir Senha e Acessar'}
             </Button>
           </form>
         </CardContent>
