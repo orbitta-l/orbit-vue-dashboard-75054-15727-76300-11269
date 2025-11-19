@@ -3,6 +3,7 @@ import { Cargo, Categoria, Especializacao, Competencia } from "@/types/mer";
 // ============ CATÁLOGOS BASE (ESTÁTICOS) ============
 
 export const MOCK_CARGOS: Cargo[] = [
+  { id_cargo: "cargo_tech_lead", nome_cargo: "Tech Lead", descricao: "Líder técnico de equipe", ativo: true },
   { id_cargo: "cargo_estagiario", nome_cargo: "Estagiário", descricao: "Nível inicial", ativo: true },
   { id_cargo: "cargo_especialista_i", nome_cargo: "Especialista I", descricao: "Nível especialista", ativo: true },
   { id_cargo: "cargo_junior", nome_cargo: "Desenvolvedor Júnior", descricao: "Nível júnior", ativo: false },

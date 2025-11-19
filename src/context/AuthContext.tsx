@@ -267,6 +267,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         lider_id: dbProfile.lider_id ? String(dbProfile.lider_id) : null,
         first_login: dbProfile.first_login,
       };
+
+      // Adiciona a lógica para associar o cargo de Tech Lead ao LÍDER
+      if (appProfile.role === "LIDER") {
+        appProfile.id_cargo = "cargo_tech_lead";
+      }
+
       setProfile(appProfile);
 
       const targetDashboard =
@@ -531,4 +537,3 @@ export function useAuth() {
   }
   return context;
 }
-
