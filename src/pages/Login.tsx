@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import LeftPanel from "@/components/login/LeftPanel";
-import { supabase } from "@/lib/supabaseClient"; // Importando o cliente Supabase
+import { supabase } from "@/lib/supabaseClient";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { MailCheck } from "lucide-react";
 import "./LoginPage.css";
 
 // === Fundo animado de estrelas (sem alterações) ===
@@ -56,15 +58,17 @@ function StarsBackground() {
   );
 }
 
-// === Painel direito com formulário de login e redefinição de senha ===
+// === Painel direito com formulário de login e modal de redefinição de senha ===
 function RightPanel() {
-  const navigate = useNavigate();
-  const { login, profile } = useAuth();
+  const { login } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [view, setView] = useState<'login' | 'reset'>('login');
+  const [isResetLoading, setIsResetLoading] = useState(false);
+  const [dialogView, setDialogView] = useState<'form' | 'success'>('form');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -76,7 +80,6 @@ function RightPanel() {
           title: "Login realizado com sucesso!",
           description: "Redirecionando para seu dashboard...",
         });
-        // O redirecionamento é tratado pelo AuthContext
       } else {
         toast({
           variant: "destructive",
@@ -97,19 +100,13 @@ function RightPanel() {
 
   const handlePasswordResetRequest = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsResetLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/set-new-password`,
       });
-
       if (error) throw error;
-
-      toast({
-        title: "Verifique seu e-mail",
-        description: "Se uma conta com este e-mail existir, um link para redefinição de senha foi enviado.",
-      });
-      setView('login'); // Volta para a tela de login
+      setDialogView('success');
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -117,59 +114,80 @@ function RightPanel() {
         description: error.message || "Não foi possível processar sua solicitação.",
       });
     } finally {
-      setIsLoading(false);
+      setIsResetLoading(false);
+    }
+  };
+
+  const onDialogChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setTimeout(() => {
+        setDialogView('form');
+        setResetEmail('');
+      }, 300);
     }
   };
 
   return (
     <section className="right-panel z-10">
       <div className="form-container bg-white/90 backdrop-blur-md shadow-2xl rounded-2xl p-8">
-        {view === 'login' ? (
-          <>
-            <h2 className="text-2xl font-bold text-[#1A2A46] mb-6 text-center">
-              Acessar plataforma
-            </h2>
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="seu.email@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} className="w-[320px]" />
-              </div>
-              <div>
-                <Label htmlFor="password">Senha</Label>
-                <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} className="w-[320px]" />
-              </div>
-              <div className="text-right">
-                <button type="button" onClick={() => setView('reset')} className="text-sm text-gray-600 hover:text-primary transition-colors">
+        <h2 className="text-2xl font-bold text-[#1A2A46] mb-6 text-center">
+          Acessar plataforma
+        </h2>
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" placeholder="seu.email@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} className="w-[320px]" />
+          </div>
+          <div>
+            <Label htmlFor="password">Senha</Label>
+            <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} className="w-[320px]" />
+          </div>
+          <div className="text-right">
+            <Dialog open={isDialogOpen} onOpenChange={onDialogChange}>
+              <DialogTrigger asChild>
+                <button type="button" className="text-sm text-gray-600 hover:text-primary transition-colors">
                   Esqueceu sua senha?
                 </button>
-              </div>
-              <Button type="submit" className="w-full bg-[#1A2A46] hover:bg-[#111A29] text-white rounded-full py-3 font-semibold transition-all" disabled={isLoading}>
-                {isLoading ? "Entrando..." : "Entrar"}
-              </Button>
-            </form>
-          </>
-        ) : (
-          <>
-            <h2 className="text-2xl font-bold text-[#1A2A46] mb-2 text-center">
-              Redefinir Senha
-            </h2>
-            <p className="text-center text-muted-foreground text-sm mb-6">
-              Digite seu e-mail para receber o link de redefinição.
-            </p>
-            <form onSubmit={handlePasswordResetRequest} className="space-y-5">
-              <div>
-                <Label htmlFor="reset-email">Email</Label>
-                <Input id="reset-email" type="email" placeholder="seu.email@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoading} className="w-[320px]" />
-              </div>
-              <Button type="submit" className="w-full bg-[#1A2A46] hover:bg-[#111A29] text-white rounded-full py-3 font-semibold transition-all" disabled={isLoading}>
-                {isLoading ? "Enviando..." : "Enviar Link de Redefinição"}
-              </Button>
-              <Button variant="link" type="button" onClick={() => setView('login')} className="w-full text-gray-600">
-                Voltar para o login
-              </Button>
-            </form>
-          </>
-        )}
+              </DialogTrigger>
+              <DialogContent>
+                {dialogView === 'form' ? (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle>Redefinir Senha</DialogTitle>
+                      <DialogDescription>
+                        Digite seu e-mail para receber o link de redefinição.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handlePasswordResetRequest} className="space-y-4 pt-4">
+                      <div>
+                        <Label htmlFor="reset-email">Email</Label>
+                        <Input id="reset-email" type="email" placeholder="seu.email@exemplo.com" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} required disabled={isResetLoading} />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={isResetLoading}>
+                        {isResetLoading ? "Enviando..." : "Enviar Link de Redefinição"}
+                      </Button>
+                    </form>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <MailCheck className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-foreground">Link enviado!</h3>
+                    <p className="text-muted-foreground mt-2">
+                      Verifique sua caixa de entrada (e a pasta de spam) para encontrar o link de redefinição.
+                    </p>
+                    <DialogClose asChild>
+                      <Button className="mt-6 w-full">Fechar</Button>
+                    </DialogClose>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
+          <Button type="submit" className="w-full bg-[#1A2A46] hover:bg-[#111A29] text-white rounded-full py-3 font-semibold transition-all" disabled={isLoading}>
+            {isLoading ? "Entrando..." : "Entrar"}
+          </Button>
+        </form>
       </div>
     </section>
   );

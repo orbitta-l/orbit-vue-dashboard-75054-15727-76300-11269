@@ -1,143 +1,130 @@
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Lock } from 'lucide-react';
+import { Eye, EyeOff, Lock, CheckCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
+import logo from '@/assets/logo.png';
+
+const passwordSchema = z.object({
+  newPassword: z.string().min(8, 'A senha deve ter no mínimo 8 caracteres.'),
+  confirmPassword: z.string(),
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: 'As senhas não coincidem.',
+  path: ['confirmPassword'],
+});
+
+type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export default function SetNewPassword() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [hasToken, setHasToken] = useState(false);
 
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<PasswordFormData>({
+    resolver: zodResolver(passwordSchema),
+    mode: 'onBlur',
+  });
+
+  const watchedPassword = watch('newPassword');
+
   useEffect(() => {
-    // O Supabase Auth Helper trata o evento 'PASSWORD_RECOVERY'
-    // e cria uma sessão temporária. Verificamos se isso aconteceu.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setHasToken(true);
       }
     });
-
-    // Verifica se o token já está na URL ao carregar a página
     if (window.location.hash.includes('access_token')) {
       setHasToken(true);
     }
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: PasswordFormData) => {
     setIsLoading(true);
-
     if (!hasToken) {
       toast({
         variant: 'destructive',
         title: 'Token inválido ou expirado',
-        description: 'Por favor, solicite um novo link de redefinição de senha.',
+        description: 'Por favor, solicite um novo link de redefinição.',
       });
       setIsLoading(false);
       navigate('/login');
       return;
     }
 
-    if (newPassword.length < 8) {
-      toast({
-        variant: 'destructive',
-        title: 'Senha muito curta',
-        description: 'A nova senha deve ter no mínimo 8 caracteres.',
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      toast({
-        variant: 'destructive',
-        title: 'Senhas não coincidem',
-        description: 'A nova senha e a confirmação não correspondem.',
-      });
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
+      const { error } = await supabase.auth.updateUser({ password: data.newPassword });
       if (error) throw error;
-
-      toast({
-        title: 'Senha atualizada com sucesso!',
-        description: 'Você já pode fazer login com sua nova senha.',
-      });
-      navigate('/login', { replace: true });
-
+      setIsSuccess(true);
+      setTimeout(() => navigate('/login', { replace: true }), 3000);
     } catch (error: any) {
-      console.error('Erro ao definir nova senha:', error);
       toast({
         variant: 'destructive',
         title: 'Erro ao definir nova senha',
-        description: error.message || 'Ocorreu um erro inesperado. Tente novamente.',
+        description: error.message || 'Ocorreu um erro. Tente novamente.',
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (isSuccess) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="p-8">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-foreground">Senha Alterada!</h2>
+            <p className="text-muted-foreground mt-2">
+              Sua senha foi atualizada com sucesso. Redirecionando para o login...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Lock className="h-6 w-6" />
-          </div>
+          <img src={logo} alt="Orbitta Logo" className="w-24 mx-auto mb-4" />
           <CardTitle className="text-2xl font-bold">Definir Nova Senha</CardTitle>
           <CardDescription>
             Crie uma nova senha segura para acessar sua conta.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
               <Label htmlFor="new-password">Nova Senha</Label>
               <div className="relative mt-1">
                 <Input
                   id="new-password"
                   type={showNewPassword ? 'text' : 'password'}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Mínimo de 8 caracteres"
-                  required
+                  {...register('newPassword')}
                   disabled={isLoading}
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                >
-                  {showNewPassword ? (
-                    <EyeOff className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <Eye className="w-4 h-4 text-muted-foreground" />
-                  )}
+                <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 hover:bg-transparent" onClick={() => setShowNewPassword(!showNewPassword)}>
+                  {showNewPassword ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4 text-muted-foreground" />}
                 </Button>
               </div>
+              <PasswordStrengthIndicator password={watchedPassword} />
+              {errors.newPassword && <p className="text-sm text-destructive mt-1">{errors.newPassword.message}</p>}
             </div>
 
             <div>
@@ -146,26 +133,15 @@ export default function SetNewPassword() {
                 <Input
                   id="confirm-password"
                   type={showConfirmPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirme sua nova senha"
-                  required
+                  {...register('confirmPassword')}
                   disabled={isLoading}
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <Eye className="w-4 h-4 text-muted-foreground" />
-                  )}
+                <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-3 hover:bg-transparent" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  {showConfirmPassword ? <EyeOff className="w-4 h-4 text-muted-foreground" /> : <Eye className="w-4 h-4 text-muted-foreground" />}
                 </Button>
               </div>
+              {errors.confirmPassword && <p className="text-sm text-destructive mt-1">{errors.confirmPassword.message}</p>}
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
