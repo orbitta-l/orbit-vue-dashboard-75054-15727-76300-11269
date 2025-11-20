@@ -19,7 +19,7 @@ import {
   CartesianGrid,
   Tooltip
 } from "recharts";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,19 +28,13 @@ import { StrategicSummaryCard } from "@/components/StrategicSummaryCard";
 import { QuickInsights } from "@/components/QuickInsights";
 
 export default function DashboardLiderado() {
-  const { profile, logout, lideradoDashboardData, loading, fetchLideradoDashboardData } = useAuth();
+  const { profile, logout, lideradoDashboardData, loading } = useAuth();
   const navigate = useNavigate();
   
   const hasData = !!lideradoDashboardData && !!lideradoDashboardData.ultima_avaliacao;
   
   const [activeSkillTab, setActiveSkillTab] = useState<"all" | "soft" | "hard">("all");
   const [selectedHardCategory, setSelectedHardCategory] = useState<string>("all");
-
-  useEffect(() => {
-    if (profile?.role === 'LIDERADO' && profile.id_usuario && !profile.first_login) {
-      fetchLideradoDashboardData(Number(profile.id_usuario));
-    }
-  }, [profile?.id_usuario, profile?.role, profile?.first_login, fetchLideradoDashboardData]);
 
   const handleLogout = () => {
     logout();
