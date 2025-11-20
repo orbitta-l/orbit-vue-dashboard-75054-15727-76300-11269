@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/context/AuthContext";
 import { getGapColor, getGapColorClass } from "@/utils/colorUtils";
 import { toast } from "@/hooks/use-toast";
+import { softSkillTemplates } from "@/data/evaluationTemplates";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,7 +57,19 @@ export default function MemberDetail() {
     new Set(hardSkills.filter(c => c.especializacao_nome).map(c => c.especializacao_nome!))
   );
 
-  const softSkillsRadarData = softSkills.map(c => ({
+  const cargoTemplate = useMemo(
+    () => softSkillTemplates.find((t) => t.id_cargo === liderado.id_cargo),
+    [liderado.id_cargo],
+  );
+
+  const weightMap = useMemo(
+    () => new Map(cargoTemplate?.competencias.map((c) => [c.id_competencia, c.peso ?? 0]) || []),
+    [cargoTemplate],
+  );
+
+  const softSkillsRadarData = softSkills
+    .filter((c) => (weightMap.get(c.id_competencia) || 0) > 0)
+    .map(c => ({
     competency: c.nome_competencia,
     atual: c.pontuacao_1a4,
     ideal: 4.0,
