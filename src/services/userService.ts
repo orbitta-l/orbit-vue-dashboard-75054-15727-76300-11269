@@ -84,17 +84,9 @@ export interface UpdateFirstLoginResult {
 
 export async function updateFirstLoginStatusOnUsuarioTable(): Promise<UpdateFirstLoginResult> {
   try {
-    // 1. Obter o usuário autenticado atual para pegar o ID
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      throw new Error(userError?.message || "Usuário não autenticado. Não é possível atualizar o status.");
-    }
-
-    // 2. Chamar a função RPC passando o ID do usuário como argumento
-    const { error } = await supabase.rpc('clear_first_login_flag', {
-      p_auth_uid: user.id
-    });
+    // A chamada agora é direta, sem argumentos.
+    // A função no banco de dados usará o auth.uid() da sessão do usuário.
+    const { error } = await supabase.rpc('clear_first_login_flag');
 
     if (error) {
       throw error;
