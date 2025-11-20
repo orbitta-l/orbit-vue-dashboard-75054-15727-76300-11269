@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Lock, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 import logo from '@/assets/logo.png';
+import { useAuth } from '@/context/AuthContext';
 
 const passwordSchema = z.object({
   newPassword: z.string().min(8, 'A senha deve ter no mínimo 8 caracteres.'),
@@ -26,6 +27,7 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 export default function SetNewPassword() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile, updateFirstLoginStatus } = useAuth();
 
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -65,9 +67,31 @@ export default function SetNewPassword() {
       return;
     }
 
+    if (!profile?.id_usuario) {
+      toast({
+        variant: 'destructive',
+        title: 'Sessão inválida',
+        description: 'Não foi possível identificar seu perfil. Por favor, faça login novamente.',
+      });
+      setIsLoading(false);
+      navigate('/login');
+      return;
+    }
+
     try {
-      const { error } = await supabase.auth.updateUser({ password: data.newPassword });
-      if (error) throw error;
+      const { error: updateError } = await supabase.auth.updateUser({ password: data.newPassword });
+      if (updateError) throw updateError;
+
+      const { success, error: flagError } = await updateFirstLoginStatus(profile.id_usuario);
+      if (!success) {
+        console.error("Failed to update first_login status:", flagError);
+        toast({
+          variant: 'destructive',
+          title: 'Aviso Importante',
+          description: 'Sua senha foi alterada, mas houve um problema ao finalizar seu primeiro acesso. Por favor, contate o suporte se o problema persistir.',
+        });
+      }
+
       setIsSuccess(true);
       setTimeout(() => navigate('/login', { replace: true }), 3000);
     } catch (error: any) {
