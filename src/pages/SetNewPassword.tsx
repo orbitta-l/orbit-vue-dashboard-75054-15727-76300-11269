@@ -73,7 +73,7 @@ export default function SetNewPassword() {
       const { error: updateError } = await supabase.auth.updateUser({ password: data.newPassword });
       if (updateError) throw updateError;
 
-      const { success, error: flagError } = await updateFirstLoginStatus(profile.id_usuario);
+      const { success, error: flagError } = await updateFirstLoginStatus();
       if (!success) {
         console.error("Failed to update first_login status:", flagError);
         toast({

@@ -82,14 +82,9 @@ export interface UpdateFirstLoginResult {
   updatedProfile?: Usuario;
 }
 
-export async function updateFirstLoginStatusOnUsuarioTable(
-  userId: string,
-): Promise<UpdateFirstLoginResult> {
+export async function updateFirstLoginStatusOnUsuarioTable(): Promise<UpdateFirstLoginResult> {
   try {
-    const { error } = await supabase
-      .from("usuario")
-      .update({ first_login: false })
-      .eq("id", Number(userId));
+    const { error } = await supabase.rpc('clear_first_login_flag');
 
     if (error) {
       throw error;
@@ -99,7 +94,7 @@ export async function updateFirstLoginStatusOnUsuarioTable(
   } catch (e: any) {
     return {
       success: false,
-      error: e?.message || "Erro ao atualizar first_login na tabela usuario.",
+      error: e?.message || "Erro ao finalizar o primeiro login.",
     };
   }
 }
@@ -111,4 +106,3 @@ export async function getMyProfileRow() {
 
   return { data, error };
 }
-
