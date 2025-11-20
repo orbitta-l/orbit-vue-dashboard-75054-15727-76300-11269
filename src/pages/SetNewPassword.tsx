@@ -27,13 +27,12 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 export default function SetNewPassword() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { profile, updateFirstLoginStatus } = useAuth();
+  const { profile, updateFirstLoginStatus, loading: authLoading } = useAuth();
 
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [hasToken, setHasToken] = useState(false);
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
@@ -42,31 +41,22 @@ export default function SetNewPassword() {
 
   const watchedPassword = watch('newPassword');
 
+  // Passo 1: Proteção de Rota. Se o usuário já definiu a senha, redireciona.
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setHasToken(true);
-      }
-    });
-    if (window.location.hash.includes('access_token')) {
-      setHasToken(true);
+    if (!authLoading && profile && profile.first_login === false) {
+      toast({
+        title: 'Acesso não necessário',
+        description: 'Sua senha já foi definida. Redirecionando para o dashboard.',
+      });
+      const dashboardPath = profile.role === 'LIDER' ? '/dashboard-lider' : '/dashboard-liderado';
+      navigate(dashboardPath, { replace: true });
     }
-    return () => subscription.unsubscribe();
-  }, []);
+  }, [profile, authLoading, navigate, toast]);
 
   const onSubmit = async (data: PasswordFormData) => {
     setIsLoading(true);
-    if (!hasToken) {
-      toast({
-        variant: 'destructive',
-        title: 'Token inválido ou expirado',
-        description: 'Por favor, solicite um novo link de redefinição.',
-      });
-      setIsLoading(false);
-      navigate('/login');
-      return;
-    }
 
+    // A verificação de perfil ainda é importante para garantir que a sessão está ativa.
     if (!profile?.id_usuario) {
       toast({
         variant: 'destructive',
@@ -79,6 +69,7 @@ export default function SetNewPassword() {
     }
 
     try {
+      // Passo 3: A chamada de atualização de senha agora funciona, pois confia na sessão ativa.
       const { error: updateError } = await supabase.auth.updateUser({ password: data.newPassword });
       if (updateError) throw updateError;
 
@@ -93,7 +84,6 @@ export default function SetNewPassword() {
       }
 
       setIsSuccess(true);
-      // **CORREÇÃO:** Redireciona para o dashboard do liderado, não para o login.
       setTimeout(() => navigate('/dashboard-liderado', { replace: true }), 3000);
     } catch (error: any) {
       toast({
@@ -113,7 +103,6 @@ export default function SetNewPassword() {
           <CardContent className="p-8">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-foreground">Senha Alterada com Sucesso!</h2>
-            {/* **MELHORIA DE UX:** Mensagem clara sobre o próximo passo. */}
             <p className="text-muted-foreground mt-2">
               Tudo pronto! Estamos preparando seu dashboard e redirecionando você em instantes.
             </p>
