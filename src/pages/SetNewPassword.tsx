@@ -27,7 +27,7 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 export default function SetNewPassword() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { profile, updateFirstLoginStatus, loading: authLoading } = useAuth();
+  const { profile, updateFirstLoginStatus, loading: authLoading, session } = useAuth();
 
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -41,7 +41,6 @@ export default function SetNewPassword() {
 
   const watchedPassword = watch('newPassword');
 
-  // Passo 1: Proteção de Rota. Se o usuário já definiu a senha, redireciona.
   useEffect(() => {
     if (!authLoading && profile && profile.first_login === false) {
       toast({
@@ -56,24 +55,24 @@ export default function SetNewPassword() {
   const onSubmit = async (data: PasswordFormData) => {
     setIsLoading(true);
 
-    // A verificação de perfil ainda é importante para garantir que a sessão está ativa.
-    if (!profile?.id_usuario) {
+    if (!session?.user?.id) {
       toast({
         variant: 'destructive',
         title: 'Sessão inválida',
-        description: 'Não foi possível identificar seu perfil. Por favor, faça login novamente.',
+        description: 'Não foi possível identificar seu usuário. Por favor, faça login novamente.',
       });
       setIsLoading(false);
       navigate('/login');
       return;
     }
+    
+    const authUid = session.user.id;
 
     try {
-      // Passo 3: A chamada de atualização de senha agora funciona, pois confia na sessão ativa.
       const { error: updateError } = await supabase.auth.updateUser({ password: data.newPassword });
       if (updateError) throw updateError;
 
-      const { success, error: flagError } = await updateFirstLoginStatus();
+      const { success, error: flagError } = await updateFirstLoginStatus(authUid);
       if (!success) {
         console.error("Failed to update first_login status:", flagError);
         toast({

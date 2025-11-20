@@ -76,7 +76,7 @@ interface AuthContextType {
     maturidade?: NivelMaturidade | "N/A";
     error?: string;
   }>;
-  updateFirstLoginStatus: () => Promise<{
+  updateFirstLoginStatus: (authUid: string) => Promise<{
     success: boolean;
     error?: string;
     updatedProfile?: Usuario;
@@ -211,9 +211,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateFirstLoginStatus = useCallback(
-    async () => {
+    async (authUid: string) => {
       try {
-        const result = await updateFirstLoginStatusOnUsuarioTable();
+        const result = await updateFirstLoginStatusOnUsuarioTable(authUid);
         if (!result.success) {
           throw new Error(
             result.error || "Falha ao atualizar status de primeiro login.",

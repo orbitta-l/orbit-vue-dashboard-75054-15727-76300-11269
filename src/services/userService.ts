@@ -82,11 +82,9 @@ export interface UpdateFirstLoginResult {
   updatedProfile?: Usuario;
 }
 
-export async function updateFirstLoginStatusOnUsuarioTable(): Promise<UpdateFirstLoginResult> {
+export async function updateFirstLoginStatusOnUsuarioTable(authUid: string): Promise<UpdateFirstLoginResult> {
   try {
-    // A chamada agora é direta, sem argumentos.
-    // A função no banco de dados usará o auth.uid() da sessão do usuário.
-    const { error } = await supabase.rpc('clear_first_login_flag');
+    const { error } = await supabase.rpc('clear_first_login_flag', { p_auth_uid: authUid });
 
     if (error) {
       throw error;
