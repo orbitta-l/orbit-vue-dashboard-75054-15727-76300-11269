@@ -69,21 +69,24 @@ export default function SetNewPassword() {
     const authUid = session.user.id;
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({ password: data.newPassword });
-      if (updateError) throw updateError;
-
+      // 1. ATUALIZAR O STATUS `first_login` PRIMEIRO
       const { success, error: flagError } = await updateFirstLoginStatus(authUid);
       if (!success) {
-        console.error("Failed to update first_login status:", flagError);
-        toast({
-          variant: 'destructive',
-          title: 'Aviso Importante',
-          description: 'Sua senha foi alterada, mas houve um problema ao finalizar seu primeiro acesso. Por favor, contate o suporte se o problema persistir.',
-        });
+        // Se isso falhar, não podemos continuar. A senha não será alterada.
+        throw new Error(flagError || "Não foi possível finalizar seu primeiro acesso. A senha não foi alterada.");
       }
 
+      // 2. DEPOIS, ATUALIZAR A SENHA
+      const { error: updateError } = await supabase.auth.updateUser({ password: data.newPassword });
+      if (updateError) {
+        // Se a atualização da senha falhar, o usuário precisará usar o fluxo "Esqueci minha senha".
+        throw updateError;
+      }
+
+      // Se ambos forem bem-sucedidos:
       setIsSuccess(true);
       setTimeout(() => navigate('/dashboard-liderado', { replace: true }), 3000);
+
     } catch (error: any) {
       toast({
         variant: 'destructive',
