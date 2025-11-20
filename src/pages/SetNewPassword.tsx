@@ -93,7 +93,8 @@ export default function SetNewPassword() {
       }
 
       setIsSuccess(true);
-      setTimeout(() => navigate('/login', { replace: true }), 3000);
+      // **CORREÇÃO:** Redireciona para o dashboard do liderado, não para o login.
+      setTimeout(() => navigate('/dashboard-liderado', { replace: true }), 3000);
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -111,9 +112,10 @@ export default function SetNewPassword() {
         <Card className="w-full max-w-md text-center">
           <CardContent className="p-8">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-foreground">Senha Alterada!</h2>
+            <h2 className="text-2xl font-bold text-foreground">Senha Alterada com Sucesso!</h2>
+            {/* **MELHORIA DE UX:** Mensagem clara sobre o próximo passo. */}
             <p className="text-muted-foreground mt-2">
-              Sua senha foi atualizada com sucesso. Redirecionando para o login...
+              Tudo pronto! Estamos preparando seu dashboard e redirecionando você em instantes.
             </p>
           </CardContent>
         </Card>
