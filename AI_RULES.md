@@ -39,3 +39,5 @@ To maintain a clean, efficient, and consistent codebase, please follow these gui
     *   Utility functions should be in `src/utils/`.
     *   Custom React hooks should be in `src/hooks/`.
     *   Always create a new file for each new component or hook, no matter how small.
+
+

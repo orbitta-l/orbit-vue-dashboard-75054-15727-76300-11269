@@ -280,6 +280,40 @@ export default function DashboardLiderado() {
           </Card>
         ) : (
           <div className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-accent" />Resumo Rápido
+                </CardTitle>
+                <CardDescription>Seus números essenciais em um só lugar.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="p-4 rounded-lg border border-border bg-muted/20">
+                    <p className="text-sm text-muted-foreground">Competências avaliadas</p>
+                    <p className="text-3xl font-bold text-foreground">
+                      {lideradoDashboardData?.competencias.length || 0}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-lg border border-border bg-muted/20">
+                    <p className="text-sm text-muted-foreground">Última Avaliação</p>
+                    <p className="text-lg font-semibold text-foreground">
+                      {lideradoDashboardData?.ultima_avaliacao?.data_avaliacao
+                        ? formatDistanceToNow(
+                            lideradoDashboardData.ultima_avaliacao.data_avaliacao,
+                            { addSuffix: true, locale: ptBR },
+                          )
+                        : "N/A"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {lideradoDashboardData?.ultima_avaliacao?.data_avaliacao
+                        ? lideradoDashboardData.ultima_avaliacao.data_avaliacao.toLocaleDateString("pt-BR")
+                        : ""}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             <Card className="border-primary/30 bg-gradient-to-r from-primary/10 via-background to-background shadow-lg">
               <CardHeader>
                 <div className="flex justify-between items-start gap-4 flex-col md:flex-row">
@@ -288,7 +322,7 @@ export default function DashboardLiderado() {
                     <CardTitle className="text-2xl mt-1 flex items-center gap-2 text-foreground">
                       Seu Próximo Nível: <span className="text-primary">{nextLevelName}</span>
                     </CardTitle>
-                    <CardDescription>Veja seu progresso para chegar lá e foque no que acelera a promoção.</CardDescription>
+                    <CardDescription>Progresso nas competências comportamentais para o próximo nível. Hard Skills aparecem abaixo como estado técnico atual.</CardDescription>
                   </div>
                   <Badge variant="secondary" className="text-primary bg-primary/10">
                     Atual: {lideradoDashboardData?.cargo_nome || "Cargo"}
@@ -377,7 +411,7 @@ export default function DashboardLiderado() {
               </CardContent>
             </Card>
 
-            <div className="grid gap-6 lg:grid-cols-[1.2fr,0.8fr]">
+            <div className="grid gap-6">
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -474,40 +508,6 @@ export default function DashboardLiderado() {
                         strength={dashboardInsights.greatestStrength}
                         improvementArea={dashboardInsights.biggestImprovementArea}
                       />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-accent" />Resumo Rápido
-                  </CardTitle>
-                  <CardDescription>Seus números essenciais em um só lugar.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="p-4 rounded-lg border border-border bg-muted/20">
-                      <p className="text-sm text-muted-foreground">Competências avaliadas</p>
-                      <p className="text-3xl font-bold text-foreground">
-                        {lideradoDashboardData?.competencias.length || 0}
-                      </p>
-                    </div>
-                    <div className="p-4 rounded-lg border border-border bg-muted/20">
-                      <p className="text-sm text-muted-foreground">Última Avaliação</p>
-                      <p className="text-lg font-semibold text-foreground">
-                        {lideradoDashboardData?.ultima_avaliacao?.data_avaliacao
-                          ? formatDistanceToNow(
-                              lideradoDashboardData.ultima_avaliacao.data_avaliacao,
-                              { addSuffix: true, locale: ptBR },
-                            )
-                          : "N/A"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {lideradoDashboardData?.ultima_avaliacao?.data_avaliacao
-                          ? lideradoDashboardData.ultima_avaliacao.data_avaliacao.toLocaleDateString("pt-BR")
-                          : ""}
-                      </p>
                     </div>
                   </div>
                 </CardContent>
