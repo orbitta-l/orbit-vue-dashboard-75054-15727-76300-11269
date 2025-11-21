@@ -97,6 +97,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+  const isRecoveryFlow =
+    location.pathname === "/set-new-password" &&
+    (location.hash.includes("type=recovery") ||
+      location.search.includes("type=recovery"));
 
   const fetchLideradoDashboardData = useCallback(async (lideradoId: number) => {
     const { data, error } = await getLideradoDashboardData(lideradoId);
@@ -274,14 +278,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const currentPath = location.pathname;
 
       if (appProfile.role === "LIDERADO" && appProfile.first_login) {
-        if (currentPath !== targetFirstLogin) {
+        if (currentPath !== targetFirstLogin && !isRecoveryFlow) {
           navigate(targetFirstLogin, { replace: true });
         }
         await fetchLideradoDashboardData(dbProfile.id);
       } else if (
         currentPath === "/login" ||
         currentPath === "/" ||
-        currentPath === "/set-new-password"
+        (currentPath === "/set-new-password" && !isRecoveryFlow)
       ) {
         navigate(targetDashboard, { replace: true });
       }
@@ -305,13 +309,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchProfileAndData(session.user);
       } else {
         setProfile(null);
-        if (
-          location.pathname.startsWith("/dashboard") ||
-          location.pathname.startsWith("/team") ||
-          location.pathname.startsWith("/evaluation") ||
-          location.pathname.startsWith("/settings")
-        ) {
-          navigate("/", { replace: true });
+        // não redireciona se estiver no fluxo de recuperação
+        if (!isRecoveryFlow) {
+          if (
+            location.pathname.startsWith("/dashboard") ||
+            location.pathname.startsWith("/team") ||
+            location.pathname.startsWith("/evaluation") ||
+            location.pathname.startsWith("/settings")
+          ) {
+            navigate("/", { replace: true });
+          }
         }
       }
       setLoading(false);
@@ -331,11 +338,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setPontuacoes([]);
           setMemberXYData([]);
           setLideradoDashboardData(null);
-          if (
-            location.pathname !== "/" &&
-            location.pathname !== "/login"
-          ) {
-            navigate("/", { replace: true });
+          if (!isRecoveryFlow) {
+            if (
+              location.pathname !== "/" &&
+              location.pathname !== "/login"
+            ) {
+              navigate("/", { replace: true });
+            }
           }
         }
       },

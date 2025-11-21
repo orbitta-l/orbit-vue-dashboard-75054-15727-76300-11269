@@ -173,9 +173,35 @@ export default function Team() {
     }, 300);
   };
 
-  const handleCopyPassword = () => {
-    navigator.clipboard.writeText(tempPassword);
-    toast({ title: "Senha copiada!" });
+  const handleCopyPassword = async () => {
+    if (!tempPassword) {
+      toast({ variant: "destructive", title: "Nenhuma senha disponível para copiar." });
+      return;
+    }
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(tempPassword);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = tempPassword;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      toast({ title: "Senha temporária copiada" });
+    } catch (err: any) {
+      console.error("Falha ao copiar senha temporária:", err);
+      toast({
+        variant: "destructive",
+        title: "Não foi possível copiar",
+        description: "Copie manualmente a senha exibida.",
+      });
+    }
   };
 
   const FilterSidebar = () => (
