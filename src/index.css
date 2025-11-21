@@ -87,62 +87,61 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 227 60% 9%;
-    --foreground: 0 0% 100%;
+  --background: 227 60% 9%;
+  --foreground: 0 0% 100%; /* Todo texto branco */
 
-    --card: 227 50% 15%;
-    --card-foreground: 0 0% 100%;
+  --card: 227 50% 15%;
+  --card-foreground: 0 0% 100%;
 
-    --popover: 227 50% 15%;
-    --popover-foreground: 0 0% 100%;
+  --popover: 227 50% 15%;
+  --popover-foreground: 0 0% 100%;
 
-    --primary: 219 98% 23%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 215 90% 65%; /* New light blue */
+  /* Laranja de destaque principal: #E89F7D (24, 72%, 70%) */
+  --primary: 24 72% 70%;
+  --primary-foreground: 0 0% 100%;
+  --primary-light: 24 72% 80%;
 
-    --secondary: 227 40% 25%;
-    --secondary-foreground: 0 0% 100%;
+  /* Títulos, subtítulos, ícones, status, perfil, liderados: #E89F7D */
+  --secondary: 24 72% 70%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 24 72% 70%;
+  --muted-foreground: 0 0% 100%;
+  --accent: 24 72% 70%;
+  --accent-foreground: 0 0% 100%;
+  --icon-color: 24 72% 70%;
 
-    --muted: 227 40% 25%;
-    --muted-foreground: 90 2% 81%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+  --destructive-muted: 0 70% 65%;
 
-    --accent: 21 60% 68%;
-    --accent-foreground: 227 60% 9%;
+  --border: 24 72% 70%;
+  --input: 24 72% 70%;
+  --ring: 24 72% 70%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
-    --destructive-muted: 0 70% 65%; /* New muted red for dark mode */
-
-    --border: 227 40% 25%;
-    --input: 227 40% 25%;
-    --ring: 219 98% 23%;
-    
-    --icon-color: 21 60% 68%;
-
-    /* Dark mode adjustments for Sidebar */
+    /* Sidebar: laranja como cor de destaque */
     --sidebar-background: 227 60% 9%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 219 98% 23%;
+    --sidebar-primary: 21 90% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 227 50% 15%;
+    --sidebar-accent: 21 60% 40%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 227 40% 25%;
-    --sidebar-ring: 219 98% 23%;
+    --sidebar-border: 21 60% 40%;
+    --sidebar-ring: 21 90% 55%;
 
-    /* Dark mode adjustments for Accent Orange Palette */
-    --accent-orange-light: 21 30% 70%;
-    --accent-orange-default: 21 50% 65%;
-    --accent-orange-dark: 21 60% 55%;
-    --accent-orange-darker: 21 70% 45%;
-    --accent-orange-deep: 21 80% 35%;
-    
+    /* Paleta laranja para cargos */
+    --accent-orange-light: 21 40% 80%;
+    --accent-orange-default: 21 58% 71%;
+    --accent-orange-dark: 21 70% 60%;
+    --accent-orange-darker: 21 80% 50%;
+    --accent-orange-deep: 21 90% 40%;
+
     /* NOVAS CORES PARA QUADRANTE M1 e M2 (Dark Mode - Ajustadas para serem mais fortes) */
-    --color-m1-weak: 0 84% 50%; /* Vermelho mais forte (antes 40%) */
-    --color-m2-weak: 45 93% 40%; /* Amarelo mais escuro (antes 50%) */
+    --color-m1-weak: 0 84% 50%;
+    --color-m2-weak: 45 93% 40%;
 
     /* New Score Colors (Dark Mode) */
-    --color-score-blue-gray: 215 20% 55%;
-    --color-score-light-blue: 215 80% 65%;
+    --color-score-blue-gray: 21 60% 40%; /* Laranja escuro para score */
+    --color-score-light-blue: 21 90% 65%; /* Laranja claro para score */
   }
 }
 
