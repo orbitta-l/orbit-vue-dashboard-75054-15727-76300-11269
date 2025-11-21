@@ -15,7 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { z } from "zod";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SexoTipo, LideradoDashboard, NivelMaturidade } from "@/types/mer";
+import { LideradoDashboard, NivelMaturidade } from "@/types/mer";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 import { MOCK_CARGOS } from "@/data/mockData";
 import { Checkbox } from "@/components/ui/checkbox";

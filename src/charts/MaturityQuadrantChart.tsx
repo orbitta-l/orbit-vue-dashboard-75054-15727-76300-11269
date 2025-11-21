@@ -38,8 +38,8 @@ const QUADRANT_LABELS: Record<NivelMaturidade, string> = {
   M4: "Expect",
 };
 
-const getTextColor = (maturity: NivelMaturidade) => 'text-white';
-const getCountTextColor = (maturity: NivelMaturidade) => 'text-white';
+const getTextColor = (_maturity: NivelMaturidade) => 'text-white';
+const getCountTextColor = (_maturity: NivelMaturidade) => 'text-white';
 const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
 function useDebounce(value: string, delay: number) {
@@ -87,7 +87,7 @@ export default function MaturityQuadrantChart({ teamMembers, empty = false }: Co
   const evaluatedMembers = useMemo(() => teamMembers.filter(member => member.nivel_maturidade !== 'N/A'), [teamMembers]);
   const filteredMembers = useMemo(() => evaluatedMembers.filter(member => member.nome_liderado.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || member.cargo.toLowerCase().includes(debouncedSearchTerm.toLowerCase())), [evaluatedMembers, debouncedSearchTerm]);
   const quadrantCounts = useMemo(() => filteredMembers.reduce((acc, member) => {
-    const key = member.nivel_maturidade;
+    const key = member.nivel_maturidade as NivelMaturidade;
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {} as Record<NivelMaturidade, number>), [filteredMembers]);

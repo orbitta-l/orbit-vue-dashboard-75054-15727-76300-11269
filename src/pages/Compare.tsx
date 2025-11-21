@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates";
 import { MOCK_COMPETENCIAS } from "@/data/mockData";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
+// removed unused `cn`
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { ComparisonFilters } from "@/components/ComparisonFilters"; // Importando o novo componente de filtros
 

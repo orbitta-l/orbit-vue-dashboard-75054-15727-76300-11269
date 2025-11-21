@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '@/assets/logo.png';
 import Features from "@/components/Features";
@@ -7,17 +7,10 @@ import Navbars from "@/components/Navbar"
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [isScrolled, setIsScrolled] = useState(false);
   // Removidos currentLeaderIndex e currentEmployeeIndex, pois Features gerencia seu próprio estado
   // e os arrays leaderFeatures e employeeFeatures não são mais definidos aqui.
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // scroll listener removed as `isScrolled` state was unused
 
   useEffect(() => {
     const starContainer = document.getElementById('stars');

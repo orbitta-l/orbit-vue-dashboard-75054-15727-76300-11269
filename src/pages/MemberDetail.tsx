@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowLeft, User, Mail, Briefcase, Target, Award, Filter, Trash2, ClipboardCheck } from "lucide-react";
+import { ArrowLeft, Mail, Briefcase, Filter, Trash2, ClipboardCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

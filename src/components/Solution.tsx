@@ -25,7 +25,7 @@ const solutions = [
   },
 ];
 
-const SolutionCard = ({ solution, index }: { solution: typeof solutions[0]; index: number }) => {
+const SolutionCard = ({ solution, index: _index }: { solution: typeof solutions[0]; index: number }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const Icon = solution.icon;
 

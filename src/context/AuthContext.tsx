@@ -79,7 +79,7 @@ interface AuthContextType {
   updateFirstLoginStatus: (authUid: string) => Promise<{
     success: boolean;
     error?: string;
-    updatedProfile?: Usuario;
+    updatedProfile?: Usuario | null;
   }>;
 }
 
@@ -220,19 +220,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           );
         }
 
-        let updatedProfile: Usuario | null = null;
-        setProfile((prev) => {
-          if (prev) {
-            updatedProfile = { ...prev, first_login: false };
-            return updatedProfile;
-          }
-          return null;
-        });
+        // Atualiza o estado de perfil de forma previsível e utilizável
+        const updatedProfile: Usuario | null = profile ? { ...profile, first_login: false } : null;
+        setProfile(updatedProfile);
 
         if (updatedProfile && updatedProfile.role === "LIDERADO") {
-          await fetchLideradoDashboardData(
-            Number(updatedProfile.id_usuario),
-          );
+          await fetchLideradoDashboardData(Number(updatedProfile.id_usuario));
         }
 
         return { success: true, updatedProfile };
@@ -245,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    const fetchProfileAndData = async (user: User) => {
+    const fetchProfileAndData = async (_user: User) => {
       const { data: profileData, error: profileError } =
         await getMyProfileRow();
 

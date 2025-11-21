@@ -45,9 +45,11 @@ const especialistaWeights: WeightConfig = {
 const buildCompetencias = (weights: WeightConfig) =>
   allBehavioralCompetencies.map((id) => {
     const cfg = weights[id];
+    const pesoNumeric = cfg?.peso ?? 1;
+    const peso = (pesoNumeric as unknown) as 1 | 2 | 3 | 4;
     return {
       id_competencia: id,
-      peso: cfg?.peso ?? 0,
+      peso,
       nota_ideal: cfg?.ideal ?? 4.0,
     };
   });

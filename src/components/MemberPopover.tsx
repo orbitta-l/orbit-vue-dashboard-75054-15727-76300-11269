@@ -1,7 +1,7 @@
 import React from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { X, ArrowRight, Code, HeartHandshake } from 'lucide-react';
+import { ArrowRight, Code, HeartHandshake } from 'lucide-react';
 import { NivelMaturidade } from '@/types/mer';
 import { cn } from '@/lib/utils'; // Importando cn para combinar classes
 

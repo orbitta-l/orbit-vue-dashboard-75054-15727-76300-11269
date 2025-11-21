@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge"; // Mantendo Badge para outros usos
+// import { Badge } from "@/components/ui/badge"; // removido import não usado
 
 type BarItem = { 
   competencia: string; 
@@ -186,7 +186,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                   </SelectTrigger>
                   <SelectContent>
                     {availableCategories.map(cat => (
-                      <SelectItem key={cat} value={cat}>
+                      <SelectItem key={cat} value={cat as string}>
                         {cat === 'all' ? 'Todas as Categorias' : cat}
                       </SelectItem>
                     ))}
@@ -204,7 +204,7 @@ export default function CompetencyBarsChart({ empty = false, data, defaultMode =
                     </SelectTrigger>
                     <SelectContent>
                       {availableSpecializations.map(spec => (
-                        <SelectItem key={spec} value={spec}>{spec === 'all' ? 'Todas as Especializações' : spec}</SelectItem>
+                        <SelectItem key={spec} value={spec as string}>{spec === 'all' ? 'Todas as Especializações' : spec}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

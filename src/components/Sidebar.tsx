@@ -1,4 +1,4 @@
-import { Home, Users, ClipboardCheck, LogOut, Settings, Mail, Briefcase, User as UserIcon, Calendar } from "lucide-react";
+import { Home, Users, ClipboardCheck, LogOut, Settings, Mail } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";

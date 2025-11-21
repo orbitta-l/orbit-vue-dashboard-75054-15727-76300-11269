@@ -13,7 +13,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { softSkillTemplates, technicalTemplate } from "@/data/evaluationTemplates";
-import { LideradoDashboard } from "@/types/mer";
+// import { LideradoDashboard } from "@/types/mer"; // unused
 import { MOCK_COMPETENCIAS } from "@/data/mockData";
 import { DashboardHeader } from "@/components/DashboardHeader";
 
